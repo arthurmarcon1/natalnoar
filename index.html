@@ -1,0 +1,940 @@
+<title>Natal no Ar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,400;1,6..96,600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: revista de moda em coluna única no celular; capa = conteúdo pronto num post de carrossel; barra de pedido fixa embaixo. */
+:root{
+  --paper:#FBF4F6; --surface:#FFFFFF; --blush:#F4DCE4; --line:#E7CBD5;
+  --ink:#2B0F24; --muted:#7A5670;
+  --cherry:#B0123C; --cherry-ink:#FFFFFF; --plum:#5A1D4B; --gold:#9A6E22;
+  --ok:#1E7A4F; --err:#B0123C;
+  --phone:#140810; --ig-bg:#FFFFFF; --ig-ink:#141414; --ig-muted:#737373;
+  --chat-bg:#EFE6E0; --bubble-in:#FFFFFF; --bubble-out:#DDF7D3; --chat-ink:#1B1B1B; --chat-meta:#6E7B83;
+  --display:"Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --body:"Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#170A14; --surface:#22111E; --blush:#33182C; --line:#4A2440;
+  --ink:#F8EAF0; --muted:#C29BB5;
+  --cherry:#FF4F78; --cherry-ink:#2A0614; --plum:#E3A9D2; --gold:#E2BA72;
+  --ok:#5ED39A; --err:#FF7C98;
+  --phone:#05020A; --ig-bg:#000000; --ig-ink:#F5F5F5; --ig-muted:#A8A8A8;
+  --chat-bg:#0E1A20; --bubble-in:#1F2C33; --bubble-out:#0B5A49; --chat-ink:#E9EDEF; --chat-meta:#8FA2AC;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#170A14; --surface:#22111E; --blush:#33182C; --line:#4A2440;
+  --ink:#F8EAF0; --muted:#C29BB5;
+  --cherry:#FF4F78; --cherry-ink:#2A0614; --plum:#E3A9D2; --gold:#E2BA72;
+  --ok:#5ED39A; --err:#FF7C98;
+  --phone:#05020A; --ig-bg:#000000; --ig-ink:#F5F5F5; --ig-muted:#A8A8A8;
+  --chat-bg:#0E1A20; --bubble-in:#1F2C33; --bubble-out:#0B5A49; --chat-ink:#E9EDEF; --chat-meta:#8FA2AC;
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body);padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-weight:500;line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1 em,h2 em,h3 em{font-style:italic;color:var(--cherry)}
+p{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--cherry);outline-offset:3px;border-radius:6px}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.hint{font-size:.88rem;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;border-radius:99px;padding:2px 9px;white-space:nowrap}
+.tag.demo{color:var(--gold)}
+.tag.hot{color:var(--cherry-ink);background:var(--cherry);border-color:var(--cherry)}
+.tag.save{color:var(--ok)}
+
+/* topo */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.brand{font-family:var(--display);font-size:1.45rem;font-style:italic;font-weight:600;text-decoration:none;letter-spacing:-.02em;white-space:nowrap}
+.brand b{font-style:normal;font-weight:700;color:var(--cherry)}
+.top-right{display:flex;align-items:center;gap:10px;min-width:0}
+@media (max-width:420px){.top-right .tag.demo{display:none}}
+.cart-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:600;font-size:.9rem;border:1px solid var(--line);border-radius:99px;padding:6px 12px;background:var(--surface)}
+.cart-link span{background:var(--cherry);color:var(--cherry-ink);border-radius:99px;min-width:20px;height:20px;padding:0 5px;display:inline-grid;place-items:center;font-size:.75rem}
+
+/* botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:99px;padding:15px 24px;font-weight:600;font-size:1rem;text-decoration:none;cursor:pointer;background:var(--cherry);color:var(--cherry-ink);transition:transform .15s ease, filter .15s ease}
+.btn:hover{filter:brightness(1.06)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.sm{padding:9px 16px;font-size:.9rem}
+.btn.block{width:100%}
+.btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.link{background:none;border:0;padding:0;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--cherry)}
+
+/* capa */
+.hero{padding-block:28px 40px;display:grid;gap:28px;align-items:center}
+@media (min-width:860px){.hero{grid-template-columns:1.1fr .9fr;padding-block:56px 64px}}
+.hero h1{font-size:clamp(3rem,12vw,6.2rem)}
+.hero .lede{font-size:1.12rem;max-width:36ch;margin-top:16px;color:var(--muted)}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:12px 18px;margin-top:24px;align-items:center}
+.kit{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
+.kit span{font-size:.82rem;font-weight:600;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 11px}
+.hero-stage{display:flex;justify-content:center;position:relative}
+.sched{position:absolute;right:max(0px,calc(50% - 230px));bottom:28px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.8rem;box-shadow:0 18px 30px -18px rgba(90,29,75,.5);display:none}
+.sched b{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--cherry)}
+@media (min-width:500px){.sched{display:block}}
+
+/* celular */
+.phone{width:min(300px,100%);aspect-ratio:9/18.5;background:var(--phone);border-radius:38px;padding:10px;box-shadow:0 30px 60px -25px rgba(90,29,75,.55);position:relative;flex:none;max-width:100%}
+.phone .screen{position:relative;width:100%;height:100%;border-radius:29px;overflow:hidden;background:var(--ig-bg)}
+.phone .notch{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:84px;height:22px;background:var(--phone);border-radius:99px;z-index:5}
+
+/* post de carrossel */
+.ig{position:absolute;inset:0;display:flex;flex-direction:column;color:var(--ig-ink);font-size:13px;line-height:1.35;background:var(--ig-bg)}
+.ig-top{padding:46px 12px 8px;font-weight:700;font-size:16px;font-family:var(--display);font-style:italic}
+.ig-head{display:flex;align-items:center;gap:8px;padding:6px 12px}
+.av{width:30px;height:30px;border-radius:50%;background:var(--cherry);display:grid;place-items:center;font-family:var(--display);font-style:italic;font-weight:600;color:#fff;flex:none;box-shadow:0 0 0 2px var(--ig-bg),0 0 0 3.5px #C13584}
+.ig-head b{font-size:13px}
+.ig-head small{display:block;color:var(--ig-muted);font-size:11px}
+.slides{position:relative;aspect-ratio:4/5;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:18px;gap:8px;transition:transform .45s ease}
+.slide .big{font-family:var(--display);font-style:italic;font-size:1.9rem;line-height:1;text-wrap:balance}
+.slide.cover{background:linear-gradient(155deg,#B0123C,#5A1D4B);color:#fff}
+.slide.prod{background:#F4DCE4;color:#2B0F24;align-items:center;text-align:center}
+.slide.prod .art{width:58%;aspect-ratio:1}
+.slide.prod .art svg{width:100%;height:100%}
+.slide.prod b{font-family:var(--display);font-size:1.3rem}
+.slide.prod span{font-weight:700}
+.slide.prod small{background:#fff;border-radius:99px;padding:2px 10px;font-size:11px;font-weight:600}
+.slide.cta{background:#2B0F24;color:#fff}
+.slide .counter{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;border-radius:99px;padding:2px 8px}
+.ig-bar{display:flex;align-items:center;gap:12px;padding:8px 12px 4px}
+.ig-bar i{width:20px;height:20px;border:2px solid var(--ig-ink);border-radius:50%}
+.ig-dots{flex:1;display:flex;justify-content:center;gap:4px;margin-right:64px}
+.ig-dots button{width:6px;height:6px;border-radius:50%;border:0;padding:0;background:var(--ig-muted);opacity:.45;cursor:pointer}
+.ig-dots button.on{background:#0095F6;opacity:1}
+.ig-cap{padding:2px 12px;font-size:12.5px}
+.ig-cap b{font-weight:700}
+.ig-cap .more{color:var(--ig-muted)}
+
+/* reel */
+.reel{position:absolute;inset:0;color:#fff;background:linear-gradient(160deg,#6E1440 0%,#2A0A22 70%)}
+.reel .scene{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:56px 22px 90px;gap:14px;opacity:0;transition:opacity .5s ease}
+.reel .scene.on{opacity:1}
+.reel .big,.st-frame .big{font-family:var(--display);font-style:italic;font-size:2rem;line-height:1.02;text-wrap:balance}
+.reel .sub{font-size:14px;opacity:.85}
+.reel .pill{align-self:flex-start;background:#fff;color:#2B0F24;border-radius:99px;padding:8px 14px;font-weight:700;font-size:13px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.pick{border-radius:7px;overflow:hidden;background:rgba(255,255,255,.14);text-align:center;font-size:10.5px}
+.pick .art{aspect-ratio:1;display:grid;place-items:center}
+.pick .art svg{width:60%;height:60%}
+.pick div:last-child{padding:3px 2px 4px;font-weight:600}
+.reel-ui{position:absolute;left:14px;right:60px;bottom:16px;font-size:12px;z-index:3}
+.reel-ui b{display:block;font-size:13px}
+.reel-side{position:absolute;right:12px;bottom:70px;display:flex;flex-direction:column;gap:14px;font-size:11px;text-align:center;z-index:3}
+.reel-side i{display:block;width:26px;height:26px;border-radius:50%;border:2px solid #fff;margin:0 auto 3px}
+.reel-top{position:absolute;top:46px;left:16px;font-weight:700;z-index:3;font-size:15px}
+.reel-dots{position:absolute;top:50px;right:14px;display:flex;gap:4px;z-index:3}
+.reel-dots button{width:8px;height:8px;border-radius:50%;border:0;background:rgba(255,255,255,.4);padding:0;cursor:pointer}
+.reel-dots button.on{background:#fff}
+
+/* stories */
+.stories{position:absolute;inset:0;color:#fff;background:#5A1D4B}
+.st-bars{position:absolute;top:40px;left:12px;right:12px;display:flex;gap:4px;z-index:4}
+.st-bars span{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden}
+.st-bars span i{display:block;height:100%;width:0;background:#fff}
+.st-bars span.done i{width:100%}
+.st-bars span.now i{animation:fill var(--dur,4s) linear forwards}
+@keyframes fill{to{width:100%}}
+.st-who{position:absolute;top:52px;left:14px;display:flex;align-items:center;gap:8px;z-index:4;font-size:12.5px;font-weight:600}
+.st-who .av{width:26px;height:26px;font-size:12px;box-shadow:none}
+.st-frame{position:absolute;inset:0;padding:96px 20px 40px;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center}
+.poll{background:#fff;color:#2B0F24;border-radius:14px;padding:10px;display:grid;gap:6px;font-weight:700;font-size:14px}
+.poll div{border:1.5px solid #E8D5DE;border-radius:10px;padding:8px}
+.slider{background:#fff;color:#2B0F24;border-radius:14px;padding:14px;font-weight:700}
+.slider .track{height:8px;border-radius:9px;background:linear-gradient(90deg,#F4DCE4,#B0123C);margin:10px 0 6px;position:relative}
+.slider .track i{position:absolute;left:58%;top:50%;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid #B0123C;transform:translate(-50%,-50%)}
+.slider small{display:flex;justify-content:space-between;font-size:12px;color:#7A5670}
+.st-link{align-self:center;background:#fff;color:#0F6E5A;border-radius:10px;padding:10px 16px;font-weight:700;font-size:14px}
+.st-tap{position:absolute;inset:0;display:grid;grid-template-columns:1fr 2fr;z-index:3}
+.st-tap button{background:none;border:0;cursor:pointer}
+
+/* painéis de legendas e calendário */
+.sheet{width:100%;max-width:440px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px}
+.cap-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--paper)}
+.cap-card .eyebrow{display:block;margin-bottom:6px}
+.cap-card p{font-size:.94rem;white-space:pre-line}
+.cap-card .tags{color:var(--muted);font-size:.85rem;margin-top:6px}
+.cal{list-style:none;margin:0;padding:0;display:grid}
+.cal li{display:grid;grid-template-columns:54px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.cal li:first-child{border-top:0}
+.cal .d{text-align:center;line-height:1.05}
+.cal .d small{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.cal .d b{font-family:var(--display);font-size:1.6rem}
+.cal .what{min-width:0}
+.cal .what b{display:block;font-size:.95rem}
+.chip{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;margin-right:6px}
+.chip.carrossel{background:var(--blush);color:var(--cherry)}
+.chip.video{background:var(--ink);color:var(--paper)}
+.chip.stories{border:1.5px solid var(--plum);color:var(--plum)}
+
+/* seções */
+section.block{padding-block:40px;border-top:1px solid var(--line)}
+#exemplos{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 64px)}
+.sec-head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:10px 12px;margin-bottom:22px}
+.sec-head h2{font-size:clamp(2rem,7vw,3rem)}
+.sec-head p{color:var(--muted);max-width:44ch}
+
+.packs{display:grid;gap:14px}
+@media (min-width:860px){.packs{grid-template-columns:repeat(3,1fr);align-items:start}}
+.pack{display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;min-width:0}
+.pack.star{border:2px solid var(--cherry)}
+.pack .head{display:flex;justify-content:space-between;align-items:start;gap:10px}
+.pack h3{font-size:2.3rem}
+.pack .call{color:var(--muted)}
+.pack ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.pack li{display:grid;grid-template-columns:32px 1fr;gap:6px;align-items:baseline}
+.pack li b{font-family:var(--display);font-size:1.25rem;color:var(--cherry);text-align:right}
+.price{font-family:var(--display);font-size:2.2rem;font-weight:700;line-height:1}
+.was{text-decoration:line-through;color:var(--muted);font-size:.95rem;margin-right:6px}
+.promo-line{font-size:.88rem;color:var(--ok);font-weight:600}
+.pack .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto}
+
+.promos{display:grid;gap:10px}
+@media (min-width:760px){.promos{grid-template-columns:repeat(2,1fr)}}
+.promo{display:flex;gap:14px;align-items:center;border:1.5px dashed var(--cherry);border-radius:var(--r);padding:14px 16px;background:var(--surface)}
+.promo .pct{font-family:var(--display);font-style:italic;font-weight:600;font-size:2rem;color:var(--cherry);line-height:1;min-width:64px;text-align:center}
+.promo b{display:block}
+.promo span{color:var(--muted);font-size:.9rem}
+
+.items{display:grid;gap:10px}
+@media (min-width:760px){.items{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1000px){.items{grid-template-columns:repeat(3,1fr)}}
+.item{display:flex;flex-direction:column;gap:6px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-width:0}
+.item h3{font-size:1.5rem}
+.item p{color:var(--muted);font-size:.93rem;flex:1}
+.item .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+
+.themes{display:grid;gap:12px}
+@media (min-width:760px){.themes{grid-template-columns:repeat(3,1fr)}}
+.theme{padding:18px 0;border-top:2px solid var(--ink)}
+.theme h3{font-size:1.7rem;font-style:italic}
+.theme p{color:var(--muted);margin-top:6px;font-size:.95rem}
+.theme small{display:block;margin-top:8px;font-weight:600;font-size:.82rem}
+
+.steps{display:grid;gap:12px;counter-reset:s;padding:0;margin:0;list-style:none}
+@media (min-width:760px){.steps{grid-template-columns:repeat(4,1fr)}}
+.steps li{counter-increment:s;padding:16px 0;border-top:2px solid var(--ink)}
+.steps li::before{content:counter(s);font-family:var(--display);font-style:italic;font-size:2rem;color:var(--cherry);display:block;line-height:1;margin-bottom:6px}
+.steps b{display:block}
+.steps span{color:var(--muted);font-size:.93rem}
+
+/* exemplos */
+.tabs{display:flex;gap:6px;margin:0 0 18px;overflow-x:auto;padding-bottom:4px}
+.tabs button{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:9px 16px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.demo{display:grid;gap:24px;align-items:center}
+@media (min-width:760px){.demo{grid-template-columns:auto 1fr}}
+.demo > .phone{margin:0 auto}
+.demo-note h3{font-size:1.9rem}
+.demo-note p{color:var(--muted);margin-top:8px;max-width:44ch}
+.demo-note ul{margin:14px 0 0;padding-left:20px;display:grid;gap:6px}
+
+/* detalhe */
+.detail-head{padding-block:24px 18px}
+.back{font-weight:600;text-decoration:none;font-size:.92rem;color:var(--muted)}
+.detail-head h1{font-size:clamp(3rem,12vw,5.4rem);margin-top:12px}
+.detail-head .goal{font-size:1.1rem;max-width:46ch;margin-top:12px}
+.two{display:grid;gap:14px}
+@media (min-width:760px){.two{grid-template-columns:1fr 1fr}}
+.list-card{border:1px solid var(--line);border-radius:var(--r);padding:20px;background:var(--surface)}
+.list-card h3{font-size:1.7rem;margin-bottom:12px}
+.list-card ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.list-card li{display:grid;grid-template-columns:22px 1fr;gap:8px}
+.list-card li::before{content:"";width:10px;height:10px;margin-top:7px;border-radius:50%;background:var(--cherry)}
+.list-card.team li::before{background:transparent;border:2px solid var(--plum)}
+.facts{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:18px;font-size:.92rem}
+.facts div{min-width:0}
+.facts b{display:block;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* pedido */
+.page-head{padding-block:24px 18px}
+.page-head h1{font-size:clamp(2.6rem,10vw,4.2rem)}
+.page-head p{color:var(--muted);margin-top:8px}
+.stepper{display:flex;flex-wrap:wrap;gap:6px;font-size:.78rem;font-weight:600;margin-bottom:14px;color:var(--muted)}
+.stepper span{padding:3px 10px;border-radius:99px;border:1px solid var(--line)}
+.stepper span.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.order{display:grid;gap:24px;align-items:start}
+@media (min-width:860px){.order{grid-template-columns:minmax(0,1fr) 340px}}
+.group-title{font-family:var(--display);font-size:1.6rem;margin:6px 0 4px}
+.group-hint{color:var(--muted);font-size:.9rem;margin-bottom:12px}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:16px;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;margin-bottom:10px}
+.opt.on{border-color:var(--cherry);box-shadow:0 0 0 3px color-mix(in srgb,var(--cherry) 16%,transparent)}
+.opt input{width:22px;height:22px;accent-color:var(--cherry);margin:0}
+.opt b{display:block;font-size:1.05rem}
+.opt small{color:var(--muted);display:block;line-height:1.35;margin-top:2px}
+.opt .p{font-weight:700;white-space:nowrap;text-align:right}
+.opt .p small{color:var(--ok);font-weight:600}
+.opt.off{opacity:.5;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chips label{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:99px;padding:8px 14px;cursor:pointer;background:var(--surface);font-weight:600;font-size:.92rem}
+.chips label.on{border-color:var(--cherry);background:var(--blush)}
+.chips input{accent-color:var(--cherry);margin:0}
+.qty-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;align-items:center;padding:14px 16px;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surface);margin-bottom:10px}
+.qty-row.on{border-color:var(--cherry)}
+.qty-row b{display:block}
+.qty-row small{display:block;color:var(--muted);line-height:1.35}
+.qty-row .inc{color:var(--ok);font-weight:600}
+.qty{display:inline-flex;align-items:center;border:1.5px solid var(--ink);border-radius:99px;overflow:hidden}
+.qty button{width:40px;height:40px;border:0;background:transparent;font-size:1.25rem;font-weight:600;cursor:pointer}
+.qty button:disabled{opacity:.3;cursor:not-allowed}
+.qty output{min-width:28px;text-align:center;font-weight:700}
+.qty-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.qty-side .p{font-weight:700;font-size:.9rem;white-space:nowrap}
+.summary{border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:20px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px)}
+.summary h2{font-size:1.7rem;margin-bottom:12px}
+.lines{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.lines li{display:flex;justify-content:space-between;gap:12px;font-size:.95rem}
+.lines li > span:first-child{min-width:0}
+.lines li > span:last-child{white-space:nowrap}
+.lines .kind{display:block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lines .sub{display:block;color:var(--muted);font-size:.82rem}
+.lines li.disc{color:var(--ok);font-weight:600}
+.lines li.subtotal{border-top:1px solid var(--line);padding-top:8px}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);margin-top:14px;padding-top:12px}
+.total b{font-family:var(--display);font-size:2rem}
+.saving{margin-top:8px;color:var(--ok);font-weight:600;font-size:.92rem}
+.flash{animation:flash .5s ease}
+@keyframes flash{0%{color:var(--cherry);transform:scale(1.06)}100%{transform:none}}
+.empty{color:var(--muted);font-size:.95rem}
+
+/* formulário */
+form.data{display:grid;gap:16px;max-width:560px}
+.field label{display:block;font-weight:600;margin-bottom:6px}
+.field label small{font-weight:400;color:var(--muted)}
+.field input{width:100%;font:inherit;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.field input:focus{outline:none;border-color:var(--cherry);box-shadow:0 0 0 3px color-mix(in srgb,var(--cherry) 18%,transparent)}
+.field.bad input{border-color:var(--err)}
+.field .err{color:var(--err);font-size:.88rem;margin-top:5px;font-weight:500}
+.field .hint{margin-top:5px}
+
+/* resumo */
+.receipt{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:620px}
+.receipt h2{font-size:1.8rem}
+.receipt dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:14px 0 0}
+.receipt dt{color:var(--muted)}
+.receipt dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.receipt hr{border:0;border-top:1px dashed var(--line);margin:18px 0}
+.msg-preview{white-space:pre-wrap;font-size:.86rem;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px;max-height:340px;overflow:auto;user-select:all;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.notice{border:1.5px dashed var(--gold);border-radius:12px;padding:12px 14px;font-size:.93rem}
+.notice b{color:var(--gold)}
+.final{display:grid;gap:10px;margin-top:18px;max-width:620px}
+
+/* barra fixa */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);color:var(--paper);padding-bottom:env(safe-area-inset-bottom,0px)}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.bar .t{min-width:0}
+.bar .t small{display:block;font-size:.72rem;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .t b{font-family:var(--display);font-size:1.5rem;font-weight:700}
+.bar .btn{padding:13px 20px;flex:none}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:10px 18px;font-weight:600;font-size:.92rem;z-index:40;box-shadow:0 10px 30px -10px rgba(0,0,0,.35);max-width:calc(100% - 32px);text-align:center}
+footer{padding-block:24px 8px;color:var(--muted);font-size:.85rem}
+
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio">Natal <b>no</b> Ar</a>
+    <div class="top-right">
+      <span class="tag demo">Valores de demonstração</span>
+      <a class="cart-link" href="#pedido" aria-label="Ver pedido">Pedido <span id="cartCount" class="num">0</span></a>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<div class="bar" id="bar"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+// @logic-start
+/* =====================================================================
+   CATÁLOGO E CONFIGURAÇÃO — edite aqui.
+
+   whatsapp   Seu número só com dígitos, com DDI e DDD (ex.: "5555999998888").
+              Deixe "" para o modo demonstração (o botão copia o resumo).
+   itens      Peças vendidas avulsas. "max" é o total por pedido (pacote + extras).
+   pacotes    "itens" diz quantas peças de cada tipo entram. A economia em
+              relação ao avulso é calculada sozinha.
+   temas      Campanhas que o conteúdo pode seguir. O cliente escolhe quantos quiser.
+   promocoes  tipo "percentual": valor = % de desconto; aplicaEm = "pacote",
+              "extras" ou "tudo"; "ate" = último dia (AAAA-MM-DD), opcional.
+              tipo "leve-pague": vale para as peças extras de um item
+              (ex.: leve 3, pague 2). Use ativa:false para desligar.
+   ===================================================================== */
+const CONFIG = {
+  projeto: "Natal no Ar",
+  whatsapp: "",
+  valoresDemonstracao: true,
+  pedidosAte: "12/12",
+  vagas: "Atendemos até 8 lojas por semana",
+  lojaExemplo: { nome: "Ateliê Aurora", instagram: "@atelieaurora" },
+
+  itens: [
+    { id: "carrossel", nome: "Carrossel", unidade: ["carrossel", "carrosséis"], preco: 120, max: 12, disponivel: true,
+      descricao: "Até 6 cards com seus produtos, preços e identidade visual." },
+    { id: "video", nome: "Vídeo curto editado", unidade: ["vídeo editado", "vídeos editados"], preco: 150, max: 6, disponivel: true,
+      descricao: "Reel de até 30 segundos editado com os clipes que a loja gravar." },
+    { id: "legendas", nome: "Pacote de legendas", unidade: ["pacote de legendas", "pacotes de legendas"], preco: 90, max: 1, disponivel: true,
+      descricao: "Legenda pronta para cada post, com chamada para o WhatsApp." },
+    { id: "stories", nome: "Guia de Stories", unidade: ["guia de Stories", "guias de Stories"], preco: 110, max: 1, disponivel: true,
+      descricao: "O que postar nos Stories em cada dia, com enquetes e textos prontos." },
+    { id: "calendario", nome: "Calendário de publicações", unidade: ["calendário de publicações", "calendários de publicações"], preco: 80, max: 1, disponivel: true,
+      descricao: "Dias e horários de cada post até o Natal ou o Réveillon." }
+  ],
+
+  pacotes: [
+    { id: "essencial", nome: "Essencial", preco: 390, disponivel: true,
+      chamada: "O básico para a loja não sumir do feed no fim de ano.",
+      itens: { calendario: 1, carrossel: 3, legendas: 1 },
+      periodo: "Até o Natal", prazo: "Até 4 dias úteis depois de recebermos fotos e preços" },
+    { id: "natal-completo", nome: "Natal Completo", preco: 690, disponivel: true, selo: "Mais pedido",
+      chamada: "Feed, Reels e Stories planejados até o dia 24.",
+      itens: { calendario: 1, carrossel: 4, video: 2, legendas: 1, stories: 1 },
+      periodo: "Até o Natal", prazo: "Até 5 dias úteis depois de recebermos o material" },
+    { id: "natal-reveillon", nome: "Natal + Réveillon", preco: 890, disponivel: true,
+      chamada: "Do presente de Natal ao look da virada, sem pensar em post.",
+      itens: { calendario: 1, carrossel: 6, video: 3, legendas: 1, stories: 1 },
+      periodo: "Até 31/12", prazo: "Natal em até 5 dias úteis; Réveillon entregue até 20/12" }
+  ],
+
+  temas: [
+    { id: "presente-certo", nome: "Presente Certo", descricao: "Sugestões de presente por perfil e faixa de preço, com chamada para pedir ajuda no WhatsApp." },
+    { id: "ultima-chamada", nome: "Última Chamada", descricao: "O prazo real para comprar, entregar ou retirar antes do Natal." },
+    { id: "virada-de-look", nome: "Virada de Look", descricao: "Até 3 looks de Réveillon com chamada para consultar tamanhos e cores." }
+  ],
+
+  promocoes: [
+    { id: "antecipado", ativa: true, tipo: "percentual", valor: 10, aplicaEm: "pacote", ate: "2026-11-20",
+      rotulo: "Pedido antecipado", texto: "10% off em qualquer pacote" },
+    { id: "carrossel-3x2", ativa: true, tipo: "leve-pague", item: "carrossel", leve: 3, pague: 2,
+      rotulo: "Carrossel extra 3 por 2", texto: "Nos carrosséis extras, leve 3 e pague 2" }
+  ],
+
+  lojaFaz: [
+    "Envia fotos dos produtos e a tabela de preços",
+    "Grava clipes curtos no celular, se o pedido tiver vídeo",
+    "Publica seguindo o calendário",
+    "Atende quem chamar no WhatsApp"
+  ]
+};
+
+const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const fmt = v => BRL.format(v).replace(/ /g, " ");
+const round2 = v => Math.round(v * 100) / 100;
+const getItem = id => CONFIG.itens.find(i => i.id === id) || null;
+const getPacote = id => CONFIG.pacotes.find(p => p.id === id) || null;
+const getTema = id => CONFIG.temas.find(t => t.id === id) || null;
+function qtdLabel(item, q) { return `${q} ${q === 1 ? item.unidade[0] : item.unidade[1]}`; }
+function valorAvulso(p) { return Object.entries(p.itens).reduce((s, [id, q]) => s + (getItem(id)?.preco || 0) * q, 0); }
+function economiaPacote(p) { return Math.max(0, valorAvulso(p) - p.preco); }
+function incluso(pacoteId, itemId) { const p = getPacote(pacoteId); return (p && p.itens[itemId]) || 0; }
+function maxExtra(pacoteId, itemId) { const it = getItem(itemId); return it ? Math.max(0, it.max - incluso(pacoteId, itemId)) : 0; }
+
+function isoDay(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function promoVigente(p, hoje) { return p.ativa && (!p.ate || isoDay(hoje) <= p.ate); }
+function promosAtivas(hoje = new Date()) { return CONFIG.promocoes.filter(p => promoVigente(p, hoje)); }
+function dataCurta(iso) { const [, m, d] = iso.split("-"); return `${d}/${m}`; }
+
+/* Deixa o carrinho coerente com o catálogo: remove o que não existe, está indisponível ou passa do limite. */
+function sanitizeCart(cart) {
+  const c = { pacote: null, extras: {}, temas: [] };
+  const p = cart && getPacote(cart.pacote);
+  if (p && p.disponivel) c.pacote = p.id;
+  for (const [id, q] of Object.entries((cart && cart.extras) || {})) {
+    const it = getItem(id);
+    if (!it || !it.disponivel) continue;
+    const n = Math.min(Math.max(0, Math.floor(Number(q) || 0)), maxExtra(c.pacote, id));
+    if (n > 0) c.extras[id] = n;
+  }
+  c.temas = [...new Set((cart && cart.temas) || [])].filter(getTema);
+  return c;
+}
+function setPacote(cart, id) { return sanitizeCart({ ...cart, pacote: id || null }); }
+function addExtra(cart, id, delta) { const ex = { ...cart.extras, [id]: (cart.extras[id] || 0) + delta }; return sanitizeCart({ ...cart, extras: ex }); }
+function toggleTema(cart, id) { const has = cart.temas.includes(id); return sanitizeCart({ ...cart, temas: has ? cart.temas.filter(t => t !== id) : [...cart.temas, id] }); }
+
+function calc(cart, hoje = new Date()) {
+  const pacote = getPacote(cart.pacote);
+  const extras = Object.entries(cart.extras).map(([id, qtd]) => { const item = getItem(id); return { item, qtd, valor: item.preco * qtd }; });
+  const subPacote = pacote ? pacote.preco : 0;
+  const subExtras = extras.reduce((s, e) => s + e.valor, 0);
+  const subtotal = subPacote + subExtras;
+  const descontos = [];
+  for (const pr of promosAtivas(hoje)) {
+    if (pr.tipo === "percentual") {
+      const base = pr.aplicaEm === "pacote" ? subPacote : pr.aplicaEm === "extras" ? subExtras : subtotal;
+      if (base > 0) descontos.push({ promo: pr, valor: round2(base * pr.valor / 100), detalhe: `${pr.valor}% ${pr.aplicaEm === "pacote" ? "no pacote" : pr.aplicaEm === "extras" ? "nas peças extras" : "no pedido"}` });
+    } else if (pr.tipo === "leve-pague") {
+      const e = extras.find(x => x.item.id === pr.item);
+      if (e) { const gratis = Math.floor(e.qtd / pr.leve) * (pr.leve - pr.pague); if (gratis > 0) descontos.push({ promo: pr, valor: round2(gratis * e.item.preco), detalhe: `${gratis} ${gratis === 1 ? e.item.unidade[0] : e.item.unidade[1]} por conta da casa` }); }
+    }
+  }
+  const desconto = round2(descontos.reduce((s, d) => s + d.valor, 0));
+  const total = round2(Math.max(0, subtotal - desconto));
+  const economiaTotal = round2((pacote ? economiaPacote(pacote) : 0) + desconto);
+  const pecas = (pacote ? Object.values(pacote.itens).reduce((a, b) => a + b, 0) : 0) + extras.reduce((s, e) => s + e.qtd, 0);
+  return { pacote, extras, subtotal, descontos, desconto, total, economiaTotal, pecas, vazio: !pacote && !extras.length };
+}
+
+function digits(s) { return String(s || "").replace(/\D/g, ""); }
+function normalizePhone(s) { let d = digits(s); if ((d.length === 12 || d.length === 13) && d.startsWith("55")) d = d.slice(2); return d; }
+function formatPhone(s) {
+  const d = normalizePhone(s);
+  if (d.length === 11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return String(s || "").trim();
+}
+function normalizeInstagram(s) {
+  let v = String(s || "").trim();
+  if (!v) return "";
+  v = v.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, "");
+  return v ? "@" + v : "";
+}
+function validateCustomer(d) {
+  const e = {};
+  if (String(d.nome || "").trim().length < 2) e.nome = "Informe seu nome.";
+  if (!String(d.loja || "").trim()) e.loja = "Informe o nome da loja.";
+  const p = normalizePhone(d.whatsapp);
+  if (!p) e.whatsapp = "Informe o WhatsApp com DDD.";
+  else if (p.length < 10 || p.length > 11 || Number(p.slice(0,2)) < 11) e.whatsapp = "Confira o número: use DDD + número, como (55) 99999-8888.";
+  const ig = normalizeInstagram(d.instagram);
+  if (ig && !/^@[A-Za-z0-9._]{1,30}$/.test(ig)) e.instagram = "Use só o @ da loja, como @sualoja.";
+  return e;
+}
+
+function buildSummary(cart, c, hoje = new Date()) {
+  const r = calc(cart, hoje);
+  const L = [`Olá! Quero solicitar conteúdo do ${CONFIG.projeto}.`, ""];
+  if (r.pacote) {
+    L.push("*Pacote*", `• ${r.pacote.nome} — ${fmt(r.pacote.preco)}`);
+    L.push(`  Inclui: ${Object.entries(r.pacote.itens).map(([id, q]) => qtdLabel(getItem(id), q)).join(", ")}`, "");
+  }
+  L.push(r.pacote ? "*Peças extras*" : "*Peças avulsas*");
+  if (r.extras.length) r.extras.forEach(e => L.push(`• ${e.qtd}× ${e.item.nome} — ${fmt(e.valor)}`));
+  else L.push("• Nenhuma");
+  L.push("", "*Temas*", cart.temas.length ? cart.temas.map(t => getTema(t).nome).join(", ") : "A definir com vocês");
+  L.push("", `Subtotal: ${fmt(r.subtotal)}`);
+  r.descontos.forEach(d => L.push(`Desconto ${d.promo.rotulo} (${d.detalhe}): − ${fmt(d.valor)}`));
+  L.push(`*Total: ${fmt(r.total)}*`);
+  if (CONFIG.valoresDemonstracao) L.push("(valores de demonstração)");
+  L.push("", "*Meus dados*", `Nome: ${String(c.nome).trim()}`, `Loja: ${String(c.loja).trim()}`, `WhatsApp: ${formatPhone(c.whatsapp)}`);
+  const ig = normalizeInstagram(c.instagram);
+  if (ig) L.push(`Instagram: ${ig}`);
+  L.push("", "Aguardo o retorno para fechar o pedido.");
+  return L.join("\n");
+}
+function waLink(text) { const n = digits(CONFIG.whatsapp); return n ? `https://wa.me/${n}?text=${encodeURIComponent(text)}` : null; }
+// @logic-end
+
+/* ============================ Interface ============================ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, ch => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[ch]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store = {
+  get(k, f) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch { return f; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const state = {
+  cart: sanitizeCart(store.get("nna-cart-v2", null)),
+  customer: Object.assign({ nome: "", loja: "", whatsapp: "", instagram: "" }, store.get("nna-customer", {})),
+  tab: "carrossel"
+};
+let timers = [];
+const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+const every = (fn, ms) => { const t = setInterval(fn, ms); timers.push(t); return t; };
+function clearTimers() { timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; }
+function save() { store.set("nna-cart-v2", state.cart); store.set("nna-customer", state.customer); }
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2600); }
+
+const lojaNome = () => state.customer.loja.trim() || CONFIG.lojaExemplo.nome;
+const lojaIg = () => normalizeInstagram(state.customer.instagram) || CONFIG.lojaExemplo.instagram;
+const initial = () => lojaNome().charAt(0).toUpperCase();
+const handle = () => lojaIg().replace("@", "");
+
+/* ilustrações de produto */
+const ART = {
+  bolsa: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 15c0-5 3-8 7-8s7 3 7 8" fill="none" stroke="#5A1D4B" stroke-width="2.4"/><rect x="7" y="14" width="26" height="20" rx="3" fill="#B0123C"/><rect x="17" y="20" width="6" height="3" rx="1" fill="#F4DCE4"/></svg>',
+  lenco: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 10h28L20 33z" fill="#5A1D4B"/><path d="M11 13h18l-9 14z" fill="#E7A5BC"/><circle cx="20" cy="17" r="2" fill="#B88A3E"/></svg>',
+  sandalia: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 28c0-4 4-6 10-6h10c3 0 5 2 5 4v2z" fill="#B0123C"/><path d="M14 22c2-6 8-9 14-8" fill="none" stroke="#B88A3E" stroke-width="2.4"/><rect x="8" y="28" width="25" height="3" rx="1.5" fill="#5A1D4B"/></svg>'
+};
+const pick = (k, l) => `<div class="pick"><div class="art">${ART[k]}</div><div>${l}</div></div>`;
+const PICKS = () => pick("bolsa","R$ 189") + pick("lenco","R$ 79") + pick("sandalia","R$ 159");
+const phone = inner => `<div class="phone"><div class="notch"></div><div class="screen">${inner}</div></div>`;
+
+/* ---------- Exemplos das peças ---------- */
+const SLIDES = [
+  () => `<div class="slide cover"><span class="eyebrow" style="color:#fff;opacity:.8">Guia de presentes</span><div class="big">Presentes até R$ 200</div><div style="font-size:13px">Arrasta pro lado →</div></div>`,
+  () => `<div class="slide prod"><div class="art">${ART.bolsa}</div><b>Bolsa Lua</b><span>R$ 189</span><small>Pra mãe</small></div>`,
+  () => `<div class="slide prod"><div class="art">${ART.lenco}</div><b>Lenço Seda</b><span>R$ 79</span><small>Amigo secreto</small></div>`,
+  () => `<div class="slide prod"><div class="art">${ART.sandalia}</div><b>Rasteira Festa</b><span>R$ 159</span><small>Pra amiga</small></div>`,
+  () => `<div class="slide cta"><div class="big">Ficou em dúvida? Chama no WhatsApp</div><div style="font-size:13px;opacity:.85">A gente separa e embrulha. Link na bio.</div></div>`
+];
+function carouselHTML() {
+  return `<div class="ig"><div class="ig-top">Instagram</div>
+    <div class="ig-head"><div class="av">${esc(initial())}</div><div><b>${esc(handle())}</b><small>Patrocinado pelo seu estoque</small></div></div>
+    <div class="slides" data-slides>${SLIDES.map((f, i) => f().replace('class="slide', `data-i="${i}" class="slide`)).join("")}<span class="counter" data-counter>1/${SLIDES.length}</span></div>
+    <div class="ig-bar"><i></i><i></i><i></i><div class="ig-dots">${SLIDES.map((_, i) => `<button type="button" aria-label="Card ${i+1}" data-dot="${i}"></button>`).join("")}</div></div>
+    <div class="ig-cap"><b>312 curtidas</b></div>
+    <div class="ig-cap"><b>${esc(handle())}</b> Sem ideia de presente? Separamos 3 opções até R$ 200 🎁 Arrasta pro lado e chama no WhatsApp que a gente embrulha. <span class="more">mais</span></div></div>`;
+}
+function mountCarousel(root) {
+  const slides = root.querySelectorAll(".slide"); if (!slides.length) return;
+  const dots = root.querySelectorAll("[data-dot]"), counter = root.querySelector("[data-counter]");
+  let i = 0, auto;
+  const show = n => { i = n; slides.forEach((s, k) => s.style.transform = `translateX(${(k - n) * 100}%)`); dots.forEach((d, k) => d.classList.toggle("on", k === n)); counter.textContent = `${n+1}/${slides.length}`; };
+  const restart = () => { clearInterval(auto); if (!reduce) auto = every(() => show((i + 1) % slides.length), 2400); };
+  dots.forEach(d => d.addEventListener("click", () => { show(+d.dataset.dot); restart(); }));
+  const box = root.querySelector("[data-slides]");
+  let x0 = null;
+  box.addEventListener("touchstart", e => x0 = e.touches[0].clientX, { passive: true });
+  box.addEventListener("touchend", e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 30) { show(Math.min(slides.length - 1, Math.max(0, i + (dx < 0 ? 1 : -1)))); restart(); } x0 = null; });
+  show(0); restart();
+}
+
+const REEL = [
+  () => `<div class="big">Sem ideia de presente?</div><div class="sub">A gente escolhe com você.</div>`,
+  () => `<div class="big">Me conta pra quem é e quanto quer gastar</div><div class="sub">Mãe, amiga, amigo secreto…</div>`,
+  () => `<div class="big">3 sugestões do nosso estoque</div><div class="tiles">${PICKS()}</div>`,
+  () => `<div class="big">Chama no WhatsApp</div><div class="pill">Quero uma sugestão →</div><div class="sub">Embrulho para presente incluso</div>`
+];
+function reelHTML() {
+  return `<div class="reel"><div class="reel-top">Reels</div>
+    <div class="reel-dots">${REEL.map((_, i) => `<button type="button" aria-label="Cena ${i+1}" data-scene="${i}"></button>`).join("")}</div>
+    ${REEL.map((f, i) => `<div class="scene">${f()}</div>`).join("")}
+    <div class="reel-side"><div><i></i>2,1 mil</div><div><i></i>148</div><div><i></i>Enviar</div></div>
+    <div class="reel-ui"><b>${esc(lojaIg())}</b>Presente certo em 5 minutos ✨</div></div>`;
+}
+function mountReel(root) {
+  const scenes = root.querySelectorAll(".scene"), dots = root.querySelectorAll("[data-scene]");
+  if (!scenes.length) return;
+  let i = 0, auto;
+  const show = n => { i = n; scenes.forEach((s, k) => s.classList.toggle("on", k === n)); dots.forEach((d, k) => d.classList.toggle("on", k === n)); };
+  const restart = () => { clearInterval(auto); if (!reduce) auto = every(() => show((i + 1) % scenes.length), 2600); };
+  dots.forEach(d => d.addEventListener("click", () => { show(+d.dataset.scene); restart(); }));
+  show(0); restart();
+}
+
+const STORY = [
+  () => `<div class="big">Presente de Natal pra quem?</div><div class="poll"><div>Mãe</div><div>Namorado(a)</div><div>Amiga</div><div>Amigo secreto</div></div>`,
+  () => `<div class="big">Até quanto você quer gastar?</div><div class="slider">Arrasta aqui 👇<div class="track"><i></i></div><small><span>R$ 50</span><span>R$ 300+</span></small></div>`,
+  () => `<div class="big">Chegou coisa nova pra festa</div><div class="tiles">${PICKS()}</div>`,
+  () => `<div class="big">Última chamada: entrega até 23/12</div><div class="st-link">↗ Chamar no WhatsApp</div>`
+];
+function storiesHTML() {
+  return `<div class="stories"><div class="st-bars">${STORY.map(() => "<span><i></i></span>").join("")}</div>
+    <div class="st-who"><div class="av">${esc(initial())}</div>${esc(handle())} · 2 h</div>
+    <div class="st-frame" data-frame></div>
+    <div class="st-tap"><button type="button" aria-label="Story anterior" data-dir="-1"></button><button type="button" aria-label="Próximo story" data-dir="1"></button></div></div>`;
+}
+function mountStories(root) {
+  const frame = root.querySelector("[data-frame]"); if (!frame) return;
+  const bars = root.querySelectorAll(".st-bars span");
+  let i = 0, t; const DUR = 4000;
+  const show = n => {
+    i = (n + STORY.length) % STORY.length;
+    frame.innerHTML = STORY[i]();
+    bars.forEach((b, k) => b.className = k < i ? "done" : "");
+    void bars[i].offsetWidth; bars[i].className = reduce ? "done" : "now"; bars[i].style.setProperty("--dur", DUR + "ms");
+    clearTimeout(t); if (!reduce) t = later(() => show(i + 1), DUR);
+  };
+  root.querySelectorAll("[data-dir]").forEach(b => b.addEventListener("click", () => show(i + +b.dataset.dir)));
+  show(0);
+}
+
+const LEGENDAS = [
+  ["Carrossel · Presente Certo", "Sem ideia de presente? 🎁\nSeparamos opções até R$ 200 pra mãe, pra amiga e pro amigo secreto. Arrasta pro lado e chama no WhatsApp que a gente embrulha.", "#presentedenatal #modafeminina"],
+  ["Vídeo · Bastidores", "Cada presente sai daqui embrulhado com carinho ✨\nPede o seu pelo WhatsApp e retira ou recebe em casa.", "#natal #lojadebairro"],
+  ["Carrossel · Virada de Look", "3 looks pra virar o ano do jeito certo 🥂\nQual é o seu? Responde aqui ou chama no WhatsApp pra ver tamanhos.", "#reveillon #lookdavirada"]
+];
+const legendasHTML = () => `<div class="sheet">${LEGENDAS.map(([k, t, h]) => `<div class="cap-card"><span class="eyebrow">${k}</span><p>${esc(t)}</p><div class="tags">${h}</div></div>`).join("")}</div>`;
+
+const CALENDARIO = [
+  ["2026-12-01", "19h", "carrossel", "Presentes até R$ 200"],
+  ["2026-12-03", "12h", "video", "Monte o presente com a gente"],
+  ["2026-12-04", "o dia todo", "stories", "Enquete: pra quem é o presente?"],
+  ["2026-12-08", "19h", "carrossel", "Looks para a confraternização"],
+  ["2026-12-12", "11h", "video", "Bastidores do embrulho"],
+  ["2026-12-19", "o dia todo", "stories", "Última chamada: entrega até 23/12"],
+  ["2026-12-27", "19h", "carrossel", "Virada de look"]
+];
+const DIAS = ["dom","seg","ter","qua","qui","sex","sáb"];
+const CHIP = { carrossel: "Carrossel", video: "Vídeo", stories: "Stories" };
+function calendarioHTML() {
+  return `<div class="sheet"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-family:var(--display);font-size:1.4rem">Dezembro</b><span class="hint">${esc(lojaNome())}</span></div>
+    <ul class="cal">${CALENDARIO.map(([iso, h, tipo, t]) => { const d = new Date(iso + "T12:00:00");
+      return `<li><div class="d"><small>${DIAS[d.getDay()]}</small><b class="num">${String(d.getDate()).padStart(2,"0")}</b></div><div class="what"><b>${esc(t)}</b><span class="chip ${tipo}">${CHIP[tipo]}</span><span class="hint">${h}</span></div></li>`; }).join("")}</ul></div>`;
+}
+
+const EXEMPLOS = {
+  carrossel: { tab: "Carrossel", titulo: "Carrossel", texto: "Cards com seus produtos, preços e identidade. A capa chama atenção e o último card leva para o WhatsApp.", pontos: ["Até 6 cards por carrossel", "Fotos e preços da loja", "Arte pronta para postar"], render: carouselHTML, mount: mountCarousel, phone: true },
+  video: { tab: "Vídeo", titulo: "Vídeo curto", texto: "Você grava clipes no celular seguindo o roteiro. A gente edita com texto, ritmo e chamada no final.", pontos: ["Roteiro cena por cena", "Até 30 segundos", "Texto na tela e chamada para o WhatsApp"], render: reelHTML, mount: mountReel, phone: true },
+  legendas: { tab: "Legendas", titulo: "Legendas prontas", texto: "Uma legenda para cada post do calendário, no tom da loja e com hashtags curtas.", pontos: ["Uma por post", "Chamada para o WhatsApp", "É só copiar e colar"], render: legendasHTML },
+  stories: { tab: "Stories", titulo: "Guia de Stories", texto: "O que postar nos Stories em cada dia: enquetes, escala de valor, novidades e o prazo de Natal.", pontos: ["Ideias para cada dia", "Textos e enquetes prontos", "Lembretes de prazo de entrega"], render: storiesHTML, mount: mountStories, phone: true },
+  calendario: { tab: "Calendário", titulo: "Calendário de publicações", texto: "Dia e horário de cada post até o Natal ou o Réveillon. A loja só segue a lista.", pontos: ["Feed, Reels e Stories organizados", "Horários sugeridos", "Datas de prazo de entrega"], render: calendarioHTML }
+};
+function demoSection(ids) {
+  if (!ids.includes(state.tab)) state.tab = ids[0];
+  const ex = EXEMPLOS[state.tab];
+  return `<div class="tabs" role="tablist">${ids.map(k => `<button type="button" role="tab" aria-selected="${state.tab === k}" data-tab="${k}">${EXEMPLOS[k].tab}</button>`).join("")}</div>
+    <div class="demo" data-demo="${state.tab}">${ex.phone ? phone(ex.render()) : ex.render()}
+      <div class="demo-note"><span class="eyebrow">Exemplo do que você recebe</span><h3 style="margin-top:6px">${ex.titulo}</h3><p>${ex.texto}</p><ul>${ex.pontos.map(p => `<li>${p}</li>`).join("")}</ul>
+      <p class="hint" style="margin-top:12px">Exemplo com a loja ${esc(lojaNome())}. Produtos e preços ilustrativos.</p></div></div>`;
+}
+
+/* ---------- Blocos ---------- */
+function promoPacote(p) {
+  const pr = promosAtivas().find(x => x.tipo === "percentual" && (x.aplicaEm === "pacote" || x.aplicaEm === "tudo"));
+  return pr ? { promo: pr, preco: round2(p.preco * (1 - pr.valor / 100)) } : null;
+}
+function packCard(p) {
+  const pp = promoPacote(p), eco = economiaPacote(p), on = state.cart.pacote === p.id;
+  return `<article class="pack ${p.selo ? "star" : ""}">
+    <div class="head"><div><span class="eyebrow">${esc(p.periodo)}</span><h3 style="margin-top:6px">${esc(p.nome)}</h3></div>${p.selo ? `<span class="tag hot">${esc(p.selo)}</span>` : ""}</div>
+    <p class="call">${esc(p.chamada)}</p>
+    <ul>${Object.entries(p.itens).map(([id, q]) => { const it = getItem(id); return `<li><b class="num">${q}</b><span>${esc(q === 1 ? it.unidade[0] : it.unidade[1])}</span></li>`; }).join("")}</ul>
+    <div>
+      ${pp ? `<div><span class="was num">${fmt(p.preco)}</span><span class="price num">${fmt(pp.preco)}</span></div><div class="promo-line">${pp.promo.valor}% off até ${dataCurta(pp.promo.ate)}</div>`
+           : `<div class="price num">${fmt(p.preco)}</div>`}
+      ${eco ? `<div class="hint" style="margin-top:4px">Avulso sairia <span class="num">${fmt(valorAvulso(p))}</span> · economia de <span class="num">${fmt(eco)}</span></div>` : ""}
+    </div>
+    <div class="actions">${p.disponivel ? `<button class="btn ${on ? "" : ""}" type="button" data-pacote="${p.id}">${on ? "Escolhido ✓" : "Escolher pacote"}</button>` : `<span class="tag demo">Esgotado</span>`}<a class="btn ghost" href="#pacote-${p.id}">Ver detalhes</a></div>
+  </article>`;
+}
+function promoBand() {
+  const ps = promosAtivas(); if (!ps.length) return "";
+  return `<section class="block"><div class="wrap"><div class="sec-head"><h2><em>Promoções</em> de fim de ano</h2><span class="tag demo">Demonstração</span></div>
+    <div class="promos">${ps.map(p => `<div class="promo"><div class="pct">${p.tipo === "percentual" ? `−${p.valor}%` : `${p.leve}×${p.pague}`}</div><div><b>${esc(p.rotulo)}</b><span>${esc(p.texto)}${p.ate ? ` · até ${dataCurta(p.ate)}` : ""}</span></div></div>`).join("")}</div>
+    <p class="hint" style="margin-top:12px">${esc(CONFIG.vagas)}.</p></div></section>`;
+}
+function itemCard(it) {
+  const q = state.cart.extras[it.id] || 0, left = maxExtra(state.cart.pacote, it.id);
+  return `<article class="item"><h3>${esc(it.nome)}</h3><p>${esc(it.descricao)}</p>
+    <div class="row"><span class="num" style="font-weight:700">${fmt(it.preco)}</span>
+    ${!it.disponivel ? `<span class="tag demo">Indisponível</span>` : left === 0 && incluso(state.cart.pacote, it.id) ? `<span class="tag save">No seu pacote</span>`
+      : `<button class="btn ${q ? "" : "ghost"} sm" type="button" data-add="${it.id}" ${q >= left ? 'aria-disabled="true"' : ""}>${q ? `Adicionado (${q}) +` : "Adicionar"}</button>`}</div></article>`;
+}
+const foot = () => `<footer><div class="wrap">${esc(CONFIG.projeto)} · protótipo. Valores, prazos e produtos são de demonstração.</div></footer>`;
+
+/* ---------- Telas ---------- */
+function viewHome() {
+  return `<div class="wrap"><section class="hero">
+      <div><span class="eyebrow">Conteúdo pronto para lojas de moda</span>
+        <h1 style="margin-top:14px">Fim de ano corrido? Seu conteúdo <em>vem pronto.</em></h1>
+        <p class="lede">Carrosséis, vídeos, legendas, guia de Stories e calendário de posts com os seus produtos. Você só publica e atende.</p>
+        <div class="kit">${CONFIG.itens.map(i => `<span>${esc(i.nome)}</span>`).join("")}</div>
+        <div class="ctas"><a class="btn" href="#pedido">Montar meu pedido</a><a class="link" href="#exemplos">Ver exemplos</a></div></div>
+      <div class="hero-stage" data-demo="carrossel">${phone(carouselHTML())}
+        <div class="sched"><b>Calendário</b>Ter 01/12 · 19h<br>Carrossel “Presentes até R$ 200”</div></div>
+    </section></div>
+
+    <section class="block"><div class="wrap"><div class="sec-head"><h2>Pacotes de <em>fim de ano</em></h2><span class="eyebrow">Pedidos até ${esc(CONFIG.pedidosAte)}</span></div>
+      <div class="packs">${CONFIG.pacotes.map(packCard).join("")}</div></div></section>
+
+    ${promoBand()}
+
+    <section class="block" id="exemplos"><div class="wrap"><div class="sec-head"><h2>Veja o que você <em>recebe</em></h2><p>Toque nas abas. Os exemplos usam o nome da sua loja quando você preenche o pedido.</p></div>
+      ${demoSection(CONFIG.itens.map(i => i.id))}</div></section>
+
+    <section class="block"><div class="wrap"><div class="sec-head"><h2>Peças <em>avulsas</em></h2><p>Precisa só de uma parte, ou quer reforçar o pacote? Adicione peças soltas.</p></div>
+      <div class="items">${CONFIG.itens.map(itemCard).join("")}</div></div></section>
+
+    <section class="block"><div class="wrap"><div class="sec-head"><h2>Temas das <em>campanhas</em></h2><p>Escolha no pedido os temas que o conteúdo vai seguir.</p></div>
+      <div class="themes">${CONFIG.temas.map(t => `<div class="theme"><h3>${esc(t.nome)}</h3><p>${esc(t.descricao)}</p></div>`).join("")}</div></div></section>
+
+    <section class="block"><div class="wrap"><div class="sec-head"><h2>Como <em>funciona</em></h2></div>
+      <ol class="steps">
+        <li><b>Monte o pedido</b><span>Pacote, peças extras e temas. O total aparece na hora.</span></li>
+        <li><b>Envie pelo WhatsApp</b><span>O resumo vai pronto. A gente confirma valores, prazos e pagamento.</span></li>
+        <li><b>Mande o material</b><span>Fotos, preços e clipes chegam depois que o pedido é fechado.</span></li>
+        <li><b>Publique</b><span>Você recebe tudo pronto e segue o calendário.</span></li>
+      </ol></div></section>${foot()}`;
+}
+
+function viewPacote(id) {
+  const p = getPacote(id); if (!p) return viewHome();
+  const pp = promoPacote(p), ids = Object.keys(p.itens);
+  return `<div class="wrap"><div class="detail-head"><a class="back" href="#inicio">← Vitrine</a>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><span class="eyebrow">Pacote · ${esc(p.periodo)}</span>${p.selo ? `<span class="tag hot">${esc(p.selo)}</span>` : ""}</div>
+      <h1>${esc(p.nome)}</h1><p class="goal">${esc(p.chamada)}</p></div>
+    ${demoSection(ids)}
+    <section class="block" style="margin-top:36px"><div class="two">
+      <div class="list-card"><span class="eyebrow">Vem pronto</span><h3 style="margin-top:6px">O que você recebe</h3><ul>${ids.map(i => `<li>${esc(qtdLabel(getItem(i), p.itens[i]))}</li>`).join("")}</ul></div>
+      <div class="list-card team"><span class="eyebrow">Com a sua equipe</span><h3 style="margin-top:6px">O que a loja faz</h3><ul>${CONFIG.lojaFaz.filter(t => p.itens.video || !/vídeo/.test(t)).map(t => `<li>${esc(t)}</li>`).join("")}</ul></div></div>
+      <div class="facts">
+        <div><b>Valor</b>${pp ? `<span class="was num">${fmt(p.preco)}</span><span class="num">${fmt(pp.preco)}</span> <span class="promo-line">${pp.promo.valor}% off até ${dataCurta(pp.promo.ate)}</span>` : `<span class="num">${fmt(p.preco)}</span>`}</div>
+        <div><b>Economia sobre o avulso</b><span class="num">${fmt(economiaPacote(p))}</span></div>
+        <div><b>Prazo</b>${esc(p.prazo)}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:22px"><button class="btn" type="button" data-pacote="${p.id}">${state.cart.pacote === p.id ? "Escolhido ✓ · ver pedido" : "Escolher este pacote"}</button><a class="btn ghost" href="#pedido">Montar do meu jeito</a></div>
+    </section></div>${foot()}`;
+}
+
+const stepper = n => `<div class="stepper">${["Pedido","Dados","Resumo"].map((s, i) => `<span class="${i === n ? "on" : ""}">${i+1}. ${s}</span>`).join("")}</div>`;
+function linesHTML(r, temas) {
+  return `<ul class="lines">
+    ${r.pacote ? `<li><span><span class="kind">Pacote</span>${esc(r.pacote.nome)}<span class="sub">${Object.entries(r.pacote.itens).map(([id, q]) => esc(qtdLabel(getItem(id), q))).join(" · ")}</span></span><span class="num">${fmt(r.pacote.preco)}</span></li>` : ""}
+    ${r.extras.map(e => `<li><span><span class="kind">${r.pacote ? "Extra" : "Avulso"}</span>${e.qtd}× ${esc(e.item.nome)}</span><span class="num">${fmt(e.valor)}</span></li>`).join("")}
+    ${temas ? `<li><span><span class="kind">Temas</span>${temas.length ? temas.map(t => esc(getTema(t).nome)).join(", ") : "A definir com vocês"}</span><span></span></li>` : ""}
+    ${r.descontos.length ? `<li class="subtotal"><span>Subtotal</span><span class="num">${fmt(r.subtotal)}</span></li>` : ""}
+    ${r.descontos.map(d => `<li class="disc"><span>${esc(d.promo.rotulo)}<span class="sub">${esc(d.detalhe)}</span></span><span class="num">− ${fmt(d.valor)}</span></li>`).join("")}
+  </ul>`;
+}
+function summaryBox(r) {
+  return `<aside class="summary"><h2>Seu pedido</h2>
+    ${r.vazio ? `<p class="empty">Escolha um pacote ou adicione peças avulsas.</p>` : linesHTML(r, state.cart.temas)}
+    <div class="total"><span>Total</span><b class="num" data-total>${fmt(r.total)}</b></div>
+    ${r.economiaTotal > 0 ? `<p class="saving">Você economiza <span class="num">${fmt(r.economiaTotal)}</span> em relação ao avulso sem promoção.</p>` : ""}
+    <p class="hint" style="margin-top:6px">Valores de demonstração. O pagamento é combinado no WhatsApp.</p></aside>`;
+}
+function viewOrder() {
+  const r = calc(state.cart), c = state.cart;
+  return `<div class="wrap"><div class="page-head">${stepper(0)}<h1>Monte seu <em>pedido</em></h1><p>Escolha um pacote, ajuste as peças e diga quais temas quer.</p></div>
+    <div class="order"><div>
+      <h2 class="group-title">Pacote</h2><p class="group-hint">Pacotes saem mais baratos que as peças avulsas.</p>
+      ${CONFIG.pacotes.map(p => { const pp = promoPacote(p); return `<label class="opt ${c.pacote === p.id ? "on" : ""} ${p.disponivel ? "" : "off"}">
+        <input type="radio" name="pacote" id="p-${p.id}" value="${p.id}" ${c.pacote === p.id ? "checked" : ""} ${p.disponivel ? "" : "disabled"}>
+        <span><b>${esc(p.nome)}</b><small>${Object.entries(p.itens).map(([id, q]) => esc(qtdLabel(getItem(id), q))).join(" · ")}</small></span>
+        <span class="p num">${pp ? `<span class="was">${fmt(p.preco)}</span><br>${fmt(pp.preco)}` : fmt(p.preco)}<small>economia ${fmt(economiaPacote(p))}</small></span></label>`; }).join("")}
+      <label class="opt ${!c.pacote ? "on" : ""}"><input type="radio" name="pacote" id="p-nenhum" value="" ${!c.pacote ? "checked" : ""}>
+        <span><b>Sem pacote</b><small>Só peças avulsas, escolhidas abaixo.</small></span><span></span></label>
+
+      <h2 class="group-title" style="margin-top:26px">${c.pacote ? "Peças extras" : "Peças avulsas"}</h2>
+      <p class="group-hint">${promosAtivas().filter(p => p.tipo === "leve-pague").map(p => esc(p.texto)).join(" · ") || "Ajuste a quantidade de cada peça."}</p>
+      ${CONFIG.itens.map(it => { const q = c.extras[it.id] || 0, inc = incluso(c.pacote, it.id), left = maxExtra(c.pacote, it.id); return `
+        <div class="qty-row ${q ? "on" : ""}"><div style="min-width:0"><b>${esc(it.nome)}</b><small>${esc(it.descricao)}</small>
+          ${inc ? `<small class="inc">${esc(qtdLabel(it, inc))} no pacote${left === 0 ? " · limite atingido" : ""}</small>` : ""}</div>
+          <div class="qty-side"><span class="p num">${fmt(it.preco)} cada</span>
+          ${it.disponivel && left > 0 ? `<div class="qty"><button type="button" data-qty="${it.id}" data-d="-1" aria-label="Menos ${esc(it.nome)}" ${q ? "" : "disabled"}>−</button><output class="num" aria-live="polite">${q}</output><button type="button" data-qty="${it.id}" data-d="1" aria-label="Mais ${esc(it.nome)}" ${q >= left ? "disabled" : ""}>+</button></div>`
+            : `<span class="hint">${it.disponivel ? "Já incluso" : "Indisponível"}</span>`}</div></div>`; }).join("")}
+
+      <h2 class="group-title" style="margin-top:26px">Temas</h2><p class="group-hint">Opcional. Se não escolher, a gente sugere com você.</p>
+      <div class="chips">${CONFIG.temas.map(t => `<label class="${c.temas.includes(t.id) ? "on" : ""}"><input type="checkbox" id="t-${t.id}" data-tema="${t.id}" ${c.temas.includes(t.id) ? "checked" : ""}>${esc(t.nome)}</label>`).join("")}</div>
+    </div>${summaryBox(r)}</div></div>${foot()}`;
+}
+
+function field(id, label, opt, attrs, val, err, hint) {
+  return `<div class="field ${err ? "bad" : ""}"><label for="${id}">${label}${opt ? " <small>(opcional)</small>" : ""}</label>
+    <input id="${id}" name="${id}" value="${esc(val)}" ${attrs} aria-invalid="${!!err}" ${err ? `aria-describedby="${id}-err"` : ""}>
+    ${err ? `<div class="err" id="${id}-err">${esc(err)}</div>` : hint ? `<div class="hint">${hint}</div>` : ""}</div>`;
+}
+let formErrors = {};
+function viewData() {
+  const c = state.customer, e = formErrors;
+  return `<div class="wrap"><div class="page-head">${stepper(1)}<h1>Seus <em>dados</em></h1><p>Para montar o resumo e falar com você.</p></div>
+    <form class="data" id="dataForm" novalidate>
+      ${field("nome","Seu nome",false,'autocomplete="name" required',c.nome,e.nome)}
+      ${field("loja","Nome da loja",false,'autocomplete="organization" required',c.loja,e.loja)}
+      ${field("whatsapp","WhatsApp",false,'type="tel" inputmode="tel" autocomplete="tel" placeholder="(55) 99999-8888" required',c.whatsapp,e.whatsapp,"Com DDD.")}
+      ${field("instagram","Instagram da loja",true,'autocapitalize="off" autocomplete="off" placeholder="@sualoja"',c.instagram,e.instagram)}
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px"><button class="btn" type="submit">Ver resumo</button><a class="btn ghost" href="#pedido">Voltar ao pedido</a></div>
+    </form></div>${foot()}`;
+}
+
+function viewReview() {
+  const r = calc(state.cart), c = state.customer, text = buildSummary(state.cart, c), link = waLink(text);
+  return `<div class="wrap"><div class="page-head">${stepper(2)}<h1>Confira o <em>resumo</em></h1><p>Está tudo certo? Envie a solicitação e a gente fecha o pedido pelo WhatsApp.</p></div>
+    <div class="receipt"><span class="eyebrow">${esc(CONFIG.projeto)} · solicitação</span><h2 style="margin-top:6px">${esc(c.loja)}</h2>
+      <div style="margin-top:16px">${linesHTML(r, state.cart.temas)}</div>
+      <div class="total"><span>Total</span><b class="num">${fmt(r.total)}</b></div>
+      ${r.economiaTotal > 0 ? `<p class="saving">Economia de <span class="num">${fmt(r.economiaTotal)}</span></p>` : ""}
+      <p class="hint">Valores de demonstração.</p><hr>
+      <dl><dt>Nome</dt><dd>${esc(c.nome)}</dd><dt>Loja</dt><dd>${esc(c.loja)}</dd><dt>WhatsApp</dt><dd>${esc(formatPhone(c.whatsapp))}</dd>${normalizeInstagram(c.instagram) ? `<dt>Instagram</dt><dd>${esc(normalizeInstagram(c.instagram))}</dd>` : ""}</dl>
+      <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap"><a class="link" href="#pedido">Alterar pedido</a><a class="link" href="#dados">Alterar dados</a></div></div>
+    <div class="final">
+      ${link ? `<a class="btn block" href="${esc(link)}" target="_blank" rel="noopener" id="sendBtn">Enviar solicitação</a><p class="hint">Abre o WhatsApp com a mensagem pronta. Você confere e toca em enviar.</p>`
+             : `<button class="btn block" type="button" id="sendBtn">Enviar solicitação</button><div class="notice"><b>Demonstração.</b> O número de WhatsApp ainda não foi configurado, então o botão copia o resumo para você colar onde quiser.</div>`}
+      <details><summary style="cursor:pointer;font-weight:600;margin-top:6px">Ver mensagem que será enviada</summary><div class="msg-preview" id="msgText">${esc(text)}</div></details>
+      ${link ? `<button class="btn ghost block" type="button" id="copyBtn">Copiar resumo</button>` : ""}
+    </div></div>${foot()}`;
+}
+
+/* ---------- Barra fixa ---------- */
+function renderBar(rt) {
+  const r = calc(state.cart), bar = $("#bar");
+  $("#cartCount").textContent = r.pecas;
+  if (rt === "resumo") { bar.hidden = true; return; }
+  let label, href, dis = false, sub;
+  const pecas = `${r.pecas} ${r.pecas === 1 ? "peça" : "peças"}`;
+  if (rt === "pedido") { label = "Continuar"; href = "#dados"; dis = r.vazio; sub = r.vazio ? "Escolha um pacote ou peças" : `${pecas}${r.desconto ? ` · − ${fmt(r.desconto)} em promoções` : ""}`; }
+  else if (rt === "dados") { label = "Ver resumo"; href = "#resumo"; sub = `${pecas} · total`; }
+  else { label = r.vazio ? "Montar meu pedido" : "Ver pedido"; href = "#pedido"; sub = r.vazio ? "Comece por um pacote" : `${pecas} no pedido`; }
+  bar.hidden = false;
+  bar.innerHTML = `<div class="wrap"><div class="t"><small>${esc(sub)}</small><b class="num" data-total>${fmt(r.total)}</b></div><a class="btn" href="${href}" ${dis ? 'aria-disabled="true"' : ""} id="barBtn">${label}</a></div>`;
+}
+
+/* ---------- Rotas ---------- */
+function route() {
+  const h = (location.hash || "#inicio").slice(1);
+  if (["pedido","dados","resumo","exemplos"].includes(h) || h.startsWith("pacote-")) return h;
+  return "inicio";
+}
+function render(scroll = true) {
+  clearTimers();
+  const rt = route();
+  if ((rt === "dados" || rt === "resumo") && calc(state.cart).vazio) { location.replace("#pedido"); return; }
+  if (rt === "resumo" && Object.keys(validateCustomer(state.customer)).length) { formErrors = validateCustomer(state.customer); location.replace("#dados"); return; }
+  const app = $("#app");
+  app.innerHTML = rt === "pedido" ? viewOrder() : rt === "dados" ? viewData() : rt === "resumo" ? viewReview() : rt.startsWith("pacote-") ? viewPacote(rt.slice(7)) : viewHome();
+  renderBar(rt);
+  app.querySelectorAll("[data-demo]").forEach(el => { const ex = EXEMPLOS[el.dataset.demo]; ex && ex.mount && ex.mount(el); });
+  if (rt === "exemplos" && scroll) { $("#exemplos")?.scrollIntoView(); return; }
+  if (scroll) window.scrollTo(0, 0);
+}
+const flashTotal = () => document.querySelectorAll("[data-total]").forEach(el => { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); });
+function update(cart, msg) { state.cart = cart; save(); render(false); flashTotal(); if (msg) toast(msg); }
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click", e => {
+  const pk = e.target.closest("[data-pacote]");
+  if (pk) { state.cart = setPacote(state.cart, pk.dataset.pacote); save(); location.hash = "#pedido"; return; }
+  const ad = e.target.closest("[data-add]");
+  if (ad) { const id = ad.dataset.add, before = state.cart.extras[id] || 0, cart = addExtra(state.cart, id, 1);
+    update(cart, (cart.extras[id] || 0) > before ? `${getItem(id).nome} adicionado · total ${fmt(calc(cart).total)}` : "Limite desta peça atingido."); return; }
+  const qb = e.target.closest("[data-qty]");
+  if (qb) { const cart = addExtra(state.cart, qb.dataset.qty, +qb.dataset.d); update(cart, `Total ${fmt(calc(cart).total)}`); return; }
+  const tb = e.target.closest("[data-tab]");
+  if (tb) { state.tab = tb.dataset.tab; const y = scrollY; render(false); scrollTo(0, y); return; }
+  if (e.target.closest("#barBtn") && route() === "dados") { e.preventDefault(); $("#dataForm")?.requestSubmit(); return; }
+  if (e.target.id === "sendBtn" && !digits(CONFIG.whatsapp)) { copySummary(); return; }
+  if (e.target.id === "copyBtn") { copySummary(); return; }
+});
+document.addEventListener("change", e => {
+  if (e.target.name === "pacote") update(setPacote(state.cart, e.target.value));
+  else if (e.target.dataset.tema) update(toggleTema(state.cart, e.target.dataset.tema));
+});
+document.addEventListener("input", e => { if (e.target.form && e.target.form.id === "dataForm") { state.customer[e.target.name] = e.target.value; save(); } });
+document.addEventListener("submit", e => {
+  if (e.target.id !== "dataForm") return;
+  e.preventDefault();
+  const f = e.target;
+  ["nome","loja","whatsapp","instagram"].forEach(k => state.customer[k] = f[k].value);
+  formErrors = validateCustomer(state.customer);
+  if (Object.keys(formErrors).length) { render(false); $("#" + Object.keys(formErrors)[0])?.focus(); toast("Confira os campos destacados."); return; }
+  state.customer.whatsapp = formatPhone(state.customer.whatsapp);
+  state.customer.instagram = normalizeInstagram(state.customer.instagram);
+  save(); formErrors = {}; location.hash = "#resumo";
+});
+async function copySummary() {
+  const text = buildSummary(state.cart, state.customer);
+  try { await navigator.clipboard.writeText(text); toast("Resumo copiado."); }
+  catch {
+    const d = document.querySelector("details"); if (d) d.open = true;
+    const el = $("#msgText"); if (el) { const rg = document.createRange(); rg.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(rg); }
+    toast("Texto selecionado. Use copiar do seu aparelho.");
+  }
+}
+window.addEventListener("hashchange", () => { if (route() !== "dados") formErrors = {}; render(); });
+render(false);
+</script>
