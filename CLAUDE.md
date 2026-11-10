@@ -83,3 +83,18 @@ publicos: [
 
 ## Ao mudar algo
 Depois de mexer no cálculo, promoções ou resumo, rodar os testes da lógica e conferir: adicionar/remover peças atualiza o total, campos obrigatórios são validados, e o resumo corresponde ao carrinho.
+
+## Deploy
+- **Produção:** https://natal-no-ar.vercel.app (URL .vercel.app, sem domínio próprio).
+- **Repositório:** https://github.com/arthurmarcon1/natalnoar (público).
+- **Vercel:** projeto `natal-no-ar` no time `arthur-marcon-s-projects`, preset "Other", site estático sem build. Repositório conectado.
+- **Publicar nova versão:** rode os testes e dê push na `main`; a Vercel publica sozinha em ~10 s.
+  ```bash
+  node --test tests/*.test.mjs   # não publique com teste falhando
+  git push                       # deploy automático de produção
+  vercel --prod                  # alternativa: deploy direto da pasta local
+  ```
+  Push em outra branch gera uma prévia (as URLs de prévia pedem login da Vercel).
+- **Fora do site:** `.vercelignore` impede que `tests/`, `CLAUDE.md` e `.env*` sejam publicados.
+- **Trocar número do WhatsApp:** `CONFIG.whatsapp` no topo do `<script>` do `index.html`, só dígitos com DDI e DDD (ex.: `"5555999998888"`). Vazio = modo demonstração (o botão copia o resumo).
+- **Trocar preços:** `preco` em `CONFIG.itens` (peças) e `CONFIG.pacotes` (pacotes); a economia é recalculada sozinha. Promoções em `CONFIG.promocoes`. Com preços reais, mude `valoresDemonstracao` para `false`.
