@@ -5,7 +5,7 @@
 <title>Natal no Ar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,400;1,6..96,600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
 /* Layout: revista de moda em coluna única no celular; capa = conteúdo pronto num post de carrossel; barra de pedido fixa embaixo. */
 :root{
@@ -15,8 +15,8 @@
   --ok:#1E7A4F; --err:#B0123C;
   --phone:#140810; --ig-bg:#FFFFFF; --ig-ink:#141414; --ig-muted:#737373;
   --chat-bg:#EFE6E0; --bubble-in:#FFFFFF; --bubble-out:#DDF7D3; --chat-ink:#1B1B1B; --chat-meta:#6E7B83;
-  --display:"Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
-  --body:"Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --display:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --body:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --r:14px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
@@ -38,16 +38,16 @@
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body);padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+body{background:var(--paper);color:var(--ink);font:17px/1.55 var(--body);padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
 .wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1,h2,h3{font-family:var(--display);font-weight:500;line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.01em}
-h1 em,h2 em,h3 em{font-style:italic;color:var(--cherry)}
+h1,h2,h3{font-family:var(--display);font-weight:800;line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.025em}
+h1 em,h2 em,h3 em{font-style:normal;color:var(--cherry)}
 p{margin:0}
 a{color:inherit}
 button{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--cherry);outline-offset:3px;border-radius:6px}
-.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-size:.76rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .num{font-variant-numeric:tabular-nums}
 .hint{font-size:.88rem;color:var(--muted)}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;border-radius:99px;padding:2px 9px;white-space:nowrap}
@@ -58,7 +58,7 @@ button{font:inherit;color:inherit}
 /* topo */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
-.brand{font-family:var(--display);font-size:1.45rem;font-style:italic;font-weight:600;text-decoration:none;letter-spacing:-.02em;white-space:nowrap}
+.brand{font-family:var(--display);font-size:1.45rem;font-weight:600;text-decoration:none;letter-spacing:-.02em;white-space:nowrap}
 .brand b{font-style:normal;font-weight:700;color:var(--cherry)}
 .top-right{display:flex;align-items:center;gap:10px;min-width:0}
 @media (max-width:420px){.top-right .tag.demo{display:none}}
@@ -78,7 +78,7 @@ button{font:inherit;color:inherit}
 /* capa */
 .hero{padding-block:28px 40px;display:grid;gap:28px;align-items:center}
 @media (min-width:860px){.hero{grid-template-columns:1.1fr .9fr;padding-block:56px 64px}}
-.hero h1{font-size:clamp(3rem,12vw,6.2rem)}
+.hero h1{font-size:clamp(2.3rem,9.5vw,4.4rem)}
 .hero .lede{font-size:1.12rem;max-width:36ch;margin-top:16px;color:var(--muted)}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:12px 18px;margin-top:24px;align-items:center}
 .kit{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
@@ -95,14 +95,14 @@ button{font:inherit;color:inherit}
 
 /* post de carrossel */
 .ig{position:absolute;inset:0;display:flex;flex-direction:column;color:var(--ig-ink);font-size:13px;line-height:1.35;background:var(--ig-bg)}
-.ig-top{padding:46px 12px 8px;font-weight:700;font-size:16px;font-family:var(--display);font-style:italic}
+.ig-top{padding:46px 12px 8px;font-weight:700;font-size:16px;font-family:var(--display)}
 .ig-head{display:flex;align-items:center;gap:8px;padding:6px 12px}
-.av{width:30px;height:30px;border-radius:50%;background:var(--cherry);display:grid;place-items:center;font-family:var(--display);font-style:italic;font-weight:600;color:#fff;flex:none;box-shadow:0 0 0 2px var(--ig-bg),0 0 0 3.5px #C13584}
+.av{width:30px;height:30px;border-radius:50%;background:var(--cherry);display:grid;place-items:center;font-family:var(--display);font-weight:600;color:#fff;flex:none;box-shadow:0 0 0 2px var(--ig-bg),0 0 0 3.5px #C13584}
 .ig-head b{font-size:13px}
 .ig-head small{display:block;color:var(--ig-muted);font-size:11px}
 .slides{position:relative;aspect-ratio:4/5;overflow:hidden}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:18px;gap:8px;transition:transform .45s ease}
-.slide .big{font-family:var(--display);font-style:italic;font-size:1.9rem;line-height:1;text-wrap:balance}
+.slide .big{font-family:var(--display);font-weight:800;font-size:1.55rem;line-height:1.1;text-wrap:balance}
 .slide.cover{background:linear-gradient(155deg,#B0123C,#5A1D4B);color:#fff}
 .slide.prod{background:#F4DCE4;color:#2B0F24;align-items:center;text-align:center}
 .slide.prod .art{width:58%;aspect-ratio:1}
@@ -125,7 +125,7 @@ button{font:inherit;color:inherit}
 .reel{position:absolute;inset:0;color:#fff;background:linear-gradient(160deg,#6E1440 0%,#2A0A22 70%)}
 .reel .scene{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:56px 22px 90px;gap:14px;opacity:0;transition:opacity .5s ease}
 .reel .scene.on{opacity:1}
-.reel .big,.st-frame .big{font-family:var(--display);font-style:italic;font-size:2rem;line-height:1.02;text-wrap:balance}
+.reel .big,.st-frame .big{font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1.12;text-wrap:balance}
 .reel .sub{font-size:14px;opacity:.85}
 .reel .pill{align-self:flex-start;background:#fff;color:#2B0F24;border-radius:99px;padding:8px 14px;font-weight:700;font-size:13px}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
@@ -186,7 +186,7 @@ button{font:inherit;color:inherit}
 section.block{padding-block:40px;border-top:1px solid var(--line)}
 #exemplos{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 64px)}
 .sec-head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:10px 12px;margin-bottom:22px}
-.sec-head h2{font-size:clamp(2rem,7vw,3rem)}
+.sec-head h2{font-size:clamp(1.6rem,6vw,2.4rem)}
 .sec-head p{color:var(--muted);max-width:44ch}
 
 .packs{display:grid;gap:14px}
@@ -207,7 +207,7 @@ section.block{padding-block:40px;border-top:1px solid var(--line)}
 .promos{display:grid;gap:10px}
 @media (min-width:760px){.promos{grid-template-columns:repeat(2,1fr)}}
 .promo{display:flex;gap:14px;align-items:center;border:1.5px dashed var(--cherry);border-radius:var(--r);padding:14px 16px;background:var(--surface)}
-.promo .pct{font-family:var(--display);font-style:italic;font-weight:600;font-size:2rem;color:var(--cherry);line-height:1;min-width:64px;text-align:center}
+.promo .pct{font-family:var(--display);font-weight:600;font-size:2rem;color:var(--cherry);line-height:1;min-width:64px;text-align:center}
 .promo b{display:block}
 .promo span{color:var(--muted);font-size:.9rem}
 
@@ -222,14 +222,14 @@ section.block{padding-block:40px;border-top:1px solid var(--line)}
 .themes{display:grid;gap:12px}
 @media (min-width:760px){.themes{grid-template-columns:repeat(3,1fr)}}
 .theme{padding:18px 0;border-top:2px solid var(--ink)}
-.theme h3{font-size:1.7rem;font-style:italic}
+.theme h3{font-size:1.3rem}
 .theme p{color:var(--muted);margin-top:6px;font-size:.95rem}
 .theme small{display:block;margin-top:8px;font-weight:600;font-size:.82rem}
 
 .steps{display:grid;gap:12px;counter-reset:s;padding:0;margin:0;list-style:none}
 @media (min-width:760px){.steps{grid-template-columns:repeat(4,1fr)}}
 .steps li{counter-increment:s;padding:16px 0;border-top:2px solid var(--ink)}
-.steps li::before{content:counter(s);font-family:var(--display);font-style:italic;font-size:2rem;color:var(--cherry);display:block;line-height:1;margin-bottom:6px}
+.steps li::before{content:counter(s);font-family:var(--display);font-size:2rem;color:var(--cherry);display:block;line-height:1;margin-bottom:6px}
 .steps b{display:block}
 .steps span{color:var(--muted);font-size:.93rem}
 
@@ -247,7 +247,7 @@ section.block{padding-block:40px;border-top:1px solid var(--line)}
 /* detalhe */
 .detail-head{padding-block:24px 18px}
 .back{font-weight:600;text-decoration:none;font-size:.92rem;color:var(--muted)}
-.detail-head h1{font-size:clamp(3rem,12vw,5.4rem);margin-top:12px}
+.detail-head h1{font-size:clamp(2.3rem,9vw,4rem);margin-top:12px}
 .detail-head .goal{font-size:1.1rem;max-width:46ch;margin-top:12px}
 .two{display:grid;gap:14px}
 @media (min-width:760px){.two{grid-template-columns:1fr 1fr}}
@@ -263,7 +263,7 @@ section.block{padding-block:40px;border-top:1px solid var(--line)}
 
 /* pedido */
 .page-head{padding-block:24px 18px}
-.page-head h1{font-size:clamp(2.6rem,10vw,4.2rem)}
+.page-head h1{font-size:clamp(2rem,8vw,3.2rem)}
 .page-head p{color:var(--muted);margin-top:8px}
 .stepper{display:flex;flex-wrap:wrap;gap:6px;font-size:.78rem;font-weight:600;margin-bottom:14px;color:var(--muted)}
 .stepper span{padding:3px 10px;border-radius:99px;border:1px solid var(--line)}
@@ -344,6 +344,30 @@ form.data{display:grid;gap:16px;max-width:560px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:10px 18px;font-weight:600;font-size:.92rem;z-index:40;box-shadow:0 10px 30px -10px rgba(0,0,0,.35);max-width:calc(100% - 32px);text-align:center}
 footer{padding-block:24px 8px;color:var(--muted);font-size:.85rem}
 
+/* perfil */
+.perfil-switch{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
+.perfil-switch>span{font-size:.85rem;color:var(--muted);font-weight:600}
+.perfil-switch .seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:22px;padding:3px;background:var(--surface);max-width:100%}
+.perfil-switch button{border:0;background:none;border-radius:99px;padding:8px 14px;font-weight:700;font-size:.88rem;cursor:pointer}
+.perfil-switch button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.choose{padding-block:32px 48px}
+.choose h1{font-size:clamp(2.1rem,8.5vw,3.8rem);margin-top:12px}
+.choose .lede{font-size:1.08rem;max-width:44ch;margin-top:14px;color:var(--muted)}
+.choose-grid{display:grid;gap:14px;margin-top:28px}
+@media (min-width:760px){.choose-grid{grid-template-columns:1fr 1fr}}
+.choose-card{text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:var(--r);padding:22px;cursor:pointer;display:flex;flex-direction:column;gap:10px;color:var(--ink);min-width:0}
+.choose-card:hover{border-color:var(--cherry)}
+.choose-card h2{font-size:1.5rem}
+.choose-card p{color:var(--muted)}
+.choose-card ul{margin:0;padding-left:18px;font-weight:600;font-size:.95rem}
+.choose-card .go{color:var(--cherry);font-weight:800;margin-top:6px}
+.prev-temas{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:-4px 0 18px}
+.prev-temas>b{font-size:.85rem;color:var(--muted)}
+.prev-temas button{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 13px;font-weight:600;font-size:.86rem;cursor:pointer}
+.prev-temas button[aria-pressed="true"]{border-color:var(--cherry);background:var(--blush)}
+.theme .link{display:inline-block;margin-top:10px;font-weight:700;color:var(--cherry);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.st-frame .sub{font-size:14px;opacity:.9}
+
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 
@@ -368,9 +392,10 @@ footer{padding-block:24px 8px;color:var(--muted);font-size:.85rem}
    whatsapp   Seu número só com dígitos, com DDI e DDD (ex.: "5555999998888").
               Deixe "" para o modo demonstração (o botão copia o resumo).
    itens      Peças vendidas avulsas. "max" é o total por pedido (pacote + extras).
-   pacotes    "itens" diz quantas peças de cada tipo entram. A economia em
-              relação ao avulso é calculada sozinha.
-   temas      Campanhas que o conteúdo pode seguir. O cliente escolhe quantos quiser.
+   publicos   As seções do site (Para lojistas, Para prestadores de serviço).
+              Cada uma tem nome, textos, planos (pacotes), temas e exemplos.
+              Nos planos, "itens" diz quantas peças de cada tipo entram; a
+              economia em relação ao avulso é calculada sozinha.
    promocoes  tipo "percentual": valor = % de desconto; aplicaEm = "pacote",
               "extras" ou "tudo"; "ate" = último dia (AAAA-MM-DD), opcional.
               tipo "leve-pague": vale para as peças extras de um item
@@ -382,7 +407,6 @@ const CONFIG = {
   valoresDemonstracao: true,
   pedidosAte: "12/12",
   vagas: "Atendemos até 8 lojas por semana",
-  lojaExemplo: { nome: "Ateliê Aurora", instagram: "@atelieaurora" },
 
   itens: [
     { id: "carrossel", nome: "Carrossel", unidade: ["carrossel", "carrosséis"], preco: 120, max: 12, disponivel: true,
@@ -397,39 +421,222 @@ const CONFIG = {
       descricao: "Dias e horários de cada post até o Natal ou o Réveillon." }
   ],
 
-  pacotes: [
-    { id: "essencial", nome: "Essencial", preco: 390, disponivel: true,
-      chamada: "O básico para a loja não sumir do feed no fim de ano.",
-      itens: { calendario: 1, carrossel: 3, legendas: 1 },
-      periodo: "Até o Natal", prazo: "Até 4 dias úteis depois de recebermos fotos e preços" },
-    { id: "natal-completo", nome: "Natal Completo", preco: 690, disponivel: true, selo: "Mais pedido",
-      chamada: "Feed, Reels e Stories planejados até o dia 24.",
-      itens: { calendario: 1, carrossel: 4, video: 2, legendas: 1, stories: 1 },
-      periodo: "Até o Natal", prazo: "Até 5 dias úteis depois de recebermos o material" },
-    { id: "natal-reveillon", nome: "Natal + Réveillon", preco: 890, disponivel: true,
-      chamada: "Do presente de Natal ao look da virada, sem pensar em post.",
-      itens: { calendario: 1, carrossel: 6, video: 3, legendas: 1, stories: 1 },
-      periodo: "Até 31/12", prazo: "Natal em até 5 dias úteis; Réveillon entregue até 20/12" }
-  ],
+  /* ---------------------------------------------------------------------
+     PÚBLICOS: uma seção por perfil. Cada uma tem planos, temas e exemplos
+     próprios. As peças (itens, acima) são as mesmas para todas.
+     Os ids de planos e temas precisam ser únicos entre todas as seções.
 
-  temas: [
-    { id: "presente-certo", nome: "Presente Certo", descricao: "Sugestões de presente por perfil e faixa de preço, com chamada para pedir ajuda no WhatsApp." },
-    { id: "ultima-chamada", nome: "Última Chamada", descricao: "O prazo real para comprar, entregar ou retirar antes do Natal." },
-    { id: "virada-de-look", nome: "Virada de Look", descricao: "Até 3 looks de Réveillon com chamada para consultar tamanhos e cores." }
+     Cards do carrossel: { capa, eyebrow, sub } abre · { arte, titulo, linha, nota } card
+                         · { fim, sub } fecha. arte = bolsa, lenco, sandalia, pincel, batom, brilho.
+     Frames dos Stories: { titulo } + opcionais: texto, enquete:[...], escala:[min,max],
+                         pecas:[[arte, rótulo], ...], link.
+     --------------------------------------------------------------------- */
+  publicos: [
+    {
+      id: "lojistas",
+      nome: "Para lojistas",
+      curto: "Lojista",
+      chamada: "Lojas de roupas, calçados e acessórios que querem vender mais no fim de ano.",
+      negocio: "Loja", negocioCampo: "Nome da loja",
+      exemploNegocio: { nome: "Ateliê Aurora", instagram: "@atelieaurora" },
+      capa: { eyebrow: "Conteúdo pronto para lojas de moda", titulo: "Fim de ano corrido? Seu conteúdo", destaque: "vem pronto.",
+              texto: "Carrosséis, vídeos, legendas, guia de Stories e calendário de posts com os seus produtos. Você só publica e atende." },
+      faz: [
+        "Envia fotos dos produtos e a tabela de preços",
+        "Grava clipes curtos no celular, se o pedido tiver vídeo",
+        "Publica seguindo o calendário",
+        "Atende quem chamar no WhatsApp"
+      ],
+      planos: [
+        { id: "essencial", nome: "Essencial", preco: 390, disponivel: true,
+          chamada: "O básico para a loja não sumir do feed no fim de ano.",
+          itens: { calendario: 1, carrossel: 3, legendas: 1 },
+          periodo: "Até o Natal", prazo: "Até 4 dias úteis depois de recebermos fotos e preços" },
+        { id: "natal-completo", nome: "Natal Completo", preco: 690, disponivel: true, selo: "Mais pedido",
+          chamada: "Feed, Reels e Stories planejados até o dia 24.",
+          itens: { calendario: 1, carrossel: 4, video: 2, legendas: 1, stories: 1 },
+          periodo: "Até o Natal", prazo: "Até 5 dias úteis depois de recebermos o material" },
+        { id: "natal-reveillon", nome: "Natal + Réveillon", preco: 890, disponivel: true,
+          chamada: "Do presente de Natal ao look da virada, sem pensar em post.",
+          itens: { calendario: 1, carrossel: 6, video: 3, legendas: 1, stories: 1 },
+          periodo: "Até 31/12", prazo: "Natal em até 5 dias úteis; Réveillon entregue até 20/12" }
+      ],
+      temas: [
+        { id: "guia-de-presentes", nome: "Guia de presentes",
+          descricao: "Presentes por faixa de preço e por pessoa, com chamada para consultar a disponibilidade.",
+          exemplo: {
+            legenda: "Sem ideia de presente? 🎁 Separamos opções por faixa de preço. Arrasta pro lado e chama no WhatsApp pra ver se tem a sua cor.",
+            carrossel: [
+              { capa: "Presentes até R$ 200", eyebrow: "Guia de presentes", sub: "Arrasta pro lado →" },
+              { arte: "lenco", titulo: "Lenço Seda", linha: "Até R$ 80", nota: "Amigo secreto" },
+              { arte: "sandalia", titulo: "Rasteira Festa", linha: "Até R$ 160", nota: "Pra amiga" },
+              { arte: "bolsa", titulo: "Bolsa Lua", linha: "Até R$ 200", nota: "Pra mãe" },
+              { fim: "Gostou de algum? Consulte a disponibilidade", sub: "Chama no WhatsApp. Link na bio." }
+            ],
+            stories: [
+              { titulo: "Presente de Natal pra quem?", enquete: ["Mãe", "Amiga", "Namorado(a)", "Amigo secreto"] },
+              { titulo: "Até quanto você quer gastar?", escala: ["R$ 50", "R$ 300+"] },
+              { titulo: "Bolsa Lua de pertinho", texto: "Couro ecológico, alça regulável e 3 cores. R$ 189.", pecas: [["bolsa", "Vinho"], ["bolsa", "Preta"], ["bolsa", "Caramelo"]] },
+              { titulo: "Tem na sua cor? Pergunta pra gente", link: "Consultar disponibilidade" }
+            ]
+          } },
+        { id: "achados-para-as-festas", nome: "Achados para as festas",
+          descricao: "Peças para confraternização, ceia e Réveillon, prontas para usar ou presentear.",
+          exemplo: {
+            legenda: "3 achados que salvam qualquer festa de fim de ano ✨ Qual vai com você? Chama no WhatsApp pra ver tamanhos.",
+            carrossel: [
+              { capa: "3 achados para as festas", eyebrow: "Achados para as festas", sub: "Da firma à virada →" },
+              { arte: "sandalia", titulo: "Rasteira Festa", linha: "R$ 159", nota: "Ceia de Natal" },
+              { arte: "lenco", titulo: "Lenço Seda", linha: "R$ 79", nota: "Confraternização" },
+              { arte: "bolsa", titulo: "Bolsa Lua", linha: "R$ 189", nota: "Réveillon" },
+              { fim: "Separamos pra você", sub: "Chama no WhatsApp e veja tamanhos e cores." }
+            ],
+            stories: [
+              { titulo: "Chegou coisa nova pra festa", pecas: [["bolsa", "R$ 189"], ["lenco", "R$ 79"], ["sandalia", "R$ 159"]] },
+              { titulo: "Qual o look da ceia?", enquete: ["Vestido", "Conjunto", "Calça + blusa"] },
+              { titulo: "Rasteira Festa em detalhe", texto: "Salto baixo, brilho na tira, do 34 ao 40.", pecas: [["sandalia", "Dourada"], ["sandalia", "Prata"], ["sandalia", "Nude"]] },
+              { titulo: "Quer ver no seu tamanho?", link: "Consultar disponibilidade" }
+            ]
+          } },
+        { id: "ultimas-compras-de-natal", nome: "Últimas compras de Natal",
+          descricao: "O prazo real para comprar, entregar ou retirar, com opções prontas para quem deixou para a última hora.",
+          exemplo: {
+            legenda: "Ainda dá tempo! 🎄 Entrega até 23/12 e retirada até 24/12 ao meio-dia. Chama no WhatsApp que a gente separa.",
+            carrossel: [
+              { capa: "Ainda dá tempo!", eyebrow: "Últimas compras de Natal", sub: "Entrega até 23/12 →" },
+              { arte: "bolsa", titulo: "Já embrulhada", linha: "R$ 189", nota: "Pronta pra levar" },
+              { arte: "lenco", titulo: "Lenço Seda", linha: "R$ 79", nota: "Cabe em qualquer lista" },
+              { arte: "sandalia", titulo: "Rasteira Festa", linha: "R$ 159", nota: "Retire hoje" },
+              { fim: "Último dia de entrega: 23/12", sub: "Chama no WhatsApp e garanta o seu." }
+            ],
+            stories: [
+              { titulo: "Faltam 3 dias pro Natal", texto: "Entrega até 23/12 · retirada até 24/12, 12h." },
+              { titulo: "Prontos pra levar", pecas: [["bolsa", "R$ 189"], ["lenco", "R$ 79"], ["sandalia", "R$ 159"]] },
+              { titulo: "Vai retirar ou receber?", enquete: ["Retirar na loja", "Receber em casa"] },
+              { titulo: "Ainda tem? Pergunta agora", link: "Consultar disponibilidade" }
+            ]
+          } }
+      ],
+      reel: [
+        { titulo: "Sem ideia de presente?", sub: "A gente escolhe com você." },
+        { titulo: "Me conta pra quem é e quanto quer gastar", sub: "Mãe, amiga, amigo secreto…" },
+        { titulo: "3 sugestões do nosso estoque", pecas: [["bolsa", "R$ 189"], ["lenco", "R$ 79"], ["sandalia", "R$ 159"]] },
+        { titulo: "Chama no WhatsApp", pill: "Quero uma sugestão →", sub: "Embrulho para presente incluso" }
+      ],
+      reelLegenda: "Presente certo em 5 minutos ✨",
+      legendas: [
+        ["Carrossel · Guia de presentes", "Sem ideia de presente? 🎁\nSeparamos opções até R$ 200 pra mãe, pra amiga e pro amigo secreto. Arrasta pro lado e chama no WhatsApp que a gente embrulha.", "#presentedenatal #modafeminina"],
+        ["Vídeo · Bastidores", "Cada presente sai daqui embrulhado com carinho ✨\nPede o seu pelo WhatsApp e retira ou recebe em casa.", "#natal #lojadebairro"],
+        ["Carrossel · Achados para as festas", "3 achados pra virar o ano do jeito certo 🥂\nQual é o seu? Responde aqui ou chama no WhatsApp pra ver tamanhos.", "#reveillon #lookdavirada"]
+      ],
+      calendario: [
+        ["2026-12-01", "19h", "carrossel", "Guia de presentes até R$ 200"],
+        ["2026-12-03", "12h", "video", "Monte o presente com a gente"],
+        ["2026-12-04", "o dia todo", "stories", "Enquete: pra quem é o presente?"],
+        ["2026-12-08", "19h", "carrossel", "Achados para as festas"],
+        ["2026-12-12", "11h", "video", "Bastidores do embrulho"],
+        ["2026-12-19", "o dia todo", "stories", "Últimas compras: entrega até 23/12"],
+        ["2026-12-27", "19h", "carrossel", "Looks da virada"]
+      ]
+    },
+    {
+      id: "prestadores",
+      nome: "Para prestadores de serviço",
+      curto: "Prestador de serviço",
+      chamada: "Maquiadoras, cabeleireiras, fotógrafos, estética e outros serviços que vivem de agenda.",
+      negocio: "Negócio", negocioCampo: "Nome do negócio",
+      exemploNegocio: { nome: "Bia Make", instagram: "@biamake" },
+      capa: { eyebrow: "Conteúdo pronto para prestadores de serviço", titulo: "Mostre o valor do seu trabalho", destaque: "nas festas.",
+              texto: "Carrosséis, Stories, legendas e calendário de posts sobre o seu serviço, com bastidores e trabalhos reais. Você só publica e atende." },
+      faz: [
+        "Envia fotos de trabalhos reais e a lista de serviços",
+        "Grava clipes curtos do atendimento, se o pedido tiver vídeo",
+        "Publica seguindo o calendário",
+        "Atende quem chamar no WhatsApp"
+      ],
+      // NOMES PROVISÓRIOS: os nomes e preços destes planos ainda não foram definidos. Edite à vontade.
+      planos: [
+        { id: "presenca", nome: "Presença", preco: 290, disponivel: true,
+          chamada: "Para o seu serviço aparecer no feed durante as festas.",
+          itens: { calendario: 1, carrossel: 2, legendas: 1 },
+          periodo: "Até o Natal", prazo: "Até 4 dias úteis depois de recebermos fotos e serviços" },
+        { id: "agenda-cheia", nome: "Agenda Cheia", preco: 520, disponivel: true, selo: "Mais pedido",
+          chamada: "Feed, Reels e Stories para lotar a agenda de dezembro.",
+          itens: { calendario: 1, carrossel: 3, video: 1, legendas: 1, stories: 1 },
+          periodo: "Até o Natal", prazo: "Até 5 dias úteis depois de recebermos o material" },
+        { id: "fim-de-ano-completo", nome: "Fim de Ano Completo", preco: 760, disponivel: true,
+          chamada: "Do Natal ao Réveillon, mostrando bastidores e resultados.",
+          itens: { calendario: 1, carrossel: 5, video: 2, legendas: 1, stories: 1 },
+          periodo: "Até 31/12", prazo: "Natal em até 5 dias úteis; Réveillon entregue até 20/12" }
+      ],
+      temas: [
+        { id: "especial-de-fim-de-ano", nome: "Especial de fim de ano",
+          descricao: "Ideias para aproveitar o serviço na época das festas: estilos, datas e horários especiais.",
+          exemplo: {
+            legenda: "3 makes pra arrasar nas confraternizações ✨ Qual é a sua? Agenda de dezembro aberta, chama no WhatsApp.",
+            carrossel: [
+              { capa: "3 makes para as confraternizações", eyebrow: "Especial de fim de ano", sub: "Arrasta pro lado →" },
+              { arte: "pincel", titulo: "Make leve", linha: "Pele fresca, boca rosada", nota: "Almoço da firma" },
+              { arte: "brilho", titulo: "Glow dourado", linha: "Iluminado e elegante", nota: "Jantar de Natal" },
+              { arte: "batom", titulo: "Boca vermelha", linha: "Clássico que dura a noite", nota: "Festa da virada" },
+              { fim: "Agenda de dezembro aberta", sub: "Chama no WhatsApp e reserve seu horário." }
+            ],
+            stories: [
+              { titulo: "Como eu faço o glow dourado", texto: "A make do jantar de Natal, passo a passo 👇" },
+              { titulo: "1. Preparo a pele", texto: "Hidratante e primer iluminador para durar a festa toda.", pecas: [["pincel", "Preparo"]] },
+              { titulo: "2. Ilumino os pontos altos", texto: "Dourado nas maçãs do rosto, no nariz e no canto dos olhos.", pecas: [["brilho", "Iluminador"]] },
+              { titulo: "3. Finalizo a boca", texto: "Nude com brilho, para não brigar com o dourado.", pecas: [["batom", "Nude"]] },
+              { titulo: "Quer esse resultado?", link: "Reservar meu horário" }
+            ]
+          } },
+        { id: "por-tras-do-resultado", nome: "Por trás do resultado",
+          descricao: "Bastidores, escolhas do profissional e exemplos de trabalhos reais, para mostrar o valor do serviço.",
+          exemplo: {
+            legenda: "Make bonita não é sorte: é escolha 💄 Cada produto aqui tem um porquê. Quer o seu? Chama no WhatsApp.",
+            carrossel: [
+              { capa: "Por trás de uma make que dura a festa toda", eyebrow: "Por trás do resultado", sub: "Arrasta pro lado →" },
+              { arte: "pincel", titulo: "Preparo", linha: "Pele hidratada segura a make", nota: "Escolha 1" },
+              { arte: "batom", titulo: "Cor", linha: "Tom escolhido pela roupa e pela luz", nota: "Escolha 2" },
+              { arte: "brilho", titulo: "Fixação", linha: "Selagem para 8 horas de festa", nota: "Escolha 3" },
+              { fim: "Esse cuidado vai no seu atendimento", sub: "Chama no WhatsApp e agende." }
+            ],
+            stories: [
+              { titulo: "Bastidores de hoje", texto: "Noiva às 7h, madrinhas às 9h. Bora? ☕" },
+              { titulo: "Por que esse batom?", texto: "O vestido é verde: escolhi um vermelho mais fechado para equilibrar.", pecas: [["batom", "Vermelho"]] },
+              { titulo: "Antes ou depois?", enquete: ["Antes 😴", "Depois ✨"] },
+              { titulo: "Quer um resultado assim?", link: "Agendar pelo WhatsApp" }
+            ]
+          } }
+      ],
+      reel: [
+        { titulo: "Make de festa em 30 segundos", sub: "Do preparo ao acabamento." },
+        { titulo: "Antes: pele preparada", pecas: [["pincel", "Preparo"], ["brilho", "Luz"], ["batom", "Boca"]] },
+        { titulo: "Depois: glow dourado", sub: "Pronta para o jantar de Natal." },
+        { titulo: "Agenda de dezembro aberta", pill: "Reservar horário →", sub: "Sábados e véspera a partir das 7h" }
+      ],
+      reelLegenda: "Glow dourado para o Natal ✨",
+      legendas: [
+        ["Carrossel · Especial de fim de ano", "3 makes pra arrasar nas festas ✨\nMake leve pro almoço da firma, glow dourado pro Natal e boca vermelha pra virada. Qual é a sua?", "#makedefesta #maquiagem"],
+        ["Stories · Por trás do resultado", "Por que esse batom? 💄\nO vestido era verde, então escolhi um vermelho mais fechado. Cada detalhe tem um porquê.", "#bastidores #maquiadora"],
+        ["Vídeo · Antes e depois", "Do preparo ao glow em 30 segundos ✨\nAgenda de dezembro aberta. Chama no WhatsApp e reserve.", "#natal #agendaaberta"]
+      ],
+      calendario: [
+        ["2026-12-01", "19h", "carrossel", "3 makes para as confraternizações"],
+        ["2026-12-03", "o dia todo", "stories", "Como eu faço o glow dourado"],
+        ["2026-12-06", "12h", "video", "Antes e depois da make de festa"],
+        ["2026-12-09", "19h", "carrossel", "Por trás de uma make que dura"],
+        ["2026-12-13", "o dia todo", "stories", "Bastidores do sábado de noivas"],
+        ["2026-12-18", "19h", "carrossel", "Últimos horários antes do Natal"],
+        ["2026-12-27", "19h", "carrossel", "Make da virada"]
+      ]
+    }
   ],
 
   promocoes: [
     { id: "antecipado", ativa: true, tipo: "percentual", valor: 10, aplicaEm: "pacote", ate: "2026-11-20",
-      rotulo: "Pedido antecipado", texto: "10% off em qualquer pacote" },
+      rotulo: "Pedido antecipado", texto: "10% off em qualquer plano" },
     { id: "carrossel-3x2", ativa: true, tipo: "leve-pague", item: "carrossel", leve: 3, pague: 2,
       rotulo: "Carrossel extra 3 por 2", texto: "Nos carrosséis extras, leve 3 e pague 2" }
-  ],
-
-  lojaFaz: [
-    "Envia fotos dos produtos e a tabela de preços",
-    "Grava clipes curtos no celular, se o pedido tiver vídeo",
-    "Publica seguindo o calendário",
-    "Atende quem chamar no WhatsApp"
   ]
 };
 
@@ -437,8 +644,9 @@ const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" 
 const fmt = v => BRL.format(v).replace(/ /g, " ");
 const round2 = v => Math.round(v * 100) / 100;
 const getItem = id => CONFIG.itens.find(i => i.id === id) || null;
-const getPacote = id => CONFIG.pacotes.find(p => p.id === id) || null;
-const getTema = id => CONFIG.temas.find(t => t.id === id) || null;
+const getPublico = id => CONFIG.publicos.find(p => p.id === id) || null;
+const getPacote = id => CONFIG.publicos.flatMap(pb => pb.planos).find(p => p.id === id) || null;
+const getTema = id => CONFIG.publicos.flatMap(pb => pb.temas).find(t => t.id === id) || null;
 function qtdLabel(item, q) { return `${q} ${q === 1 ? item.unidade[0] : item.unidade[1]}`; }
 function valorAvulso(p) { return Object.entries(p.itens).reduce((s, [id, q]) => s + (getItem(id)?.preco || 0) * q, 0); }
 function economiaPacote(p) { return Math.max(0, valorAvulso(p) - p.preco); }
@@ -450,10 +658,13 @@ function promoVigente(p, hoje) { return p.ativa && (!p.ate || isoDay(hoje) <= p.
 function promosAtivas(hoje = new Date()) { return CONFIG.promocoes.filter(p => promoVigente(p, hoje)); }
 function dataCurta(iso) { const [, m, d] = iso.split("-"); return `${d}/${m}`; }
 
-/* Deixa o carrinho coerente com o catálogo: remove o que não existe, está indisponível ou passa do limite. */
+/* Deixa o carrinho coerente com o catálogo: remove o que não existe, está indisponível,
+   passa do limite ou pertence a outro perfil. As peças avulsas valem para todos os perfis. */
 function sanitizeCart(cart) {
-  const c = { pacote: null, extras: {}, temas: [] };
-  const p = cart && getPacote(cart.pacote);
+  const c = { perfil: null, pacote: null, extras: {}, temas: [] };
+  const pb = cart && getPublico(cart.perfil);
+  if (pb) c.perfil = pb.id;
+  const p = pb && pb.planos.find(x => x.id === cart.pacote);
   if (p && p.disponivel) c.pacote = p.id;
   for (const [id, q] of Object.entries((cart && cart.extras) || {})) {
     const it = getItem(id);
@@ -461,9 +672,10 @@ function sanitizeCart(cart) {
     const n = Math.min(Math.max(0, Math.floor(Number(q) || 0)), maxExtra(c.pacote, id));
     if (n > 0) c.extras[id] = n;
   }
-  c.temas = [...new Set((cart && cart.temas) || [])].filter(getTema);
+  c.temas = pb ? [...new Set(cart.temas || [])].filter(id => pb.temas.some(t => t.id === id)) : [];
   return c;
 }
+function setPerfil(cart, id) { return sanitizeCart({ ...cart, perfil: id || null }); }
 function setPacote(cart, id) { return sanitizeCart({ ...cart, pacote: id || null }); }
 function addExtra(cart, id, delta) { const ex = { ...cart.extras, [id]: (cart.extras[id] || 0) + delta }; return sanitizeCart({ ...cart, extras: ex }); }
 function toggleTema(cart, id) { const has = cart.temas.includes(id); return sanitizeCart({ ...cart, temas: has ? cart.temas.filter(t => t !== id) : [...cart.temas, id] }); }
@@ -478,7 +690,7 @@ function calc(cart, hoje = new Date()) {
   for (const pr of promosAtivas(hoje)) {
     if (pr.tipo === "percentual") {
       const base = pr.aplicaEm === "pacote" ? subPacote : pr.aplicaEm === "extras" ? subExtras : subtotal;
-      if (base > 0) descontos.push({ promo: pr, valor: round2(base * pr.valor / 100), detalhe: `${pr.valor}% ${pr.aplicaEm === "pacote" ? "no pacote" : pr.aplicaEm === "extras" ? "nas peças extras" : "no pedido"}` });
+      if (base > 0) descontos.push({ promo: pr, valor: round2(base * pr.valor / 100), detalhe: `${pr.valor}% ${pr.aplicaEm === "pacote" ? "no plano" : pr.aplicaEm === "extras" ? "nas peças extras" : "no pedido"}` });
     } else if (pr.tipo === "leve-pague") {
       const e = extras.find(x => x.item.id === pr.item);
       if (e) { const gratis = Math.floor(e.qtd / pr.leve) * (pr.leve - pr.pague); if (gratis > 0) descontos.push({ promo: pr, valor: round2(gratis * e.item.preco), detalhe: `${gratis} ${gratis === 1 ? e.item.unidade[0] : e.item.unidade[1]} por conta da casa` }); }
@@ -505,10 +717,10 @@ function normalizeInstagram(s) {
   v = v.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?#].*$/, "").replace(/^@+/, "");
   return v ? "@" + v : "";
 }
-function validateCustomer(d) {
+function validateCustomer(d, publico) {
   const e = {};
   if (String(d.nome || "").trim().length < 2) e.nome = "Informe seu nome.";
-  if (!String(d.loja || "").trim()) e.loja = "Informe o nome da loja.";
+  if (!String(d.loja || "").trim()) e.loja = `Informe o ${(publico ? publico.negocioCampo : "Nome da loja").toLowerCase()}.`;
   const p = normalizePhone(d.whatsapp);
   if (!p) e.whatsapp = "Informe o WhatsApp com DDD.";
   else if (p.length < 10 || p.length > 11 || Number(p.slice(0,2)) < 11) e.whatsapp = "Confira o número: use DDD + número, como (55) 99999-8888.";
@@ -518,10 +730,11 @@ function validateCustomer(d) {
 }
 
 function buildSummary(cart, c, hoje = new Date()) {
-  const r = calc(cart, hoje);
+  const r = calc(cart, hoje), pb = getPublico(cart.perfil);
   const L = [`Olá! Quero solicitar conteúdo do ${CONFIG.projeto}.`, ""];
+  if (pb) L.push("*Perfil*", pb.nome, "");
   if (r.pacote) {
-    L.push("*Pacote*", `• ${r.pacote.nome} — ${fmt(r.pacote.preco)}`);
+    L.push("*Plano*", `• ${r.pacote.nome} — ${fmt(r.pacote.preco)}`);
     L.push(`  Inclui: ${Object.entries(r.pacote.itens).map(([id, q]) => qtdLabel(getItem(id), q)).join(", ")}`, "");
   }
   L.push(r.pacote ? "*Peças extras*" : "*Peças avulsas*");
@@ -532,7 +745,7 @@ function buildSummary(cart, c, hoje = new Date()) {
   r.descontos.forEach(d => L.push(`Desconto ${d.promo.rotulo} (${d.detalhe}): − ${fmt(d.valor)}`));
   L.push(`*Total: ${fmt(r.total)}*`);
   if (CONFIG.valoresDemonstracao) L.push("(valores de demonstração)");
-  L.push("", "*Meus dados*", `Nome: ${String(c.nome).trim()}`, `Loja: ${String(c.loja).trim()}`, `WhatsApp: ${formatPhone(c.whatsapp)}`);
+  L.push("", "*Meus dados*", `Nome: ${String(c.nome).trim()}`, `${pb ? pb.negocio : "Loja"}: ${String(c.loja).trim()}`, `WhatsApp: ${formatPhone(c.whatsapp)}`);
   const ig = normalizeInstagram(c.instagram);
   if (ig) L.push(`Instagram: ${ig}`);
   L.push("", "Aguardo o retorno para fechar o pedido.");
@@ -550,47 +763,56 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 const state = {
-  cart: sanitizeCart(store.get("nna-cart-v2", null)),
+  cart: sanitizeCart(store.get("nna-cart-v3", null)),
   customer: Object.assign({ nome: "", loja: "", whatsapp: "", instagram: "" }, store.get("nna-customer", {})),
-  tab: "carrossel"
+  tab: "carrossel",
+  prevTema: null
 };
 let timers = [];
 const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
 const every = (fn, ms) => { const t = setInterval(fn, ms); timers.push(t); return t; };
 function clearTimers() { timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; }
-function save() { store.set("nna-cart-v2", state.cart); store.set("nna-customer", state.customer); }
+function save() { store.set("nna-cart-v3", state.cart); store.set("nna-customer", state.customer); }
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2600); }
 
-const lojaNome = () => state.customer.loja.trim() || CONFIG.lojaExemplo.nome;
-const lojaIg = () => normalizeInstagram(state.customer.instagram) || CONFIG.lojaExemplo.instagram;
+const publico = () => getPublico(state.cart.perfil);
+const lojaNome = () => state.customer.loja.trim() || (publico() || CONFIG.publicos[0]).exemploNegocio.nome;
+const lojaIg = () => normalizeInstagram(state.customer.instagram) || (publico() || CONFIG.publicos[0]).exemploNegocio.instagram;
 const initial = () => lojaNome().charAt(0).toUpperCase();
 const handle = () => lojaIg().replace("@", "");
+/* Tema usado nas prévias de carrossel e Stories: o escolhido na prévia, senão o primeiro do pedido, senão o primeiro do perfil. */
+function temaPrevia() {
+  const pb = publico() || CONFIG.publicos[0];
+  return pb.temas.find(t => t.id === state.prevTema) || pb.temas.find(t => state.cart.temas.includes(t.id)) || pb.temas[0];
+}
 
-/* ilustrações de produto */
+/* ilustrações */
 const ART = {
   bolsa: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 15c0-5 3-8 7-8s7 3 7 8" fill="none" stroke="#5A1D4B" stroke-width="2.4"/><rect x="7" y="14" width="26" height="20" rx="3" fill="#B0123C"/><rect x="17" y="20" width="6" height="3" rx="1" fill="#F4DCE4"/></svg>',
   lenco: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 10h28L20 33z" fill="#5A1D4B"/><path d="M11 13h18l-9 14z" fill="#E7A5BC"/><circle cx="20" cy="17" r="2" fill="#B88A3E"/></svg>',
-  sandalia: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 28c0-4 4-6 10-6h10c3 0 5 2 5 4v2z" fill="#B0123C"/><path d="M14 22c2-6 8-9 14-8" fill="none" stroke="#B88A3E" stroke-width="2.4"/><rect x="8" y="28" width="25" height="3" rx="1.5" fill="#5A1D4B"/></svg>'
+  sandalia: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 28c0-4 4-6 10-6h10c3 0 5 2 5 4v2z" fill="#B0123C"/><path d="M14 22c2-6 8-9 14-8" fill="none" stroke="#B88A3E" stroke-width="2.4"/><rect x="8" y="28" width="25" height="3" rx="1.5" fill="#5A1D4B"/></svg>',
+  pincel: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="18" y="18" width="4" height="17" rx="2" fill="#5A1D4B"/><rect x="17" y="15" width="6" height="5" rx="1" fill="#B88A3E"/><path d="M15 15c0-6 2-10 5-10s5 4 5 10z" fill="#B0123C"/></svg>',
+  batom: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="14" y="22" width="12" height="13" rx="2" fill="#5A1D4B"/><rect x="15.5" y="17" width="9" height="6" fill="#B88A3E"/><path d="M16.5 17V9l7-4v12z" fill="#B0123C"/></svg>',
+  brilho: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4l3.5 12.5L36 20l-12.5 3.5L20 36l-3.5-12.5L4 20l12.5-3.5z" fill="#B88A3E"/><circle cx="31" cy="9" r="3" fill="#B0123C"/><circle cx="9" cy="31" r="2" fill="#5A1D4B"/></svg>'
 };
-const pick = (k, l) => `<div class="pick"><div class="art">${ART[k]}</div><div>${l}</div></div>`;
-const PICKS = () => pick("bolsa","R$ 189") + pick("lenco","R$ 79") + pick("sandalia","R$ 159");
+const pick = (k, l) => `<div class="pick"><div class="art">${ART[k] || ""}</div><div>${esc(l)}</div></div>`;
+const picks = list => `<div class="tiles"${list.length < 3 ? ` style="grid-template-columns:repeat(${list.length},110px);justify-content:center"` : ""}>${list.map(([k, l]) => pick(k, l)).join("")}</div>`;
 const phone = inner => `<div class="phone"><div class="notch"></div><div class="screen">${inner}</div></div>`;
 
-/* ---------- Exemplos das peças ---------- */
-const SLIDES = [
-  () => `<div class="slide cover"><span class="eyebrow" style="color:#fff;opacity:.8">Guia de presentes</span><div class="big">Presentes até R$ 200</div><div style="font-size:13px">Arrasta pro lado →</div></div>`,
-  () => `<div class="slide prod"><div class="art">${ART.bolsa}</div><b>Bolsa Lua</b><span>R$ 189</span><small>Pra mãe</small></div>`,
-  () => `<div class="slide prod"><div class="art">${ART.lenco}</div><b>Lenço Seda</b><span>R$ 79</span><small>Amigo secreto</small></div>`,
-  () => `<div class="slide prod"><div class="art">${ART.sandalia}</div><b>Rasteira Festa</b><span>R$ 159</span><small>Pra amiga</small></div>`,
-  () => `<div class="slide cta"><div class="big">Ficou em dúvida? Chama no WhatsApp</div><div style="font-size:13px;opacity:.85">A gente separa e embrulha. Link na bio.</div></div>`
-];
+/* ---------- Exemplos das peças (conteúdo vem de CONFIG.publicos) ---------- */
+function slideHTML(c, i) {
+  if (c.capa) return `<div data-i="${i}" class="slide cover"><span class="eyebrow" style="color:#fff;opacity:.85">${esc(c.eyebrow || "")}</span><div class="big">${esc(c.capa)}</div><div style="font-size:13px">${esc(c.sub || "")}</div></div>`;
+  if (c.fim) return `<div data-i="${i}" class="slide cta"><div class="big">${esc(c.fim)}</div><div style="font-size:13px;opacity:.85">${esc(c.sub || "")}</div></div>`;
+  return `<div data-i="${i}" class="slide prod"><div class="art">${ART[c.arte] || ""}</div><b>${esc(c.titulo)}</b><span>${esc(c.linha || "")}</span>${c.nota ? `<small>${esc(c.nota)}</small>` : ""}</div>`;
+}
 function carouselHTML() {
+  const ex = temaPrevia().exemplo, cards = ex.carrossel;
   return `<div class="ig"><div class="ig-top">Instagram</div>
-    <div class="ig-head"><div class="av">${esc(initial())}</div><div><b>${esc(handle())}</b><small>Patrocinado pelo seu estoque</small></div></div>
-    <div class="slides" data-slides>${SLIDES.map((f, i) => f().replace('class="slide', `data-i="${i}" class="slide`)).join("")}<span class="counter" data-counter>1/${SLIDES.length}</span></div>
-    <div class="ig-bar"><i></i><i></i><i></i><div class="ig-dots">${SLIDES.map((_, i) => `<button type="button" aria-label="Card ${i+1}" data-dot="${i}"></button>`).join("")}</div></div>
+    <div class="ig-head"><div class="av">${esc(initial())}</div><div><b>${esc(handle())}</b><small>${esc(temaPrevia().nome)}</small></div></div>
+    <div class="slides" data-slides>${cards.map(slideHTML).join("")}<span class="counter" data-counter>1/${cards.length}</span></div>
+    <div class="ig-bar"><i></i><i></i><i></i><div class="ig-dots">${cards.map((_, i) => `<button type="button" aria-label="Card ${i+1}" data-dot="${i}"></button>`).join("")}</div></div>
     <div class="ig-cap"><b>312 curtidas</b></div>
-    <div class="ig-cap"><b>${esc(handle())}</b> Sem ideia de presente? Separamos 3 opções até R$ 200 🎁 Arrasta pro lado e chama no WhatsApp que a gente embrulha. <span class="more">mais</span></div></div>`;
+    <div class="ig-cap"><b>${esc(handle())}</b> ${esc(ex.legenda)} <span class="more">mais</span></div></div>`;
 }
 function mountCarousel(root) {
   const slides = root.querySelectorAll(".slide"); if (!slides.length) return;
@@ -606,18 +828,13 @@ function mountCarousel(root) {
   show(0); restart();
 }
 
-const REEL = [
-  () => `<div class="big">Sem ideia de presente?</div><div class="sub">A gente escolhe com você.</div>`,
-  () => `<div class="big">Me conta pra quem é e quanto quer gastar</div><div class="sub">Mãe, amiga, amigo secreto…</div>`,
-  () => `<div class="big">3 sugestões do nosso estoque</div><div class="tiles">${PICKS()}</div>`,
-  () => `<div class="big">Chama no WhatsApp</div><div class="pill">Quero uma sugestão →</div><div class="sub">Embrulho para presente incluso</div>`
-];
 function reelHTML() {
+  const pb = publico() || CONFIG.publicos[0];
   return `<div class="reel"><div class="reel-top">Reels</div>
-    <div class="reel-dots">${REEL.map((_, i) => `<button type="button" aria-label="Cena ${i+1}" data-scene="${i}"></button>`).join("")}</div>
-    ${REEL.map((f, i) => `<div class="scene">${f()}</div>`).join("")}
+    <div class="reel-dots">${pb.reel.map((_, i) => `<button type="button" aria-label="Cena ${i+1}" data-scene="${i}"></button>`).join("")}</div>
+    ${pb.reel.map(c => `<div class="scene"><div class="big">${esc(c.titulo)}</div>${c.pecas ? picks(c.pecas) : ""}${c.pill ? `<div class="pill">${esc(c.pill)}</div>` : ""}${c.sub ? `<div class="sub">${esc(c.sub)}</div>` : ""}</div>`).join("")}
     <div class="reel-side"><div><i></i>2,1 mil</div><div><i></i>148</div><div><i></i>Enviar</div></div>
-    <div class="reel-ui"><b>${esc(lojaIg())}</b>Presente certo em 5 minutos ✨</div></div>`;
+    <div class="reel-ui"><b>${esc(lojaIg())}</b>${esc(pb.reelLegenda)}</div></div>`;
 }
 function mountReel(root) {
   const scenes = root.querySelectorAll(".scene"), dots = root.querySelectorAll("[data-scene]");
@@ -629,25 +846,28 @@ function mountReel(root) {
   show(0); restart();
 }
 
-const STORY = [
-  () => `<div class="big">Presente de Natal pra quem?</div><div class="poll"><div>Mãe</div><div>Namorado(a)</div><div>Amiga</div><div>Amigo secreto</div></div>`,
-  () => `<div class="big">Até quanto você quer gastar?</div><div class="slider">Arrasta aqui 👇<div class="track"><i></i></div><small><span>R$ 50</span><span>R$ 300+</span></small></div>`,
-  () => `<div class="big">Chegou coisa nova pra festa</div><div class="tiles">${PICKS()}</div>`,
-  () => `<div class="big">Última chamada: entrega até 23/12</div><div class="st-link">↗ Chamar no WhatsApp</div>`
-];
+function frameHTML(f) {
+  return `<div class="big">${esc(f.titulo)}</div>`
+    + (f.texto ? `<div class="sub">${esc(f.texto)}</div>` : "")
+    + (f.enquete ? `<div class="poll">${f.enquete.map(o => `<div>${esc(o)}</div>`).join("")}</div>` : "")
+    + (f.escala ? `<div class="slider">Arrasta aqui 👇<div class="track"><i></i></div><small><span>${esc(f.escala[0])}</span><span>${esc(f.escala[1])}</span></small></div>` : "")
+    + (f.pecas ? picks(f.pecas) : "")
+    + (f.link ? `<div class="st-link">↗ ${esc(f.link)}</div>` : "");
+}
 function storiesHTML() {
-  return `<div class="stories"><div class="st-bars">${STORY.map(() => "<span><i></i></span>").join("")}</div>
+  const frames = temaPrevia().exemplo.stories;
+  return `<div class="stories"><div class="st-bars">${frames.map(() => "<span><i></i></span>").join("")}</div>
     <div class="st-who"><div class="av">${esc(initial())}</div>${esc(handle())} · 2 h</div>
     <div class="st-frame" data-frame></div>
     <div class="st-tap"><button type="button" aria-label="Story anterior" data-dir="-1"></button><button type="button" aria-label="Próximo story" data-dir="1"></button></div></div>`;
 }
 function mountStories(root) {
   const frame = root.querySelector("[data-frame]"); if (!frame) return;
-  const bars = root.querySelectorAll(".st-bars span");
+  const frames = temaPrevia().exemplo.stories, bars = root.querySelectorAll(".st-bars span");
   let i = 0, t; const DUR = 4000;
   const show = n => {
-    i = (n + STORY.length) % STORY.length;
-    frame.innerHTML = STORY[i]();
+    i = (n + frames.length) % frames.length;
+    frame.innerHTML = frameHTML(frames[i]);
     bars.forEach((b, k) => b.className = k < i ? "done" : "");
     void bars[i].offsetWidth; bars[i].className = reduce ? "done" : "now"; bars[i].style.setProperty("--dur", DUR + "ms");
     clearTimeout(t); if (!reduce) t = later(() => show(i + 1), DUR);
@@ -656,47 +876,37 @@ function mountStories(root) {
   show(0);
 }
 
-const LEGENDAS = [
-  ["Carrossel · Presente Certo", "Sem ideia de presente? 🎁\nSeparamos opções até R$ 200 pra mãe, pra amiga e pro amigo secreto. Arrasta pro lado e chama no WhatsApp que a gente embrulha.", "#presentedenatal #modafeminina"],
-  ["Vídeo · Bastidores", "Cada presente sai daqui embrulhado com carinho ✨\nPede o seu pelo WhatsApp e retira ou recebe em casa.", "#natal #lojadebairro"],
-  ["Carrossel · Virada de Look", "3 looks pra virar o ano do jeito certo 🥂\nQual é o seu? Responde aqui ou chama no WhatsApp pra ver tamanhos.", "#reveillon #lookdavirada"]
-];
-const legendasHTML = () => `<div class="sheet">${LEGENDAS.map(([k, t, h]) => `<div class="cap-card"><span class="eyebrow">${k}</span><p>${esc(t)}</p><div class="tags">${h}</div></div>`).join("")}</div>`;
+const legendasHTML = () => `<div class="sheet">${(publico() || CONFIG.publicos[0]).legendas.map(([k, t, h]) => `<div class="cap-card"><span class="eyebrow">${esc(k)}</span><p>${esc(t)}</p><div class="tags">${esc(h)}</div></div>`).join("")}</div>`;
 
-const CALENDARIO = [
-  ["2026-12-01", "19h", "carrossel", "Presentes até R$ 200"],
-  ["2026-12-03", "12h", "video", "Monte o presente com a gente"],
-  ["2026-12-04", "o dia todo", "stories", "Enquete: pra quem é o presente?"],
-  ["2026-12-08", "19h", "carrossel", "Looks para a confraternização"],
-  ["2026-12-12", "11h", "video", "Bastidores do embrulho"],
-  ["2026-12-19", "o dia todo", "stories", "Última chamada: entrega até 23/12"],
-  ["2026-12-27", "19h", "carrossel", "Virada de look"]
-];
 const DIAS = ["dom","seg","ter","qua","qui","sex","sáb"];
 const CHIP = { carrossel: "Carrossel", video: "Vídeo", stories: "Stories" };
 function calendarioHTML() {
-  return `<div class="sheet"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-family:var(--display);font-size:1.4rem">Dezembro</b><span class="hint">${esc(lojaNome())}</span></div>
-    <ul class="cal">${CALENDARIO.map(([iso, h, tipo, t]) => { const d = new Date(iso + "T12:00:00");
+  return `<div class="sheet"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-family:var(--display);font-size:1.3rem">Dezembro</b><span class="hint">${esc(lojaNome())}</span></div>
+    <ul class="cal">${(publico() || CONFIG.publicos[0]).calendario.map(([iso, h, tipo, t]) => { const d = new Date(iso + "T12:00:00");
       return `<li><div class="d"><small>${DIAS[d.getDay()]}</small><b class="num">${String(d.getDate()).padStart(2,"0")}</b></div><div class="what"><b>${esc(t)}</b><span class="chip ${tipo}">${CHIP[tipo]}</span><span class="hint">${h}</span></div></li>`; }).join("")}</ul></div>`;
 }
 
 const EXEMPLOS = {
-  carrossel: { tab: "Carrossel", titulo: "Carrossel", texto: "Cards com seus produtos, preços e identidade. A capa chama atenção e o último card leva para o WhatsApp.", pontos: ["Até 6 cards por carrossel", "Fotos e preços da loja", "Arte pronta para postar"], render: carouselHTML, mount: mountCarousel, phone: true },
+  carrossel: { tab: "Carrossel", titulo: "Carrossel", texto: "Cards com seus produtos ou serviços, preços e identidade. A capa chama atenção e o último card leva para o WhatsApp.", pontos: ["Até 6 cards por carrossel", "Suas fotos e informações", "Arte pronta para postar"], render: carouselHTML, mount: mountCarousel, phone: true, porTema: true },
   video: { tab: "Vídeo", titulo: "Vídeo curto", texto: "Você grava clipes no celular seguindo o roteiro. A gente edita com texto, ritmo e chamada no final.", pontos: ["Roteiro cena por cena", "Até 30 segundos", "Texto na tela e chamada para o WhatsApp"], render: reelHTML, mount: mountReel, phone: true },
-  legendas: { tab: "Legendas", titulo: "Legendas prontas", texto: "Uma legenda para cada post do calendário, no tom da loja e com hashtags curtas.", pontos: ["Uma por post", "Chamada para o WhatsApp", "É só copiar e colar"], render: legendasHTML },
-  stories: { tab: "Stories", titulo: "Guia de Stories", texto: "O que postar nos Stories em cada dia: enquetes, escala de valor, novidades e o prazo de Natal.", pontos: ["Ideias para cada dia", "Textos e enquetes prontos", "Lembretes de prazo de entrega"], render: storiesHTML, mount: mountStories, phone: true },
-  calendario: { tab: "Calendário", titulo: "Calendário de publicações", texto: "Dia e horário de cada post até o Natal ou o Réveillon. A loja só segue a lista.", pontos: ["Feed, Reels e Stories organizados", "Horários sugeridos", "Datas de prazo de entrega"], render: calendarioHTML }
+  legendas: { tab: "Legendas", titulo: "Legendas prontas", texto: "Uma legenda para cada post do calendário, no seu tom e com hashtags curtas.", pontos: ["Uma por post", "Chamada para o WhatsApp", "É só copiar e colar"], render: legendasHTML },
+  stories: { tab: "Stories", titulo: "Guia de Stories", texto: "O que postar nos Stories em cada dia: enquetes, bastidores, detalhes e chamadas para o WhatsApp.", pontos: ["Ideias para cada dia", "Textos e enquetes prontos", "Lembretes de prazo"], render: storiesHTML, mount: mountStories, phone: true, porTema: true },
+  calendario: { tab: "Calendário", titulo: "Calendário de publicações", texto: "Dia e horário de cada post até o Natal ou o Réveillon. Você só segue a lista.", pontos: ["Feed, Reels e Stories organizados", "Horários sugeridos", "Datas de prazo"], render: calendarioHTML }
 };
 function demoSection(ids) {
   if (!ids.includes(state.tab)) state.tab = ids[0];
-  const ex = EXEMPLOS[state.tab];
+  const ex = EXEMPLOS[state.tab], pb = publico(), tp = temaPrevia();
   return `<div class="tabs" role="tablist">${ids.map(k => `<button type="button" role="tab" aria-selected="${state.tab === k}" data-tab="${k}">${EXEMPLOS[k].tab}</button>`).join("")}</div>
+    ${ex.porTema ? `<div class="prev-temas" role="group" aria-label="Tema da prévia"><b>Tema:</b>${pb.temas.map(t => `<button type="button" data-prev="${t.id}" aria-pressed="${t.id === tp.id}">${esc(t.nome)}</button>`).join("")}</div>` : ""}
     <div class="demo" data-demo="${state.tab}">${ex.phone ? phone(ex.render()) : ex.render()}
-      <div class="demo-note"><span class="eyebrow">Exemplo do que você recebe</span><h3 style="margin-top:6px">${ex.titulo}</h3><p>${ex.texto}</p><ul>${ex.pontos.map(p => `<li>${p}</li>`).join("")}</ul>
-      <p class="hint" style="margin-top:12px">Exemplo com a loja ${esc(lojaNome())}. Produtos e preços ilustrativos.</p></div></div>`;
+      <div class="demo-note"><span class="eyebrow">Exemplo do que você recebe${ex.porTema ? ` · ${esc(tp.nome)}` : ""}</span><h3 style="margin-top:6px">${ex.titulo}</h3><p>${ex.porTema ? esc(tp.descricao) + " " : ""}${ex.texto}</p><ul>${ex.pontos.map(p => `<li>${p}</li>`).join("")}</ul>
+      <p class="hint" style="margin-top:12px">Exemplo com ${esc(lojaNome())}. Nomes, fotos e preços ilustrativos.</p></div></div>`;
 }
 
 /* ---------- Blocos ---------- */
+function perfilSwitch() {
+  return `<div class="perfil-switch"><span>Você está em</span><div class="seg" role="group" aria-label="Perfil">${CONFIG.publicos.map(pb => `<button type="button" data-perfil="${pb.id}" aria-pressed="${state.cart.perfil === pb.id}">${esc(pb.nome)}</button>`).join("")}</div></div>`;
+}
 function promoPacote(p) {
   const pr = promosAtivas().find(x => x.tipo === "percentual" && (x.aplicaEm === "pacote" || x.aplicaEm === "tudo"));
   return pr ? { promo: pr, preco: round2(p.preco * (1 - pr.valor / 100)) } : null;
@@ -712,7 +922,7 @@ function packCard(p) {
            : `<div class="price num">${fmt(p.preco)}</div>`}
       ${eco ? `<div class="hint" style="margin-top:4px">Avulso sairia <span class="num">${fmt(valorAvulso(p))}</span> · economia de <span class="num">${fmt(eco)}</span></div>` : ""}
     </div>
-    <div class="actions">${p.disponivel ? `<button class="btn ${on ? "" : ""}" type="button" data-pacote="${p.id}">${on ? "Escolhido ✓" : "Escolher pacote"}</button>` : `<span class="tag demo">Esgotado</span>`}<a class="btn ghost" href="#pacote-${p.id}">Ver detalhes</a></div>
+    <div class="actions">${p.disponivel ? `<button class="btn" type="button" data-pacote="${p.id}">${on ? "Escolhido ✓" : "Escolher plano"}</button>` : `<span class="tag demo">Esgotado</span>`}<a class="btn ghost" href="#pacote-${p.id}">Ver detalhes</a></div>
   </article>`;
 }
 function promoBand() {
@@ -725,40 +935,52 @@ function itemCard(it) {
   const q = state.cart.extras[it.id] || 0, left = maxExtra(state.cart.pacote, it.id);
   return `<article class="item"><h3>${esc(it.nome)}</h3><p>${esc(it.descricao)}</p>
     <div class="row"><span class="num" style="font-weight:700">${fmt(it.preco)}</span>
-    ${!it.disponivel ? `<span class="tag demo">Indisponível</span>` : left === 0 && incluso(state.cart.pacote, it.id) ? `<span class="tag save">No seu pacote</span>`
+    ${!it.disponivel ? `<span class="tag demo">Indisponível</span>` : left === 0 && incluso(state.cart.pacote, it.id) ? `<span class="tag save">No seu plano</span>`
       : `<button class="btn ${q ? "" : "ghost"} sm" type="button" data-add="${it.id}" ${q >= left ? 'aria-disabled="true"' : ""}>${q ? `Adicionado (${q}) +` : "Adicionar"}</button>`}</div></article>`;
 }
-const foot = () => `<footer><div class="wrap">${esc(CONFIG.projeto)} · protótipo. Valores, prazos e produtos são de demonstração.</div></footer>`;
+const foot = () => `<footer><div class="wrap">${esc(CONFIG.projeto)} · protótipo. Valores, prazos e exemplos são de demonstração.</div></footer>`;
 
 /* ---------- Telas ---------- */
+function viewPerfil() {
+  return `<div class="wrap"><section class="choose"><span class="eyebrow">Conteúdo pronto de fim de ano</span>
+      <h1>Para quem é o <em>conteúdo?</em></h1>
+      <p class="lede">Escolha o seu perfil para ver os planos, temas e exemplos feitos para você. Dá para trocar depois.</p>
+      <div class="choose-grid">${CONFIG.publicos.map(pb => `<button type="button" class="choose-card" data-perfil="${pb.id}">
+        <h2>${esc(pb.nome)}</h2><p>${esc(pb.chamada)}</p>
+        <ul>${pb.temas.map(t => `<li>${esc(t.nome)}</li>`).join("")}</ul>
+        <span class="go">Ver planos →</span></button>`).join("")}</div>
+    </section></div>${foot()}`;
+}
 function viewHome() {
-  return `<div class="wrap"><section class="hero">
-      <div><span class="eyebrow">Conteúdo pronto para lojas de moda</span>
-        <h1 style="margin-top:14px">Fim de ano corrido? Seu conteúdo <em>vem pronto.</em></h1>
-        <p class="lede">Carrosséis, vídeos, legendas, guia de Stories e calendário de posts com os seus produtos. Você só publica e atende.</p>
+  const pb = publico(); if (!pb) return viewPerfil();
+  const cal = pb.calendario[0], d = new Date(cal[0] + "T12:00:00");
+  return `<div class="wrap">${perfilSwitch()}<section class="hero">
+      <div><span class="eyebrow">${esc(pb.capa.eyebrow)}</span>
+        <h1 style="margin-top:14px">${esc(pb.capa.titulo)} <em>${esc(pb.capa.destaque)}</em></h1>
+        <p class="lede">${esc(pb.capa.texto)}</p>
         <div class="kit">${CONFIG.itens.map(i => `<span>${esc(i.nome)}</span>`).join("")}</div>
         <div class="ctas"><a class="btn" href="#pedido">Montar meu pedido</a><a class="link" href="#exemplos">Ver exemplos</a></div></div>
       <div class="hero-stage" data-demo="carrossel">${phone(carouselHTML())}
-        <div class="sched"><b>Calendário</b>Ter 01/12 · 19h<br>Carrossel “Presentes até R$ 200”</div></div>
+        <div class="sched"><b>Calendário</b>${DIAS[d.getDay()].replace(/^./, ch => ch.toUpperCase())} ${dataCurta(cal[0])} · ${esc(cal[1])}<br>${esc(CHIP[cal[2]])} “${esc(cal[3])}”</div></div>
     </section></div>
 
-    <section class="block"><div class="wrap"><div class="sec-head"><h2>Pacotes de <em>fim de ano</em></h2><span class="eyebrow">Pedidos até ${esc(CONFIG.pedidosAte)}</span></div>
-      <div class="packs">${CONFIG.pacotes.map(packCard).join("")}</div></div></section>
+    <section class="block"><div class="wrap"><div class="sec-head"><h2>Planos ${esc(pb.nome.toLowerCase())}</h2><span class="eyebrow">Pedidos até ${esc(CONFIG.pedidosAte)}</span></div>
+      <div class="packs">${pb.planos.map(packCard).join("")}</div></div></section>
 
     ${promoBand()}
 
-    <section class="block" id="exemplos"><div class="wrap"><div class="sec-head"><h2>Veja o que você <em>recebe</em></h2><p>Toque nas abas. Os exemplos usam o nome da sua loja quando você preenche o pedido.</p></div>
+    <section class="block"><div class="wrap"><div class="sec-head"><h2>Temas das <em>campanhas</em></h2><p>Escolha no pedido os temas que o conteúdo vai seguir.</p></div>
+      <div class="themes">${pb.temas.map(t => `<div class="theme"><h3>${esc(t.nome)}</h3><p>${esc(t.descricao)}</p><button type="button" class="link" data-prev="${t.id}" data-ir="exemplos">Ver prévia</button></div>`).join("")}</div></div></section>
+
+    <section class="block" id="exemplos"><div class="wrap"><div class="sec-head"><h2>Veja o que você <em>recebe</em></h2><p>Toque nas abas e nos temas. Os exemplos usam o seu nome quando você preenche o pedido.</p></div>
       ${demoSection(CONFIG.itens.map(i => i.id))}</div></section>
 
-    <section class="block"><div class="wrap"><div class="sec-head"><h2>Peças <em>avulsas</em></h2><p>Precisa só de uma parte, ou quer reforçar o pacote? Adicione peças soltas.</p></div>
+    <section class="block"><div class="wrap"><div class="sec-head"><h2>Peças <em>avulsas</em></h2><p>Precisa só de uma parte, ou quer reforçar o plano? Adicione peças soltas.</p></div>
       <div class="items">${CONFIG.itens.map(itemCard).join("")}</div></div></section>
-
-    <section class="block"><div class="wrap"><div class="sec-head"><h2>Temas das <em>campanhas</em></h2><p>Escolha no pedido os temas que o conteúdo vai seguir.</p></div>
-      <div class="themes">${CONFIG.temas.map(t => `<div class="theme"><h3>${esc(t.nome)}</h3><p>${esc(t.descricao)}</p></div>`).join("")}</div></div></section>
 
     <section class="block"><div class="wrap"><div class="sec-head"><h2>Como <em>funciona</em></h2></div>
       <ol class="steps">
-        <li><b>Monte o pedido</b><span>Pacote, peças extras e temas. O total aparece na hora.</span></li>
+        <li><b>Monte o pedido</b><span>Plano, peças extras e temas. O total aparece na hora.</span></li>
         <li><b>Envie pelo WhatsApp</b><span>O resumo vai pronto. A gente confirma valores, prazos e pagamento.</span></li>
         <li><b>Mande o material</b><span>Fotos, preços e clipes chegam depois que o pedido é fechado.</span></li>
         <li><b>Publique</b><span>Você recebe tudo pronto e segue o calendário.</span></li>
@@ -766,28 +988,30 @@ function viewHome() {
 }
 
 function viewPacote(id) {
-  const p = getPacote(id); if (!p) return viewHome();
+  const pb = publico(), p = pb && pb.planos.find(x => x.id === id); if (!p) return viewHome();
   const pp = promoPacote(p), ids = Object.keys(p.itens);
-  return `<div class="wrap"><div class="detail-head"><a class="back" href="#inicio">← Vitrine</a>
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><span class="eyebrow">Pacote · ${esc(p.periodo)}</span>${p.selo ? `<span class="tag hot">${esc(p.selo)}</span>` : ""}</div>
+  return `<div class="wrap"><div class="detail-head"><a class="back" href="#inicio">← ${esc(pb.nome)}</a>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><span class="eyebrow">Plano · ${esc(p.periodo)}</span>${p.selo ? `<span class="tag hot">${esc(p.selo)}</span>` : ""}</div>
       <h1>${esc(p.nome)}</h1><p class="goal">${esc(p.chamada)}</p></div>
     ${demoSection(ids)}
     <section class="block" style="margin-top:36px"><div class="two">
       <div class="list-card"><span class="eyebrow">Vem pronto</span><h3 style="margin-top:6px">O que você recebe</h3><ul>${ids.map(i => `<li>${esc(qtdLabel(getItem(i), p.itens[i]))}</li>`).join("")}</ul></div>
-      <div class="list-card team"><span class="eyebrow">Com a sua equipe</span><h3 style="margin-top:6px">O que a loja faz</h3><ul>${CONFIG.lojaFaz.filter(t => p.itens.video || !/vídeo/.test(t)).map(t => `<li>${esc(t)}</li>`).join("")}</ul></div></div>
+      <div class="list-card team"><span class="eyebrow">Com você</span><h3 style="margin-top:6px">O que você faz</h3><ul>${pb.faz.filter(t => p.itens.video || !/vídeo/.test(t)).map(t => `<li>${esc(t)}</li>`).join("")}</ul></div></div>
       <div class="facts">
         <div><b>Valor</b>${pp ? `<span class="was num">${fmt(p.preco)}</span><span class="num">${fmt(pp.preco)}</span> <span class="promo-line">${pp.promo.valor}% off até ${dataCurta(pp.promo.ate)}</span>` : `<span class="num">${fmt(p.preco)}</span>`}</div>
         <div><b>Economia sobre o avulso</b><span class="num">${fmt(economiaPacote(p))}</span></div>
         <div><b>Prazo</b>${esc(p.prazo)}</div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:22px"><button class="btn" type="button" data-pacote="${p.id}">${state.cart.pacote === p.id ? "Escolhido ✓ · ver pedido" : "Escolher este pacote"}</button><a class="btn ghost" href="#pedido">Montar do meu jeito</a></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:22px"><button class="btn" type="button" data-pacote="${p.id}">${state.cart.pacote === p.id ? "Escolhido ✓ · ver pedido" : "Escolher este plano"}</button><a class="btn ghost" href="#pedido">Montar do meu jeito</a></div>
     </section></div>${foot()}`;
 }
 
 const stepper = n => `<div class="stepper">${["Pedido","Dados","Resumo"].map((s, i) => `<span class="${i === n ? "on" : ""}">${i+1}. ${s}</span>`).join("")}</div>`;
 function linesHTML(r, temas) {
+  const pb = publico();
   return `<ul class="lines">
-    ${r.pacote ? `<li><span><span class="kind">Pacote</span>${esc(r.pacote.nome)}<span class="sub">${Object.entries(r.pacote.itens).map(([id, q]) => esc(qtdLabel(getItem(id), q))).join(" · ")}</span></span><span class="num">${fmt(r.pacote.preco)}</span></li>` : ""}
+    ${pb ? `<li><span><span class="kind">Perfil</span>${esc(pb.nome)}</span><span></span></li>` : ""}
+    ${r.pacote ? `<li><span><span class="kind">Plano</span>${esc(r.pacote.nome)}<span class="sub">${Object.entries(r.pacote.itens).map(([id, q]) => esc(qtdLabel(getItem(id), q))).join(" · ")}</span></span><span class="num">${fmt(r.pacote.preco)}</span></li>` : ""}
     ${r.extras.map(e => `<li><span><span class="kind">${r.pacote ? "Extra" : "Avulso"}</span>${e.qtd}× ${esc(e.item.nome)}</span><span class="num">${fmt(e.valor)}</span></li>`).join("")}
     ${temas ? `<li><span><span class="kind">Temas</span>${temas.length ? temas.map(t => esc(getTema(t).nome)).join(", ") : "A definir com vocês"}</span><span></span></li>` : ""}
     ${r.descontos.length ? `<li class="subtotal"><span>Subtotal</span><span class="num">${fmt(r.subtotal)}</span></li>` : ""}
@@ -796,34 +1020,34 @@ function linesHTML(r, temas) {
 }
 function summaryBox(r) {
   return `<aside class="summary"><h2>Seu pedido</h2>
-    ${r.vazio ? `<p class="empty">Escolha um pacote ou adicione peças avulsas.</p>` : linesHTML(r, state.cart.temas)}
+    ${r.vazio ? `<p class="empty">Escolha um plano ou adicione peças avulsas.</p>` : linesHTML(r, state.cart.temas)}
     <div class="total"><span>Total</span><b class="num" data-total>${fmt(r.total)}</b></div>
     ${r.economiaTotal > 0 ? `<p class="saving">Você economiza <span class="num">${fmt(r.economiaTotal)}</span> em relação ao avulso sem promoção.</p>` : ""}
     <p class="hint" style="margin-top:6px">Valores de demonstração. O pagamento é combinado no WhatsApp.</p></aside>`;
 }
 function viewOrder() {
-  const r = calc(state.cart), c = state.cart;
-  return `<div class="wrap"><div class="page-head">${stepper(0)}<h1>Monte seu <em>pedido</em></h1><p>Escolha um pacote, ajuste as peças e diga quais temas quer.</p></div>
+  const r = calc(state.cart), c = state.cart, pb = publico();
+  return `<div class="wrap"><div class="page-head">${stepper(0)}<h1>Monte seu <em>pedido</em></h1><p>Escolha um plano, ajuste as peças e diga quais temas quer.</p>${perfilSwitch()}</div>
     <div class="order"><div>
-      <h2 class="group-title">Pacote</h2><p class="group-hint">Pacotes saem mais baratos que as peças avulsas.</p>
-      ${CONFIG.pacotes.map(p => { const pp = promoPacote(p); return `<label class="opt ${c.pacote === p.id ? "on" : ""} ${p.disponivel ? "" : "off"}">
+      <h2 class="group-title">Plano</h2><p class="group-hint">Planos ${esc(pb.nome.toLowerCase())}. Saem mais baratos que as peças avulsas.</p>
+      ${pb.planos.map(p => { const pp = promoPacote(p); return `<label class="opt ${c.pacote === p.id ? "on" : ""} ${p.disponivel ? "" : "off"}">
         <input type="radio" name="pacote" id="p-${p.id}" value="${p.id}" ${c.pacote === p.id ? "checked" : ""} ${p.disponivel ? "" : "disabled"}>
         <span><b>${esc(p.nome)}</b><small>${Object.entries(p.itens).map(([id, q]) => esc(qtdLabel(getItem(id), q))).join(" · ")}</small></span>
         <span class="p num">${pp ? `<span class="was">${fmt(p.preco)}</span><br>${fmt(pp.preco)}` : fmt(p.preco)}<small>economia ${fmt(economiaPacote(p))}</small></span></label>`; }).join("")}
       <label class="opt ${!c.pacote ? "on" : ""}"><input type="radio" name="pacote" id="p-nenhum" value="" ${!c.pacote ? "checked" : ""}>
-        <span><b>Sem pacote</b><small>Só peças avulsas, escolhidas abaixo.</small></span><span></span></label>
+        <span><b>Sem plano</b><small>Só peças avulsas, escolhidas abaixo.</small></span><span></span></label>
 
       <h2 class="group-title" style="margin-top:26px">${c.pacote ? "Peças extras" : "Peças avulsas"}</h2>
       <p class="group-hint">${promosAtivas().filter(p => p.tipo === "leve-pague").map(p => esc(p.texto)).join(" · ") || "Ajuste a quantidade de cada peça."}</p>
       ${CONFIG.itens.map(it => { const q = c.extras[it.id] || 0, inc = incluso(c.pacote, it.id), left = maxExtra(c.pacote, it.id); return `
         <div class="qty-row ${q ? "on" : ""}"><div style="min-width:0"><b>${esc(it.nome)}</b><small>${esc(it.descricao)}</small>
-          ${inc ? `<small class="inc">${esc(qtdLabel(it, inc))} no pacote${left === 0 ? " · limite atingido" : ""}</small>` : ""}</div>
+          ${inc ? `<small class="inc">${esc(qtdLabel(it, inc))} no plano${left === 0 ? " · limite atingido" : ""}</small>` : ""}</div>
           <div class="qty-side"><span class="p num">${fmt(it.preco)} cada</span>
           ${it.disponivel && left > 0 ? `<div class="qty"><button type="button" data-qty="${it.id}" data-d="-1" aria-label="Menos ${esc(it.nome)}" ${q ? "" : "disabled"}>−</button><output class="num" aria-live="polite">${q}</output><button type="button" data-qty="${it.id}" data-d="1" aria-label="Mais ${esc(it.nome)}" ${q >= left ? "disabled" : ""}>+</button></div>`
             : `<span class="hint">${it.disponivel ? "Já incluso" : "Indisponível"}</span>`}</div></div>`; }).join("")}
 
       <h2 class="group-title" style="margin-top:26px">Temas</h2><p class="group-hint">Opcional. Se não escolher, a gente sugere com você.</p>
-      <div class="chips">${CONFIG.temas.map(t => `<label class="${c.temas.includes(t.id) ? "on" : ""}"><input type="checkbox" id="t-${t.id}" data-tema="${t.id}" ${c.temas.includes(t.id) ? "checked" : ""}>${esc(t.nome)}</label>`).join("")}</div>
+      <div class="chips">${pb.temas.map(t => `<label class="${c.temas.includes(t.id) ? "on" : ""}"><input type="checkbox" id="t-${t.id}" data-tema="${t.id}" ${c.temas.includes(t.id) ? "checked" : ""}>${esc(t.nome)}</label>`).join("")}</div>
     </div>${summaryBox(r)}</div></div>${foot()}`;
 }
 
@@ -834,26 +1058,26 @@ function field(id, label, opt, attrs, val, err, hint) {
 }
 let formErrors = {};
 function viewData() {
-  const c = state.customer, e = formErrors;
+  const c = state.customer, e = formErrors, pb = publico();
   return `<div class="wrap"><div class="page-head">${stepper(1)}<h1>Seus <em>dados</em></h1><p>Para montar o resumo e falar com você.</p></div>
     <form class="data" id="dataForm" novalidate>
       ${field("nome","Seu nome",false,'autocomplete="name" required',c.nome,e.nome)}
-      ${field("loja","Nome da loja",false,'autocomplete="organization" required',c.loja,e.loja)}
+      ${field("loja",esc(pb.negocioCampo),false,'autocomplete="organization" required',c.loja,e.loja)}
       ${field("whatsapp","WhatsApp",false,'type="tel" inputmode="tel" autocomplete="tel" placeholder="(55) 99999-8888" required',c.whatsapp,e.whatsapp,"Com DDD.")}
-      ${field("instagram","Instagram da loja",true,'autocapitalize="off" autocomplete="off" placeholder="@sualoja"',c.instagram,e.instagram)}
+      ${field("instagram","Instagram",true,'autocapitalize="off" autocomplete="off" placeholder="@seuperfil"',c.instagram,e.instagram)}
       <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px"><button class="btn" type="submit">Ver resumo</button><a class="btn ghost" href="#pedido">Voltar ao pedido</a></div>
     </form></div>${foot()}`;
 }
 
 function viewReview() {
-  const r = calc(state.cart), c = state.customer, text = buildSummary(state.cart, c), link = waLink(text);
+  const r = calc(state.cart), c = state.customer, pb = publico(), text = buildSummary(state.cart, c), link = waLink(text);
   return `<div class="wrap"><div class="page-head">${stepper(2)}<h1>Confira o <em>resumo</em></h1><p>Está tudo certo? Envie a solicitação e a gente fecha o pedido pelo WhatsApp.</p></div>
     <div class="receipt"><span class="eyebrow">${esc(CONFIG.projeto)} · solicitação</span><h2 style="margin-top:6px">${esc(c.loja)}</h2>
       <div style="margin-top:16px">${linesHTML(r, state.cart.temas)}</div>
       <div class="total"><span>Total</span><b class="num">${fmt(r.total)}</b></div>
       ${r.economiaTotal > 0 ? `<p class="saving">Economia de <span class="num">${fmt(r.economiaTotal)}</span></p>` : ""}
       <p class="hint">Valores de demonstração.</p><hr>
-      <dl><dt>Nome</dt><dd>${esc(c.nome)}</dd><dt>Loja</dt><dd>${esc(c.loja)}</dd><dt>WhatsApp</dt><dd>${esc(formatPhone(c.whatsapp))}</dd>${normalizeInstagram(c.instagram) ? `<dt>Instagram</dt><dd>${esc(normalizeInstagram(c.instagram))}</dd>` : ""}</dl>
+      <dl><dt>Nome</dt><dd>${esc(c.nome)}</dd><dt>${esc(pb.negocio)}</dt><dd>${esc(c.loja)}</dd><dt>WhatsApp</dt><dd>${esc(formatPhone(c.whatsapp))}</dd>${normalizeInstagram(c.instagram) ? `<dt>Instagram</dt><dd>${esc(normalizeInstagram(c.instagram))}</dd>` : ""}</dl>
       <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap"><a class="link" href="#pedido">Alterar pedido</a><a class="link" href="#dados">Alterar dados</a></div></div>
     <div class="final">
       ${link ? `<a class="btn block" href="${esc(link)}" target="_blank" rel="noopener" id="sendBtn">Enviar solicitação</a><p class="hint">Abre o WhatsApp com a mensagem pronta. Você confere e toca em enviar.</p>`
@@ -867,12 +1091,12 @@ function viewReview() {
 function renderBar(rt) {
   const r = calc(state.cart), bar = $("#bar");
   $("#cartCount").textContent = r.pecas;
-  if (rt === "resumo") { bar.hidden = true; return; }
+  if (rt === "resumo" || !state.cart.perfil) { bar.hidden = true; return; }
   let label, href, dis = false, sub;
   const pecas = `${r.pecas} ${r.pecas === 1 ? "peça" : "peças"}`;
-  if (rt === "pedido") { label = "Continuar"; href = "#dados"; dis = r.vazio; sub = r.vazio ? "Escolha um pacote ou peças" : `${pecas}${r.desconto ? ` · − ${fmt(r.desconto)} em promoções` : ""}`; }
+  if (rt === "pedido") { label = "Continuar"; href = "#dados"; dis = r.vazio; sub = r.vazio ? "Escolha um plano ou peças" : `${pecas}${r.desconto ? ` · − ${fmt(r.desconto)} em promoções` : ""}`; }
   else if (rt === "dados") { label = "Ver resumo"; href = "#resumo"; sub = `${pecas} · total`; }
-  else { label = r.vazio ? "Montar meu pedido" : "Ver pedido"; href = "#pedido"; sub = r.vazio ? "Comece por um pacote" : `${pecas} no pedido`; }
+  else { label = r.vazio ? "Montar meu pedido" : "Ver pedido"; href = "#pedido"; sub = r.vazio ? "Comece por um plano" : `${pecas} no pedido`; }
   bar.hidden = false;
   bar.innerHTML = `<div class="wrap"><div class="t"><small>${esc(sub)}</small><b class="num" data-total>${fmt(r.total)}</b></div><a class="btn" href="${href}" ${dis ? 'aria-disabled="true"' : ""} id="barBtn">${label}</a></div>`;
 }
@@ -886,8 +1110,9 @@ function route() {
 function render(scroll = true) {
   clearTimers();
   const rt = route();
+  if (!state.cart.perfil && rt !== "inicio") { location.replace("#inicio"); return; }
   if ((rt === "dados" || rt === "resumo") && calc(state.cart).vazio) { location.replace("#pedido"); return; }
-  if (rt === "resumo" && Object.keys(validateCustomer(state.customer)).length) { formErrors = validateCustomer(state.customer); location.replace("#dados"); return; }
+  if (rt === "resumo" && Object.keys(validateCustomer(state.customer, publico())).length) { formErrors = validateCustomer(state.customer, publico()); location.replace("#dados"); return; }
   const app = $("#app");
   app.innerHTML = rt === "pedido" ? viewOrder() : rt === "dados" ? viewData() : rt === "resumo" ? viewReview() : rt.startsWith("pacote-") ? viewPacote(rt.slice(7)) : viewHome();
   renderBar(rt);
@@ -900,6 +1125,22 @@ function update(cart, msg) { state.cart = cart; save(); render(false); flashTota
 
 /* ---------- Eventos ---------- */
 document.addEventListener("click", e => {
+  const pf = e.target.closest("[data-perfil]");
+  if (pf) {
+    const antes = state.cart, cart = setPerfil(antes, pf.dataset.perfil), pb = getPublico(cart.perfil);
+    if (antes.perfil === cart.perfil) return;
+    const saiu = (antes.pacote && !cart.pacote) || antes.temas.length > cart.temas.length;
+    state.prevTema = null; state.cart = cart; save();
+    if (!antes.perfil) { if (route() === "inicio") render(); else location.hash = "#inicio"; return; }
+    render(false); toast(saiu ? `Agora: ${pb.nome}. O plano e os temas do outro perfil saíram do pedido.` : `Agora: ${pb.nome}.`); return;
+  }
+  const pv = e.target.closest("[data-prev]");
+  if (pv) {
+    state.prevTema = pv.dataset.prev;
+    if (pv.dataset.ir) { if (!["carrossel", "stories"].includes(state.tab)) state.tab = "carrossel"; render(false); $("#exemplos")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" }); }
+    else { const y = scrollY; render(false); scrollTo(0, y); }
+    return;
+  }
   const pk = e.target.closest("[data-pacote]");
   if (pk) { state.cart = setPacote(state.cart, pk.dataset.pacote); save(); location.hash = "#pedido"; return; }
   const ad = e.target.closest("[data-add]");
@@ -923,7 +1164,7 @@ document.addEventListener("submit", e => {
   e.preventDefault();
   const f = e.target;
   ["nome","loja","whatsapp","instagram"].forEach(k => state.customer[k] = f[k].value);
-  formErrors = validateCustomer(state.customer);
+  formErrors = validateCustomer(state.customer, publico());
   if (Object.keys(formErrors).length) { render(false); $("#" + Object.keys(formErrors)[0])?.focus(); toast("Confira os campos destacados."); return; }
   state.customer.whatsapp = formatPhone(state.customer.whatsapp);
   state.customer.instagram = normalizeInstagram(state.customer.instagram);
