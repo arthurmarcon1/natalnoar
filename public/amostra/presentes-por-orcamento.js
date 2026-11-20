@@ -13,6 +13,9 @@ export default {
   marca: "Ateliê Aurora",
   faixa: "R$ 100",
   capaFoto: "assets/exemplo/01-presentes.jpg",
+  capa: { texto: "3 presentes até", preco: "R$ 100", apoio: "Arrasta pro lado →" },
+  extras: ["Achados para o amigo secreto", "Uma peça, três jeitos de usar", "Escolhas da equipe"],
+  reveillon: ["Cores da virada", "Looks para a virada", "Últimos dias do ano"],
   produtos: [
     { id: "clutch", nome: "Clutch Noite", preco: "R$ 89", paraQuem: "Para a mãe que ama sair",
       detalhe: "O fecho dourado faz barulhinho de presente caro.", foto: "assets/exemplo/02-clutch.jpg" },

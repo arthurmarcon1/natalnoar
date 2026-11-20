@@ -9,7 +9,7 @@ const calmo = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const preencher = (s, p) => s.replaceAll("{produto}", p.nome).replaceAll("{preco}", p.preco).replaceAll("{paraQuem}", p.paraQuem);
 
 export const telasDaDemo = demo => [
-  { tipo: "capa", texto: "3 presentes até", preco: demo.faixa, apoio: "Arrasta pro lado →", foto: demo.capaFoto },
+  { tipo: "capa", texto: demo.capa.texto, preco: demo.capa.preco, apoio: demo.capa.apoio, foto: demo.capaFoto },
   ...demo.produtos.map(p => ({ tipo: "produto", texto: p.nome, preco: p.preco, apoio: p.paraQuem, foto: p.foto }))
 ];
 

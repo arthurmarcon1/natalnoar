@@ -263,6 +263,22 @@ Ao final, entregue:
   - `pagamento.js`: webhook da plataforma de pagamento. **Ainda não ligado** (responde 503); ver comentário no arquivo.
 - Rotas: `#inicio` (âncoras `#campanhas`, `#gestao`), `#campanha/presentes-por-orcamento` (carrossel em destaque, Reel e Stories), `#testar` (teste grátis com a minha foto), `#pedido/<tema>` (revisão do pedido), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
 
+## Planos de compra única (22/11/2026)
+A cliente escolhe o perfil (**Sou lojista** / **Sou prestadora de serviço**), vê a campanha do perfil e compara três planos. Os preços são FINAIS por plano (definidos em `public/config.js`, `SITE.planos`):
+
+| Plano | Preço | Carrosséis | Roteiros | Stories | Calendário | Peças |
+|---|---:|---:|---:|---:|---|---:|
+| Natal Pronto | R$ 89,90 | 5 | 5 | 5 | 10 dias (+ expressa de 3) | 45 |
+| Natal Completo | R$ 139,90 | 8 | 8 | 5 | 15 dias | 60 |
+| Natal + Virada | R$ 189,90 | 11 | 11 | 8 | 15 dias + 5 de Réveillon | 85 |
+
+- Campanha de cada perfil: lojistas → **Presentes por orçamento**; prestadoras → **Seu toque nas festas** (exemplo de maquiadora). Conteúdo pago em `private/campanhas/<id>.js`; cada um tem `temas` (5), `extras` (3, Natal Completo) e `reveillon` (3 temas + calendário de 5 dias, Natal + Virada).
+- Temas extras: lojistas = Achados para o amigo secreto, Uma peça três jeitos de usar, Escolhas da equipe. Prestadoras = Uma dúvida que sempre me fazem, Como escolho cada detalhe, A história por trás de um trabalho. Réveillon: lojistas = Cores da virada, Looks para a virada, Últimos dias do ano; prestadoras = Produção para a virada, Ritual de fim de ano, Obrigada por este ano.
+- Vitrine: "A partir de R$ 89,90". Na página da campanha, os 3 cartões mostram preço, totais e o que cada plano acrescenta; o botão e a revisão do pedido trazem o nome e o preço exatos ("Comprar Natal Completo · R$ 139,90"). A mensagem do WhatsApp leva campanha, plano e preço.
+- Área da cliente: o link de acesso guarda o plano; `api/campanha` entrega só o que o plano libera (`conteudoDoPlano` em `public/js/logic.js`). Para liberar: `"plano": "natal-pronto" | "natal-completo" | "natal-virada"` no `curl` de `/api/liberar` (obrigatório).
+- Checkout por plano: `linksPagamento: { "natal-completo": "https://..." }` no tema; vazio = WhatsApp.
+- Demonstrações públicas por campanha em `public/amostra/` (fotos 01–04 lojistas, 05–08 prestadoras em `public/assets/exemplo/`).
+
 ## Regras do redesenho (21/11/2026)
 - Página inicial: chamada em duas linhas ("Fim de ano corrido?" / "Seu conteúdo *vem pronto.*", só "vem pronto." em itálico), fundo claro, texto preto, botões principais em vermelho-cereja (`--cereja`). Ao lado (no celular, abaixo) da chamada, uma animação que acontece uma vez: a foto entra na capa do post, o preço aparece e três cartões abrem em leque. "Escolher minha campanha" funciona desde o início. Fotos e preços da animação vêm de `public/amostra/presentes-por-orcamento.js`.
 - Página da campanha: o carrossel preenchido ocupa a maior parte da primeira tela, desliza com o dedo e mostra parte do próximo cartão. Ação principal: **Comprar campanha · R$ 89,90** (botão cheio). Secundária: **Testar com a minha foto**.
@@ -285,7 +301,7 @@ Ao final, entregue:
    ```bash
    curl -s -X POST https://natal-no-ar.vercel.app/api/liberar \
      -H "x-admin-token: $(cat .env.admin.local)" -H "content-type: application/json" \
-     -d '{"campanha":"presentes-por-orcamento","dias":365,"referencia":"pedido-001"}'
+     -d '{"campanha":"presentes-por-orcamento","plano":"natal-completo","dias":365,"referencia":"pedido-001"}'
    ```
    A resposta traz `link`: envie para a cliente. Trocar o `ACESSO_SECRET` invalida todos os links já enviados.
 3. **Venda pelo WhatsApp (fluxo atual, decidido em 20/11/2026):** o botão "Comprar por R$ 89,90 no WhatsApp" abre o `whatsappVendas` de `config.js` com a mensagem pronta (`mensagemCompra`). O Arthur combina e confirma o pagamento na conversa, gera o link com o comando do passo 2 (use o número do pedido ou o nome da cliente em `referencia`) e envia o link pelo WhatsApp. `api/pagamento.js` (webhook automático) não é usado.
