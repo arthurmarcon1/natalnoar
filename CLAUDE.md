@@ -1,6 +1,6 @@
 # Natal no Ar
 
-Loja digital de conteúdo pronto de fim de ano com duas seções: **Para lojistas** (lojas de moda: roupas, calçados, acessórios) e **Para prestadores de serviço** (maquiadoras, cabeleireiras, fotógrafos etc.). A pessoa escolhe o perfil, monta um pedido com planos e peças, vê o total e envia a solicitação pelo WhatsApp. O pedido é fechado manualmente no WhatsApp: **não há pagamento nem checkout no site**.
+Loja digital de conteúdo pronto de fim de ano com duas seções: **Para lojistas** (lojas de moda: roupas, calçados, acessórios) e **Para prestadores de serviço** (maquiadoras, cabeleireiras, fotógrafos etc.). O site abre na seção de lojistas; a pessoa pode trocar de perfil, monta um pedido com planos e peças, vê o total e envia a solicitação pelo WhatsApp. O pedido é fechado manualmente no WhatsApp: **não há pagamento nem checkout no site**.
 
 ## O que se vende
 - Peças (as mesmas para os dois perfis): carrossel, vídeo curto editado, pacote de legendas, guia de Stories, calendário de publicações.
@@ -13,7 +13,7 @@ Loja digital de conteúdo pronto de fim de ano com duas seções: **Para lojista
 - Promoções: desconto percentual com data limite e "leve X, pague Y" em peças extras.
 
 ## Fluxo do cliente
-Escolha de perfil → vitrine do perfil (planos, temas, prévias por tema) → detalhes do plano → pedido (plano ou só avulsos, peças extras com quantidade, temas do perfil) → dados (nome, loja/negócio, WhatsApp obrigatórios; Instagram opcional) → resumo (inclui o perfil) → botão **Enviar solicitação**, que abre o WhatsApp com o resumo preenchido. Sem número configurado: modo demonstração, o botão copia o resumo.
+Vitrine com o celular (abre no primeiro público, Para lojistas; não há tela de escolha de perfil) → vitrine do perfil (planos, temas, prévias por tema) → detalhes do plano → pedido (plano ou só avulsos, peças extras com quantidade, temas do perfil) → dados (nome, loja/negócio, WhatsApp obrigatórios; Instagram opcional) → resumo (inclui o perfil) → botão **Enviar solicitação**, que abre o WhatsApp com o resumo preenchido. Sem número configurado: modo demonstração, o botão copia o resumo.
 
 Trocar de perfil (seletor "Você está em" na vitrine e no pedido) remove do carrinho o plano e os temas do outro perfil e mantém as peças avulsas.
 

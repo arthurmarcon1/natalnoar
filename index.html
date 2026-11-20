@@ -350,17 +350,6 @@ footer{padding-block:24px 8px;color:var(--muted);font-size:.85rem}
 .perfil-switch .seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:22px;padding:3px;background:var(--surface);max-width:100%}
 .perfil-switch button{border:0;background:none;border-radius:99px;padding:8px 14px;font-weight:700;font-size:.88rem;cursor:pointer}
 .perfil-switch button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.choose{padding-block:32px 48px}
-.choose h1{font-size:clamp(2.1rem,8.5vw,3.8rem);margin-top:12px}
-.choose .lede{font-size:1.08rem;max-width:44ch;margin-top:14px;color:var(--muted)}
-.choose-grid{display:grid;gap:14px;margin-top:28px}
-@media (min-width:760px){.choose-grid{grid-template-columns:1fr 1fr}}
-.choose-card{text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:var(--r);padding:22px;cursor:pointer;display:flex;flex-direction:column;gap:10px;color:var(--ink);min-width:0}
-.choose-card:hover{border-color:var(--cherry)}
-.choose-card h2{font-size:1.5rem}
-.choose-card p{color:var(--muted)}
-.choose-card ul{margin:0;padding-left:18px;font-weight:600;font-size:.95rem}
-.choose-card .go{color:var(--cherry);font-weight:800;margin-top:6px}
 .prev-temas{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:-4px 0 18px}
 .prev-temas>b{font-size:.85rem;color:var(--muted)}
 .prev-temas button{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 13px;font-weight:600;font-size:.86rem;cursor:pointer}
@@ -763,7 +752,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 const state = {
-  cart: sanitizeCart(store.get("nna-cart-v3", null)),
+  cart: (c => c.perfil ? c : setPerfil(c, CONFIG.publicos[0].id))(sanitizeCart(store.get("nna-cart-v3", null))), // sem perfil salvo, abre no primeiro público
   customer: Object.assign({ nome: "", loja: "", whatsapp: "", instagram: "" }, store.get("nna-customer", {})),
   tab: "carrossel",
   prevTema: null
@@ -941,18 +930,8 @@ function itemCard(it) {
 const foot = () => `<footer><div class="wrap">${esc(CONFIG.projeto)} · protótipo. Valores, prazos e exemplos são de demonstração.</div></footer>`;
 
 /* ---------- Telas ---------- */
-function viewPerfil() {
-  return `<div class="wrap"><section class="choose"><span class="eyebrow">Conteúdo pronto de fim de ano</span>
-      <h1>Para quem é o <em>conteúdo?</em></h1>
-      <p class="lede">Escolha o seu perfil para ver os planos, temas e exemplos feitos para você. Dá para trocar depois.</p>
-      <div class="choose-grid">${CONFIG.publicos.map(pb => `<button type="button" class="choose-card" data-perfil="${pb.id}">
-        <h2>${esc(pb.nome)}</h2><p>${esc(pb.chamada)}</p>
-        <ul>${pb.temas.map(t => `<li>${esc(t.nome)}</li>`).join("")}</ul>
-        <span class="go">Ver planos →</span></button>`).join("")}</div>
-    </section></div>${foot()}`;
-}
 function viewHome() {
-  const pb = publico(); if (!pb) return viewPerfil();
+  const pb = publico();
   const cal = pb.calendario[0], d = new Date(cal[0] + "T12:00:00");
   return `<div class="wrap">${perfilSwitch()}<section class="hero">
       <div><span class="eyebrow">${esc(pb.capa.eyebrow)}</span>
@@ -1091,7 +1070,7 @@ function viewReview() {
 function renderBar(rt) {
   const r = calc(state.cart), bar = $("#bar");
   $("#cartCount").textContent = r.pecas;
-  if (rt === "resumo" || !state.cart.perfil) { bar.hidden = true; return; }
+  if (rt === "resumo") { bar.hidden = true; return; }
   let label, href, dis = false, sub;
   const pecas = `${r.pecas} ${r.pecas === 1 ? "peça" : "peças"}`;
   if (rt === "pedido") { label = "Continuar"; href = "#dados"; dis = r.vazio; sub = r.vazio ? "Escolha um plano ou peças" : `${pecas}${r.desconto ? ` · − ${fmt(r.desconto)} em promoções` : ""}`; }
@@ -1110,7 +1089,6 @@ function route() {
 function render(scroll = true) {
   clearTimers();
   const rt = route();
-  if (!state.cart.perfil && rt !== "inicio") { location.replace("#inicio"); return; }
   if ((rt === "dados" || rt === "resumo") && calc(state.cart).vazio) { location.replace("#pedido"); return; }
   if (rt === "resumo" && Object.keys(validateCustomer(state.customer, publico())).length) { formErrors = validateCustomer(state.customer, publico()); location.replace("#dados"); return; }
   const app = $("#app");
@@ -1131,7 +1109,6 @@ document.addEventListener("click", e => {
     if (antes.perfil === cart.perfil) return;
     const saiu = (antes.pacote && !cart.pacote) || antes.temas.length > cart.temas.length;
     state.prevTema = null; state.cart = cart; save();
-    if (!antes.perfil) { if (route() === "inicio") render(); else location.hash = "#inicio"; return; }
     render(false); toast(saiu ? `Agora: ${pb.nome}. O plano e os temas do outro perfil saíram do pedido.` : `Agora: ${pb.nome}.`); return;
   }
   const pv = e.target.closest("[data-prev]");
