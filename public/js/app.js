@@ -34,18 +34,46 @@ const ENTREGAS = [
   ["Calendário de 10 dias", "Com versão expressa de 3 dias."],
   ["Tutorial curto", "Como fotografar, editar, baixar e publicar."]
 ];
+/* "Ver tudo que vem no kit": botão de destaque que abre a vitrine dos materiais */
 function verTudo(comTrechos) {
-  const t = demo.trechos;
+  const t = demo.trechos, [p1, p2, p3] = demo.produtos, f = [demo.capaFoto, p1.foto, p2.foto, p3.foto].map(esc);
+  const item = (num, titulo, sub, desc, visual, cls = "") => `<li class="kit-item ${cls}"><div class="kv" aria-hidden="true">${visual}</div>
+    <div class="kt"><span class="kn">${num}</span><b>${titulo}</b><span class="ks">${sub}</span><p>${desc}</p></div></li>`;
+  const visuais = {
+    carrossel: `<div class="v-car"><img src="${f[1]}" alt=""><img src="${f[0]}" alt=""><img src="${f[3]}" alt=""></div>`,
+    reel: `<div class="v-tel"><img src="${f[2]}" alt=""><span class="v-play">▶</span><span class="v-cap">Cena 1 · abertura</span></div>`,
+    stories: `<div class="v-tel v-st"><img src="${f[0]}" alt=""><span class="v-barras"><i></i><i></i><i></i></span><span class="v-poll"><i style="--p:56%">${esc(p1.nome)}</i><i style="--p:26%">${esc(p3.nome)}</i></span></div>`,
+    whatsapp: `<div class="v-wa"><span class="b in">Quanto custa a clutch? 😍</span><span class="b out">Sai por R$ 89 e já vai embrulhada 🎁</span><span class="b in">Quero!</span></div>`,
+    calendario: `<div class="v-cal">${Array.from({ length: 10 }, (_, i) => `<span class="${i < 3 ? "x" : ""}">${i + 1}</span>`).join("")}</div>`,
+    tutorial: `<div class="v-tut"><span>✓ Fotografe com luz de janela</span><span>✓ Troque os [marcadores]</span><span>✓ Baixe e publique</span></div>`
+  };
   return `<details class="kit">
-    <summary>Ver tudo que vem no kit</summary>
+    <summary>
+      <span class="kit-fotos" aria-hidden="true"><img src="${f[1]}" alt=""><img src="${f[2]}" alt=""><img src="${f[3]}" alt=""></span>
+      <span class="kit-chamada"><b>Ver tudo que vem no kit</b><span>45 peças prontas</span></span>
+      <span class="kit-seta" aria-hidden="true">↓</span>
+    </summary>
     <div class="kit-corpo">
-      <ul class="dentro">${ENTREGAS.map(([a, b]) => `<li><b>${a}</b><span>${b}</span></li>`).join("")}</ul>
-      <ol class="passos"><li><b>Compre a campanha</b><span>${preco}, uma campanha por compra.</span></li><li><b>Receba o link de acesso</b><span>A campanha completa fica na sua área.</span></li><li><b>Troque fotos, preços e a marca</b><span>No celular, direto no site.</span></li><li><b>Baixe e publique</b><span>Seguindo o calendário.</span></li></ol>
+      <p class="kit-intro">Tudo pensado para o seu Natal, <em>pronto para usar.</em></p>
+      <ul class="kit-grade">
+        ${item("5", "Carrosséis editáveis", "20 telas · com legenda", "Você troca foto, preço e marca no celular e baixa os PNGs prontos, sem marca-d'água.", visuais.carrossel, "largo")}
+        ${item("5", "Roteiros de Reels", "cena por cena", "Abertura, texto na tela, legenda e chamada final. Com versão para quem não quer aparecer.", visuais.reel)}
+        ${item("5", "Sequências de Stories", "15 telas · com enquetes", "Perguntas, enquetes e chamadas que fazem a cliente responder.", visuais.stories)}
+        ${item("3", "Mensagens de WhatsApp", "é só copiar", "Para responder preço, sugerir presentes e avisar prazos.", visuais.whatsapp)}
+        ${item("10", "Dias de calendário", "+ versão expressa de 3 dias", "O que postar em cada dia, peça por peça. Sem pensar no que publicar.", visuais.calendario)}
+        ${item("1", "Tutorial rápido", "do celular ao post", "Como fotografar, editar, baixar e publicar em poucos minutos.", visuais.tutorial)}
+      </ul>
+      <div class="kit-total">
+        <div><span class="kt-num">45</span><span>peças prontas para o seu fim de ano</span></div>
+        <b>tudo por ${preco}</b>
+      </div>
       ${comTrechos ? `<h3 class="trechos-t">Um pedaço do conteúdo</h3><div class="trechos">
         <article class="trecho"><span class="eyebrow">Legenda</span><p>${multi(t.legenda)}</p></article>
         <article class="trecho"><span class="eyebrow">Roteiro de Reel</span><p><b>Abertura:</b> ${marc(t.roteiro.abertura)}</p><p><b>Cena 1:</b> ${marc(t.roteiro.cena)}</p><p class="hint">${esc(t.roteiro.resto)}</p></article>
         <article class="trecho"><span class="eyebrow">Calendário</span><ul>${t.calendario.map(d => `<li><b>Dia ${d.dia}</b> ${marc(d.peca)}</li>`).join("")}</ul><p class="hint">${esc(t.calendarioResto)}</p></article>
       </div>` : ""}
+      <ol class="passos"><li><b>Compre a campanha</b><span>${preco}, uma campanha por compra.</span></li><li><b>Receba o link de acesso</b><span>A campanha completa fica na sua área.</span></li><li><b>Troque fotos, preços e a marca</b><span>No celular, direto no site.</span></li><li><b>Baixe e publique</b><span>Seguindo o calendário.</span></li></ol>
+      ${botaoComprar(TEMA_DEMO, "block kit-comprar")}
     </div></details>`;
 }
 const conviteGestao = () => `<p class="convite">Quer alguém cuidando do seu Instagram o ano todo? <a href="#gestao">Gestão mensal</a></p>`;

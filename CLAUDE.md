@@ -227,6 +227,7 @@ Ao final, entregue:
 - [x] Etapa 7: testes (12 de lógica + verificação no navegador da seção 11), deploy de prévia da branch `campanhas-prontas`
 - [x] Publicado em produção (Arthur pediu em 20/11/2026): https://natal-no-ar.vercel.app
 
+- [x] Redesenho aprovado e publicado (menos texto, animação da capa, carrossel em destaque, vitrine do kit) (21/11/2026)
 - [x] Demonstração interativa (3 produtos × Carrossel/Reel/Stories), "Testar com a minha foto" com marca-d'água AMOSTRA, trechos públicos e área da cliente protegida (20/11/2026)
 
 ### Pendências do Arthur para abrir as vendas
@@ -267,7 +268,7 @@ Ao final, entregue:
 - Página da campanha: o carrossel preenchido ocupa a maior parte da primeira tela, desliza com o dedo e mostra parte do próximo cartão. Ação principal: **Comprar campanha · R$ 89,90** (botão cheio). Secundária: **Testar com a minha foto**.
 - Compra (`modoCompra` em `config.js`): `"revisao"` nos testes (abre a revisão do pedido, sem cobrar nem simular aprovação; de lá segue para o checkout) e `"checkout"` no lançamento (vai direto ao checkout: `linkPagamento` do tema ou WhatsApp de vendas). Não existe mais "Compras abrem em breve".
 - Marca-d'água: demonstrações com fotos de exemplo são **limpas**. "AMOSTRA" só aparece quando a visitante usa uma foto própria no teste grátis (prévia e PNG); voltar à foto de exemplo tira a marca. No kit comprado tudo sai limpo.
-- Textos longos ficam recolhidos em "Ver tudo que vem no kit". Transições curtas; com movimento reduzido, nada anima.
+- Textos longos ficam em "Ver tudo que vem no kit": botão de destaque (borda cereja, miniaturas das fotos, "45 peças prontas") que abre uma vitrine com um cartão ilustrado por material (5 carrosséis, 5 Reels, 5 Stories, 3 mensagens, calendário de 10 dias, tutorial), o total "45 peças por R$ 89,90" e o botão de compra. A conta: 20 telas de carrossel + 5 roteiros + 15 telas de Stories + 3 mensagens + calendário + tutorial = 45. Transições curtas; com movimento reduzido, nada anima.
 - Testes: `npm test` (lógica, conteúdo, token, API e vazamento de conteúdo pago). Servidor local que imita a Vercel: `ACESSO_SECRET=... ADMIN_TOKEN=... node tests/servidor.mjs`.
 
 ## Área da cliente: configurar e liberar acesso
