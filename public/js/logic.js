@@ -126,3 +126,20 @@ export function zipStore(files, data = new Date()) {
   let p = 0; for (const b of partes) { out.set(b, p); p += b.length; }
   return out;
 }
+
+/* ---------- editor completo: modelo e legenda de cada carrossel ---------- */
+/* Converte as telas do conteúdo pago no formato do editor. A capa "… R$ [valor]" vira texto + preço. */
+export function modeloDoTema(tema) {
+  return {
+    marca: "[nome da loja]",
+    telas: tema.carrossel.telas.map((t, i) => {
+      if (i === 0) { const m = String(t.titulo).match(/^(.*?)\s*(R\$ \[valor\])$/); return { tipo: "capa", texto: m ? m[1] : t.titulo, preco: m ? m[2] : "", apoio: t.apoio || "" }; }
+      return { tipo: "produto", texto: t.titulo, preco: t.preco || "", apoio: t.apoio || "" };
+    })
+  };
+}
+export function legendaDoTema(campanha, indice, estado) {
+  if (indice === 0 && campanha.editor) return legendaEditor(campanha.editor.legenda, estado);
+  const marca = (estado.marca || "").trim();
+  return campanha.temas[indice].carrossel.legenda.replaceAll("[nome da loja]", marca && marca !== "[nome da loja]" ? marca : "[nome da loja]");
+}
