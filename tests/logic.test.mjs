@@ -95,9 +95,16 @@ test("resumo do WhatsApp bate com o carrinho", () => {
   assert.match(s, /Instagram: @lojateste/);
 });
 
-test("sem número configurado não gera link (modo demonstração)", () => {
-  assert.equal(L.CONFIG.whatsapp, "");
+test("link do WhatsApp usa o número configurado e leva o resumo", () => {
+  const original = L.CONFIG.whatsapp;
+  assert.match(original, /^\d{12,13}$/, "número só com dígitos, com DDI e DDD");
+  const resumo = L.buildSummary(L.setPacote(vazio(), "essencial"), cliente, DEPOIS);
+  const link = L.waLink(resumo);
+  assert.ok(link.startsWith(`https://wa.me/${original}?text=`));
+  assert.equal(decodeURIComponent(link.split("?text=")[1]), resumo);
+  L.CONFIG.whatsapp = "";                       // sem número: modo demonstração
   assert.equal(L.waLink("oi"), null);
+  L.CONFIG.whatsapp = original;
 });
 
 test("catálogo: ids de planos e temas únicos entre perfis, exemplos completos", () => {

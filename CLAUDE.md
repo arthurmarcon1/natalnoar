@@ -57,5 +57,5 @@ Depois de mexer no cálculo, promoções ou resumo, rodar os testes da lógica e
   ```
   Push em outra branch gera uma prévia (as URLs de prévia pedem login da Vercel).
 - **Fora do site:** `.vercelignore` impede que `tests/`, `CLAUDE.md` e `.env*` sejam publicados.
-- **Trocar número do WhatsApp:** `CONFIG.whatsapp` no topo do `<script>` do `index.html`, só dígitos com DDI e DDD (ex.: `"5555999998888"`). Vazio = modo demonstração (o botão copia o resumo).
+- **Número do WhatsApp:** `CONFIG.whatsapp` no topo do `<script>` do `index.html`, só dígitos com DDI e DDD. Atual: `"555599408766"` ((55) 9940-8766). "Enviar solicitação" abre `wa.me/<número>` com o resumo; vazio = modo demonstração (o botão copia o resumo).
 - **Trocar preços:** `preco` em `CONFIG.itens` (peças) e em `planos` de cada item de `CONFIG.publicos`; a economia é recalculada sozinha. Promoções em `CONFIG.promocoes`. Com preços reais, mude `valoresDemonstracao` para `false`.
