@@ -51,6 +51,23 @@ function fundoVazio(ctx) {
   ctx.fillText("Sua foto aqui", W / 2, cy + 78);
 }
 
+/* Marca-d'água da amostra: padrão diagonal (claro com contorno escuro, aparece em foto clara e escura).
+   Fica por baixo dos textos e da etiqueta de preço, para não atrapalhar a leitura. */
+function marcaDagua(ctx) {
+  ctx.save();
+  ctx.translate(W / 2, H / 2); ctx.rotate(-Math.PI / 7);
+  ctx.font = `800 60px ${SANS}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round"; ctx.lineWidth = 3;
+  const PX = 430, PY = 200;
+  for (let i = -6; i <= 6; i++) {
+    const y = i * PY, off = (i & 1) * PX / 2;
+    for (let x = -W * 1.3; x <= W * 1.3; x += PX) {
+      ctx.strokeStyle = "rgba(0,0,0,.32)"; ctx.strokeText("AMOSTRA", x + off, y);
+      ctx.fillStyle = "rgba(255,255,255,.36)"; ctx.fillText("AMOSTRA", x + off, y);
+    }
+  }
+  ctx.restore();
+}
+
 function sombraTexto(ctx, on) { ctx.shadowColor = on ? "rgba(0,0,0,.35)" : "transparent"; ctx.shadowBlur = on ? 14 : 0; ctx.shadowOffsetY = on ? 2 : 0; }
 
 /**
@@ -79,7 +96,9 @@ export function desenharTela(canvas, tela, o) {
   gt.addColorStop(0, "rgba(18,16,13,.28)"); gt.addColorStop(1, "rgba(18,16,13,0)");
   ctx.fillStyle = gt; ctx.fillRect(0, 0, W, 220);
 
-  // 3. Marca (pílula clara) e contador
+  if (o.amostra) marcaDagua(ctx);
+
+  // 3. Marca (pílula clara) e contador (na amostra: etiqueta AMOSTRA)
   ctx.textBaseline = "middle"; ctx.textAlign = "left";
   const marca = (o.marca || "").trim().toUpperCase() || "[NOME DA LOJA]";
   ctx.font = `700 30px ${SANS}`;
@@ -87,10 +106,10 @@ export function desenharTela(canvas, tela, o) {
   pill(ctx, PAD, PAD, 64, mw + 104, "rgba(246,241,232,.95)");
   estrela(ctx, PAD + 40, PAD + 32, 15, COR.baga);
   ctx.fillStyle = COR.tinta; ctx.fillText(marca, PAD + 68, PAD + 33, mw);
-  const cont = `${o.indice + 1}/${o.total}`;
-  ctx.font = `700 28px ${SANS}`;
+  const cont = o.amostra ? "AMOSTRA" : `${o.indice + 1}/${o.total}`;
+  ctx.font = `${o.amostra ? 800 : 700} 28px ${SANS}`;
   const cw = ctx.measureText(cont).width + 44;
-  pill(ctx, W - PAD - cw, PAD + 6, 52, cw, "rgba(18,16,13,.5)");
+  pill(ctx, W - PAD - cw, PAD + 6, 52, cw, o.amostra ? COR.baga : "rgba(18,16,13,.5)");
   ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(cont, W - PAD - cw / 2, PAD + 33);
 
   // 4. Textos, de baixo para cima
