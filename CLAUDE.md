@@ -230,9 +230,8 @@ Ao final, entregue:
 - [x] Demonstração interativa (3 produtos × Carrossel/Reel/Stories), "Testar com a minha foto" com marca-d'água AMOSTRA, trechos públicos e área da cliente protegida (20/11/2026)
 
 ### Pendências do Arthur para abrir as vendas
-- Plataforma de pagamento e entrega: preencher `linkPagamento` do tema e mudar `comprasAbertas` para `true` em `config.js`.
 - Criar os segredos `ACESSO_SECRET` e `ADMIN_TOKEN` na Vercel (ver "Área da cliente"). Sem eles a área fica fechada.
-- Ligar a plataforma de pagamento ao webhook `api/pagamento.js` e definir como o link de acesso chega à cliente.
+- Pagamento: decidido pelo WhatsApp (compras abertas). Para cada venda confirmada, gerar e enviar o link de acesso ("Área da cliente", passo 2).
 - Trocar as fotos provisórias de `public/assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
 - Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
 - Revisar os textos da campanha em `private/campanhas/presentes-por-orcamento.js`.
@@ -281,7 +280,7 @@ Ao final, entregue:
      -d '{"campanha":"presentes-por-orcamento","dias":365,"referencia":"pedido-001"}'
    ```
    A resposta traz `link`: envie para a cliente. Trocar o `ACESSO_SECRET` invalida todos os links já enviados.
-3. Pagamento automático: escolher a plataforma e implementar `api/pagamento.js` (conferir o aviso com a plataforma, emitir o link e entregá-lo à cliente).
+3. **Venda pelo WhatsApp (fluxo atual, decidido em 20/11/2026):** o botão "Comprar por R$ 89,90 no WhatsApp" abre o `whatsappVendas` de `config.js` com a mensagem pronta (`mensagemCompra`). O Arthur combina e confirma o pagamento na conversa, gera o link com o comando do passo 2 (use o número do pedido ou o nome da cliente em `referencia`) e envia o link pelo WhatsApp. `api/pagamento.js` (webhook automático) não é usado.
 
 ---
 

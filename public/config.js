@@ -3,8 +3,10 @@
 
    precoCampanha   Preço de cada campanha (uma campanha por compra).
    comprasAbertas  false = botões mostram "Compras abrem em breve".
-                   true  = o botão de cada tema leva ao seu linkPagamento
-                           (se o link estiver vazio, continua "em breve").
+                   true  = o botão de compra abre o WhatsApp de vendas com a
+                           mensagem pronta (ou o linkPagamento do tema, se houver).
+   whatsappVendas  Número (com DDI e DDD) que recebe os pedidos de compra.
+   mensagemCompra  Texto que já vem escrito; {campanha} e {preco} são trocados.
    contatoGestao   Destino do botão "Conversar sobre gestão mensal".
                    Aceita um link (https://...) ou só o número com DDI e DDD
                    (vira https://wa.me/<número>). Vazio = aviso no lugar do botão.
@@ -16,7 +18,9 @@
 export const SITE = {
   nome: "Natal no Ar",
   precoCampanha: 89.90,
-  comprasAbertas: false,
+  comprasAbertas: true,
+  whatsappVendas: "555599408766",
+  mensagemCompra: "Olá, Arthur! Quero comprar a campanha {campanha} por {preco}. Como faço o pagamento?",
   contatoGestao: "555599408766",
   mensagemGestao: "Olá, Arthur! Vi o Natal no Ar e quero conversar sobre gestão mensal de conteúdo.",
 

@@ -16,10 +16,11 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const arquivosPublicos = (dir = fileURLToPath(new URL("public/", raiz))) =>
   readdirSync(dir).flatMap(f => { const p = join(dir, f); return statSync(p).isDirectory() ? arquivosPublicos(p) : [p]; });
 
-test("configuração: preço, compras fechadas e públicos", () => {
+test("configuração: preço, compras abertas pelo WhatsApp e públicos", () => {
   assert.equal(SITE.precoCampanha, 89.90);
   assert.equal(L.fmtBRL(SITE.precoCampanha), "R$ 89,90");
-  assert.equal(SITE.comprasAbertas, false);
+  assert.equal(SITE.comprasAbertas, true);
+  assert.match(SITE.whatsappVendas, /^\d{12,13}$/);
   assert.deepEqual(SITE.publicos.map(p => p.nome), ["Tenho uma loja", "Presto um serviço"]);
   assert.deepEqual(L.temasDoPublico(SITE, "loja").map(t => t.nome),
     ["Presentes por orçamento", "Looks para celebrar", "Favoritos da loja", "Natal de última hora", "Looks para a virada"]);
@@ -42,18 +43,22 @@ test("temas: campos obrigatórios, ids únicos, status e paraQuem", () => {
   assert.equal(temas.filter(t => t.status === "em-preparacao").length, 9);
 });
 
-test("botão de compra: em breve, checkout e em preparação", () => {
+test("botão de compra: WhatsApp, em breve, checkout e em preparação", () => {
   const tema = clone(L.temaPorId(SITE, "presentes-por-orcamento"));
-  assert.deepEqual(L.estadoCompra(tema, SITE), { tipo: "em-breve", rotulo: "Compras abrem em breve" });
-  const aberto = { ...SITE, comprasAbertas: true };
-  assert.equal(L.estadoCompra(tema, aberto).tipo, "em-breve", "sem link continua em breve");
+  const wa = L.estadoCompra(tema, SITE);
+  assert.equal(wa.tipo, "whatsapp"); assert.equal(wa.rotulo, "Comprar por R$ 89,90");
+  assert.ok(wa.href.startsWith(`https://wa.me/${SITE.whatsappVendas}?text=`));
+  assert.match(decodeURIComponent(wa.href.split("?text=")[1]), /Quero comprar a campanha Presentes por orçamento por R\$ 89,90/);
+  const fechado = { ...SITE, comprasAbertas: false };
+  assert.deepEqual(L.estadoCompra(tema, fechado), { tipo: "em-breve", rotulo: "Compras abrem em breve" });
+  assert.equal(L.estadoCompra(tema, { ...SITE, whatsappVendas: "" }).tipo, "em-breve", "sem WhatsApp de vendas nem link: em breve");
   tema.linkPagamento = "javascript:alert(1)";
-  assert.equal(L.estadoCompra(tema, aberto).tipo, "em-breve", "link inválido não vira botão");
+  assert.equal(L.estadoCompra(tema, SITE).tipo, "whatsapp", "link inválido é ignorado");
   tema.linkPagamento = " https://pagamento.exemplo/checkout/123 ";
-  assert.deepEqual(L.estadoCompra(tema, aberto), { tipo: "checkout", rotulo: "Comprar por R$ 89,90", href: "https://pagamento.exemplo/checkout/123" });
-  assert.equal(L.estadoCompra(tema, SITE).tipo, "em-breve", "com compras fechadas o link não aparece");
+  assert.deepEqual(L.estadoCompra(tema, SITE), { tipo: "checkout", rotulo: "Comprar por R$ 89,90", href: "https://pagamento.exemplo/checkout/123" });
+  assert.equal(L.estadoCompra(tema, fechado).tipo, "em-breve", "com compras fechadas nada é vendido");
   const prep = L.temaPorId(SITE, "looks-para-celebrar");
-  assert.equal(L.estadoCompra({ ...prep, linkPagamento: "https://x.y" }, aberto).tipo, "em-preparacao");
+  assert.equal(L.estadoCompra({ ...prep, linkPagamento: "https://x.y" }, SITE).tipo, "em-preparacao");
 });
 
 test("contato da gestão: número, link, vazio", () => {

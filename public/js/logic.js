@@ -12,13 +12,19 @@ export const temasDoPublico = (site, id) => (publicoPorId(site, id) || { temas: 
 
 /* ---------- botão de compra ----------
    em-preparacao: tema sem material pronto
-   em-breve:      compras fechadas ou sem link de pagamento válido
-   checkout:      compras abertas e link https preenchido */
+   em-breve:      compras fechadas (ou sem WhatsApp de vendas nem link)
+   checkout:      compras abertas e linkPagamento https do tema preenchido
+   whatsapp:      compras abertas: abre o WhatsApp de vendas com a mensagem pronta */
 const linkValido = s => /^https?:\/\/\S+$/i.test(String(s || "").trim());
 export function estadoCompra(tema, site) {
   if (!tema || tema.status !== "disponivel") return { tipo: "em-preparacao", rotulo: "Em preparação" };
   if (site.comprasAbertas && linkValido(tema.linkPagamento))
     return { tipo: "checkout", rotulo: `Comprar por ${fmtBRL(site.precoCampanha)}`, href: tema.linkPagamento.trim() };
+  if (site.comprasAbertas && site.whatsappVendas) {
+    const msg = String(site.mensagemCompra || "Quero comprar a campanha {campanha}.").replaceAll("{campanha}", tema.nome).replaceAll("{preco}", fmtBRL(site.precoCampanha));
+    const href = linkContato(site.whatsappVendas, msg);
+    if (href) return { tipo: "whatsapp", rotulo: `Comprar por ${fmtBRL(site.precoCampanha)}`, href };
+  }
   return { tipo: "em-breve", rotulo: "Compras abrem em breve" };
 }
 

@@ -23,6 +23,8 @@ const TEMA_DEMO = temaPorId(SITE, "presentes-por-orcamento");
 function compraHTML(tema, { destaque = false } = {}) {
   const c = estadoCompra(tema, SITE);
   if (c.tipo === "checkout") return `<a class="btn ${destaque ? "grande" : ""}" href="${esc(c.href)}" target="_blank" rel="noopener" data-compra="${tema.id}">${esc(c.rotulo)}</a>`;
+  if (c.tipo === "whatsapp") return `<div class="compra"><a class="btn ${destaque ? "grande" : ""}" href="${esc(c.href)}" target="_blank" rel="noopener" data-compra="${tema.id}">${esc(c.rotulo)} no WhatsApp</a>
+    <p class="hint">O pagamento é combinado pelo WhatsApp. Confirmado o pagamento, você recebe o link de acesso à campanha.</p></div>`;
   if (c.tipo === "em-breve") return `<p class="em-breve" data-compra="${tema.id}"><span aria-hidden="true">✦</span> ${esc(c.rotulo)}. A demonstração já está liberada.</p>`;
   return "";
 }
@@ -131,7 +133,7 @@ function viewArea() {
   const a = estado.area;
   if (!guardado.get(TOKEN_K, "")) return `
     <section class="wrap camp-cab"><p class="eyebrow">Área da cliente</p><h1>Sua campanha fica aqui</h1>
-      <p class="lede">O acesso chega depois da confirmação do pagamento, por um link. Abra esse link neste aparelho para ver e editar a sua campanha.</p>
+      <p class="lede">O acesso chega depois da confirmação do pagamento, por um link enviado no WhatsApp. Abra esse link neste aparelho para ver e editar a sua campanha.</p>
       ${compraHTML(TEMA_DEMO)}<div class="ctas"><a class="btn ghost" href="#demo">Ver a demonstração</a></div></section>`;
   if (!a || a.carregando) return `<section class="wrap camp-cab"><p class="eyebrow">Área da cliente</p><h1>Abrindo sua campanha…</h1></section>`;
   if (a.erro) return `<section class="wrap camp-cab"><p class="eyebrow">Área da cliente</p><h1>Não foi possível abrir</h1><p class="lede">${esc(a.erro)}</p>
