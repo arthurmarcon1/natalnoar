@@ -218,14 +218,22 @@ Ao final, entregue:
 - Ao terminar cada etapa, atualize a seção "Andamento" abaixo.
 
 ## Andamento
-- [ ] Etapa 1: diagnóstico e plano
-- [ ] Etapa 2: estrutura, configuração e página inicial
-- [ ] Etapa 3: Campanhas prontas (dois públicos e temas)
-- [ ] Etapa 4: conteúdo completo de Presentes por orçamento
-- [ ] Etapa 5: editor "Experimentar uma publicação" e exportação
-- [ ] Etapa 6: Gestão mensal, compra "em breve" e roteiro de anúncio
-- [ ] Etapa 7: testes, deploy de prévia e entrega
+- [x] Etapa 1: diagnóstico e plano (stack estática mantida: HTML + módulos JS, sem build; editor em canvas, zip próprio sem dependências)
+- [x] Etapa 2: estrutura, configuração e página inicial (`config.js`, nova direção visual, menu, chamada exata, amostra antes/depois)
+- [x] Etapa 3: Campanhas prontas (dois públicos, 10 temas, 9 com selo Em preparação, "Faz sentido para" nos de serviço)
+- [x] Etapa 4: conteúdo completo de Presentes por orçamento (`content/presentes-por-orcamento.js`, página `#campanha/presentes-por-orcamento`)
+- [x] Etapa 5: editor "Experimentar uma publicação" e exportação (`#experimentar`: fotos do aparelho com EXIF, zoom/posição, PNG 1080 × 1350, zip, compartilhar no iPhone)
+- [x] Etapa 6: Gestão mensal, compra "em breve" e roteiro de anúncio (`docs/roteiro-anuncio.md`)
+- [x] Etapa 7: testes (12 de lógica + verificação no navegador da seção 11), deploy de prévia da branch `campanhas-prontas`
+- [ ] Publicar em produção: só quando o Arthur aprovar a prévia (Prompt 8)
 
+### Pendências do Arthur para abrir as vendas
+- Plataforma de pagamento e entrega: preencher `linkPagamento` do tema e mudar `comprasAbertas` para `true` em `config.js`.
+- Definir como o kit é entregue depois da compra (hoje a página da campanha é pública; com vendas abertas ela deve ficar atrás do acesso pago).
+- Trocar as fotos provisórias de `assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
+- Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
+- Revisar os textos da campanha em `content/presentes-por-orcamento.js`.
+- Material dos outros 9 temas (status `em-preparacao` até lá).
 
 ## Deploy
 - **Produção:** https://natal-no-ar.vercel.app (branch `main`). Só publicar em produção quando o Arthur pedir.
