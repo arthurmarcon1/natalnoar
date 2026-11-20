@@ -10,24 +10,62 @@ export const todosTemas = site => site.publicos.flatMap(p => p.temas);
 export const temaPorId = (site, id) => todosTemas(site).find(t => t.id === id) || null;
 export const temasDoPublico = (site, id) => (publicoPorId(site, id) || { temas: [] }).temas;
 
-/* ---------- compra ----------
-   checkoutDoTema: link do checkout (linkPagamento https do tema, senão WhatsApp de vendas
-                   com a mensagem pronta). null se nada estiver configurado.
-   estadoCompra:   em-preparacao (tema sem material) | revisao (modo de testes, ou sem
-                   checkout configurado: abre a revisão do pedido) | checkout (lançamento). */
 const linkValido = s => /^https?:\/\/\S+$/i.test(String(s || "").trim());
-export function checkoutDoTema(tema, site) {
-  if (linkValido(tema.linkPagamento)) return tema.linkPagamento.trim();
+/* ---------- planos ---------- */
+export const planoPorId = (site, id) => site.planos.find(p => p.id === id) || null;
+export const planoPadrao = site => site.planos[0];
+/* Peças prontas de um plano: telas de carrossel (4 cada) + roteiros + telas de Stories (3 cada)
+   + mensagens + calendários + tutorial. */
+export const pecasDoPlano = p => p.carrosseis * 4 + p.roteiros + p.stories * 3 + p.mensagens + (p.nivel >= 3 ? 2 : 1) + 1;
+/* O que a cliente recebe, em itens curtos (resumo do pedido e cartões). */
+export function entregasDoPlano(p) {
+  return [
+    `${p.carrosseis} carrosséis editáveis com legendas`,
+    `${p.roteiros} roteiros de Reels`,
+    `${p.stories} sequências de Stories`,
+    `${p.mensagens} mensagens de WhatsApp`,
+    p.nivel >= 3 ? "Calendário de 15 dias + 5 dias de Réveillon" : `Calendário de ${p.calendario}`,
+    "Tutorial de edição",
+    "Peças sem marca-d'água"
+  ];
+}
+/* Conteúdo pago liberado pelo plano (o servidor só entrega isto). */
+export function conteudoDoPlano(campanha, plano) {
+  const n = plano ? plano.nivel : 1;
+  const c = { ...campanha, calendario: { ...campanha.calendario } };
+  if (n < 2) { delete c.extras; delete c.calendario.quinze; }
+  if (n < 3) delete c.reveillon;
+  return c;
+}
+/* Todos os carrosséis liberados, na ordem: Natal (5), extras (3), Réveillon (3). */
+export function carrosseisLiberados(c) {
+  return [
+    ...c.temas.map((t, i) => ({ grupo: "Natal", t, i })),
+    ...(c.extras || []).map((t, i) => ({ grupo: "Tema extra", t, i })),
+    ...((c.reveillon && c.reveillon.temas) || []).map((t, i) => ({ grupo: "Réveillon", t, i }))
+  ];
+}
+
+/* ---------- compra ----------
+   checkoutDoTema: link do checkout do plano (linksPagamento[plano] https do tema, senão
+                   WhatsApp de vendas com campanha, plano e preço). null se nada configurado.
+   estadoCompra:   em-preparacao (tema sem material) | revisao (modo de testes, ou sem
+                   checkout configurado: abre a revisão do pedido) | checkout (lançamento).
+                   O rótulo traz o nome e o preço FINAL do plano. */
+export function checkoutDoTema(tema, plano, site) {
+  const link = tema.linksPagamento && tema.linksPagamento[plano.id];
+  if (linkValido(link)) return link.trim();
   if (!site.whatsappVendas) return null;
-  const msg = String(site.mensagemCompra || "Quero comprar a campanha {campanha}.").replaceAll("{campanha}", tema.nome).replaceAll("{preco}", fmtBRL(site.precoCampanha));
+  const msg = String(site.mensagemCompra || "Quero comprar a campanha {campanha} no plano {plano}.").replaceAll("{campanha}", tema.nome).replaceAll("{plano}", plano.nome).replaceAll("{preco}", fmtBRL(plano.preco));
   return linkContato(site.whatsappVendas, msg);
 }
-export function estadoCompra(tema, site) {
+export function estadoCompra(tema, plano, site) {
   if (!tema || tema.status !== "disponivel") return { tipo: "em-preparacao", rotulo: "Em preparação" };
-  const rotulo = `Comprar campanha · ${fmtBRL(site.precoCampanha)}`;
-  const checkout = checkoutDoTema(tema, site);
-  if (site.modoCompra === "checkout" && checkout) return { tipo: "checkout", rotulo, href: checkout };
-  return { tipo: "revisao", rotulo, href: `#pedido/${tema.id}`, checkout };
+  plano = plano || planoPadrao(site);
+  const rotulo = `Comprar ${plano.nome} · ${fmtBRL(plano.preco)}`;
+  const checkout = checkoutDoTema(tema, plano, site);
+  if (site.modoCompra === "checkout" && checkout) return { tipo: "checkout", rotulo, href: checkout, plano };
+  return { tipo: "revisao", rotulo, href: `#pedido/${tema.id}/${plano.id}`, checkout, plano };
 }
 
 /* ---------- contato da gestão mensal ----------

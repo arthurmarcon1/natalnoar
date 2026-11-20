@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 import { emitirToken, verificarToken, segredoConfere } from "../private/acesso.js";
 import { SITE } from "../public/config.js";
 import campanha from "../private/campanhas/presentes-por-orcamento.js";
+import servico from "../private/campanhas/seu-toque-nas-festas.js";
+import demoServico from "../public/amostra/seu-toque-nas-festas.js";
 import demo from "../public/amostra/presentes-por-orcamento.js";
 import * as L from "../public/js/logic.js";
 
@@ -32,34 +34,53 @@ test("temas: campos obrigatórios, ids únicos, status e paraQuem", () => {
   const temas = L.todosTemas(SITE);
   assert.equal(new Set(temas.map(t => t.id)).size, temas.length);
   for (const t of temas) {
-    for (const k of ["id", "nome", "publico", "descricao", "status", "linkPagamento"]) assert.ok(k in t, `${t.id} sem ${k}`);
+    for (const k of ["id", "nome", "publico", "descricao", "status", "linksPagamento"]) assert.ok(k in t, `${t.id} sem ${k}`);
     assert.ok(["disponivel", "em-preparacao"].includes(t.status));
-    assert.equal(t.linkPagamento, "", "links de pagamento ficam vazios até o Arthur definir");
+    assert.deepEqual({ ...t.linksPagamento }, {}, "links de pagamento ficam vazios até o Arthur definir");
     if (t.publico === "servico") assert.ok(t.paraQuem && t.paraQuem.length > 10, `${t.id} sem paraQuem`);
     assert.ok(!/agendar/i.test(t.nome), "não usar 'como agendar' como tema");
   }
   const disponiveis = temas.filter(t => t.status === "disponivel").map(t => t.id);
-  assert.deepEqual(disponiveis, ["presentes-por-orcamento"]);
-  assert.equal(temas.filter(t => t.status === "em-preparacao").length, 9);
+  assert.deepEqual(disponiveis, ["presentes-por-orcamento", "seu-toque-nas-festas"], "uma campanha pronta por perfil");
+  assert.equal(temas.filter(t => t.status === "em-preparacao").length, 8);
 });
 
-test("compra: revisão do pedido nos testes, checkout no lançamento, nunca \"em breve\"", () => {
-  const tema = clone(L.temaPorId(SITE, "presentes-por-orcamento"));
+test("planos: três compras únicas com preço final, totais e o que acrescentam", () => {
+  const [a, b, c] = SITE.planos;
+  assert.deepEqual(SITE.planos.map(p => [p.nome, p.preco, p.carrosseis, p.roteiros]),
+    [["Natal Pronto", 89.90, 5, 5], ["Natal Completo", 139.90, 8, 8], ["Natal + Virada", 189.90, 11, 11]]);
+  assert.deepEqual(SITE.planos.map(p => p.stories), [5, 5, 8]);
+  assert.deepEqual(SITE.planos.map(p => L.pecasDoPlano(p)), [45, 60, 85]);
+  assert.equal(a.calendario, "10 dias"); assert.equal(b.calendario, "15 dias"); assert.match(c.calendario, /15 dias \+ 5 de Réveillon/);
+  assert.ok(b.acrescenta.some(x => /3 carrosséis/.test(x)) && b.acrescenta.some(x => /15 dias/.test(x)));
+  assert.ok(c.acrescenta.some(x => /Réveillon/.test(x)) && c.acrescenta.some(x => /5 dias/.test(x)));
+  assert.equal(SITE.precoCampanha, Math.min(...SITE.planos.map(p => p.preco)), "\"a partir de\" usa o menor preço");
+  assert.deepEqual(L.entregasDoPlano(b).slice(0, 2), ["8 carrosséis editáveis com legendas", "8 roteiros de Reels"]);
+  assert.ok(L.entregasDoPlano(a).includes("Peças sem marca-d'água") && L.entregasDoPlano(c).includes("Peças sem marca-d'água"));
+});
+
+test("compra: nome e preço exatos do plano na revisão e no checkout, nunca \"em breve\"", () => {
   const teste = { ...SITE, modoCompra: "revisao" }, lancamento = { ...SITE, modoCompra: "checkout" };
-  const r = L.estadoCompra(tema, teste);
-  assert.equal(r.tipo, "revisao"); assert.equal(r.rotulo, "Comprar campanha · R$ 89,90"); assert.equal(r.href, "#pedido/presentes-por-orcamento");
-  assert.ok(r.checkout.startsWith(`https://wa.me/${SITE.whatsappVendas}?text=`), "a revisão sabe para onde seguir");
-  const c = L.estadoCompra(tema, lancamento);
-  assert.equal(c.tipo, "checkout"); assert.equal(c.rotulo, "Comprar campanha · R$ 89,90");
-  assert.match(decodeURIComponent(c.href.split("?text=")[1]), /Quero comprar a campanha Presentes por orçamento por R\$ 89,90/);
-  tema.linkPagamento = " https://pagamento.exemplo/checkout/123 ";
-  assert.equal(L.estadoCompra(tema, lancamento).href, "https://pagamento.exemplo/checkout/123", "link do tema tem prioridade");
-  tema.linkPagamento = "javascript:alert(1)";
-  assert.ok(L.estadoCompra(tema, lancamento).href.startsWith("https://wa.me/"), "link inválido é ignorado");
-  const semCheckout = { ...lancamento, whatsappVendas: "" }; tema.linkPagamento = "";
-  assert.equal(L.estadoCompra(tema, semCheckout).tipo, "revisao", "sem checkout configurado, cai na revisão (nunca em breve)");
-  const prep = L.temaPorId(SITE, "looks-para-celebrar");
-  assert.equal(L.estadoCompra(prep, lancamento).tipo, "em-preparacao");
+  for (const id of ["presentes-por-orcamento", "seu-toque-nas-festas"]) {
+    const tema = clone(L.temaPorId(SITE, id));
+    for (const p of SITE.planos) {
+      const preco = L.fmtBRL(p.preco);
+      const r = L.estadoCompra(tema, p, teste);
+      assert.equal(r.tipo, "revisao"); assert.equal(r.rotulo, `Comprar ${p.nome} · ${preco}`); assert.equal(r.href, `#pedido/${id}/${p.id}`);
+      const c = L.estadoCompra(tema, p, lancamento);
+      assert.equal(c.tipo, "checkout"); assert.equal(c.rotulo, `Comprar ${p.nome} · ${preco}`);
+      const msg = decodeURIComponent(c.href.split("?text=")[1]);
+      assert.ok(msg.includes(`campanha ${tema.nome} no plano ${p.nome}, por ${preco}`), msg);
+    }
+    tema.linksPagamento = { "natal-completo": " https://pagamento.exemplo/completo " };
+    assert.equal(L.estadoCompra(tema, L.planoPorId(SITE, "natal-completo"), lancamento).href, "https://pagamento.exemplo/completo", "link do plano tem prioridade");
+    assert.ok(L.estadoCompra(tema, L.planoPorId(SITE, "natal-pronto"), lancamento).href.startsWith("https://wa.me/"), "plano sem link usa o WhatsApp");
+    tema.linksPagamento = { "natal-pronto": "javascript:alert(1)" };
+    assert.ok(L.estadoCompra(tema, L.planoPorId(SITE, "natal-pronto"), lancamento).href.startsWith("https://wa.me/"), "link inválido é ignorado");
+  }
+  const tema = L.temaPorId(SITE, "presentes-por-orcamento");
+  assert.equal(L.estadoCompra(tema, SITE.planos[1], { ...lancamento, whatsappVendas: "" }).tipo, "revisao", "sem checkout configurado, cai na revisão");
+  assert.equal(L.estadoCompra(L.temaPorId(SITE, "looks-para-celebrar"), SITE.planos[0], lancamento).tipo, "em-preparacao");
 });
 
 test("contato da gestão: número, link, vazio", () => {
@@ -71,38 +92,60 @@ test("contato da gestão: número, link, vazio", () => {
   assert.ok(L.linkContato(SITE.contatoGestao, SITE.mensagemGestao).startsWith("https://wa.me/"));
 });
 
-test("conteúdo: 5 temas completos no nível pedido", () => {
-  assert.equal(campanha.temas.length, 5);
-  assert.deepEqual(campanha.temas.map(t => t.nome),
-    ["Presentes por faixa de preço", "Um presente para cada estilo", "O favorito da loja", "Duplas que combinam", "Últimas compras"]);
-  for (const t of campanha.temas) {
-    assert.equal(t.carrossel.telas.length, 4, t.id);
-    assert.ok(t.carrossel.legenda.length > 80 && /WhatsApp|direct/i.test(t.carrossel.legenda), `${t.id}: legenda com chamada`);
-    for (const k of ["abertura", "legenda", "chamadaFinal", "semAparecer"]) assert.ok(t.reel[k], `${t.id}: reel.${k}`);
-    assert.ok(t.reel.cenas.length >= 3 && t.reel.cenas.every(c => c.filmar && c.texto), `${t.id}: cenas`);
-    assert.equal(t.stories.telas.length, 3, `${t.id}: 3 telas de Stories`);
+test("conteúdo: as duas campanhas completas, com extras e Réveillon próprios", () => {
+  const exigidos = { "presentes-por-orcamento": ["Achados para o amigo secreto", "Uma peça, três jeitos de usar", "Escolhas da equipe"],
+    "seu-toque-nas-festas": ["Uma dúvida que sempre me fazem", "Como escolho cada detalhe", "A história por trás de um trabalho"] };
+  for (const c of [campanha, servico]) {
+    assert.equal(c.temas.length, 5, c.id);
+    for (const t of [...c.temas, ...c.extras, ...c.reveillon.temas]) {
+      assert.equal(t.carrossel.telas.length, 4, t.id);
+      assert.ok(t.carrossel.legenda.length > 80 && /WhatsApp|direct|ano novo/i.test(t.carrossel.legenda), `${t.id}: legenda`);
+      for (const k of ["abertura", "legenda", "chamadaFinal", "semAparecer"]) assert.ok(t.reel[k], `${t.id}: reel.${k}`);
+      assert.ok(t.reel.cenas.length >= 3 && t.reel.cenas.every(x => x.filmar && x.texto), `${t.id}: cenas`);
+      assert.ok(!/agendar/i.test(t.nome));
+    }
+    for (const t of [...c.temas, ...c.reveillon.temas]) assert.equal(t.stories.telas.length, 3, `${t.id}: 3 telas de Stories`);
+    assert.deepEqual(c.extras.map(x => x.nome), exigidos[c.id]);
+    assert.equal(c.reveillon.temas.length, 3);
+    assert.equal(c.whatsapp.length, 3);
+    assert.equal(c.calendario.dez.length, 10); assert.equal(c.calendario.expressa.length, 3);
+    assert.equal(c.calendario.quinze.length, 15); assert.equal(c.reveillon.calendario.length, 5);
+    assert.ok(c.tutorial.length >= 4);
   }
+  assert.notDeepEqual(campanha.reveillon.temas.map(t => t.nome), servico.reveillon.temas.map(t => t.nome), "Réveillon próprio de cada perfil");
   const t1 = campanha.temas[0];
   assert.match(t1.carrossel.telas[0].titulo, /3 presentes até R\$ \[valor\]/);
-  assert.match(t1.carrossel.telas[1].apoio, /mãe que ama sair/);
   assert.match(t1.stories.telas[0].texto, /Qual você daria de presente\?/);
-  assert.match(t1.stories.telas[2].recurso, /disponibilidade/);
-  assert.equal(campanha.whatsapp.length, 3);
-  assert.equal(campanha.calendario.dez.length, 10);
-  assert.equal(campanha.calendario.expressa.length, 3);
-  assert.ok(campanha.tutorial.length >= 4);
 });
 
-test("calendário cita cada peça pelo nome", () => {
-  const nomes = campanha.temas.flatMap(t => [`Carrossel: ${t.carrossel.nome}`, `Reel: ${t.reel.nome}`, `Stories: ${t.stories.nome}`]);
-  const citadas = campanha.calendario.dez.flatMap(d => d.pecas);
-  for (const n of nomes) assert.ok(citadas.includes(n), `calendário sem "${n}"`);
-  for (const p of [...citadas, ...campanha.calendario.expressa.flatMap(d => d.pecas)])
-    assert.ok(nomes.includes(p) || campanha.whatsapp.some(m => p === `WhatsApp: ${m.titulo}`), `peça desconhecida: ${p}`);
+test("conteúdo por plano: o servidor libera 5, 8 ou 11 carrosséis e roteiros", () => {
+  for (const c of [campanha, servico]) {
+    for (const p of SITE.planos) {
+      const lib = L.conteudoDoPlano(c, p), lista = L.carrosseisLiberados(lib);
+      assert.equal(lista.length, p.carrosseis, `${c.id} ${p.id}: carrosséis`);
+      assert.equal(lista.filter(x => x.t.reel).length, p.roteiros, `${c.id} ${p.id}: roteiros`);
+      assert.equal(lista.filter(x => x.t.stories).length, p.stories, `${c.id} ${p.id}: Stories`);
+      assert.equal(!!lib.calendario.quinze, p.nivel >= 2, `${c.id} ${p.id}: calendário de 15 dias`);
+      assert.equal(!!lib.reveillon, p.nivel >= 3, `${c.id} ${p.id}: Réveillon`);
+      assert.equal(lib.whatsapp.length, 3);
+    }
+  }
+  assert.equal(campanha.extras.length, 3, "o original não é alterado");
+});
+
+test("calendários citam cada peça pelo nome", () => {
+  for (const c of [campanha, servico]) {
+    const nomes = ts => ts.flatMap(t => [`Carrossel: ${t.carrossel.nome}`, `Reel: ${t.reel.nome}`, ...(t.stories ? [`Stories: ${t.stories.nome}`] : [])]);
+    const wa = c.whatsapp.map(m => `WhatsApp: ${m.titulo}`);
+    const cita = (cal, ts) => { const ps = cal.flatMap(d => d.pecas); for (const n of nomes(ts)) assert.ok(ps.includes(n), `${c.id}: calendário sem "${n}"`); for (const p of ps) assert.ok(nomes([...c.temas, ...c.extras, ...c.reveillon.temas]).includes(p) || wa.includes(p), `${c.id}: peça desconhecida ${p}`); };
+    cita(c.calendario.dez, c.temas);
+    cita(c.calendario.quinze, [...c.temas, ...c.extras]);
+    cita(c.reveillon.calendario, c.reveillon.temas);
+  }
 });
 
 test("editor: fotos do exemplo existem e legenda reflete marca, textos e preços", () => {
-  for (const t of campanha.editor.exemplo.telas) assert.ok(existsSync(new URL(`public/${t.foto}`, raiz)), t.foto);
+  for (const c of [campanha, servico]) for (const t of c.editor.exemplo.telas) assert.ok(existsSync(new URL(`public/${t.foto}`, raiz)), t.foto);
   const st = clone(campanha.editor.exemplo);
   st.marca = "Loja da Bia";
   st.telas[0].preco = "R$ 150";
@@ -111,8 +154,7 @@ test("editor: fotos do exemplo existem e legenda reflete marca, textos e preços
   assert.match(leg, /3 presentes até R\$ 150 aqui na Loja da Bia/);
   assert.match(leg, /• Bolsa Lua \(R\$ 129\), para a mãe que ama sair/);
   assert.ok(!/\[tela \d\]/.test(leg));
-  const antes = L.legendaEditor(campanha.editor.legenda, campanha.editor.antes);
-  assert.match(antes, /\[nome da loja\]/);
+  assert.match(L.legendaEditor(servico.editor.legenda, servico.editor.exemplo), /• Make leve \(R\$ 120\), para o almoço da firma/);
 });
 
 test("enquadramento cover: cobre a caixa, sem distorcer, respeitando zoom e foco", () => {
@@ -155,37 +197,50 @@ test("zip store: estrutura válida e CRC correto", () => {
 
 test("sem restos do modelo antigo no site público", () => {
   const todo = arquivosPublicos().filter(f => /\.(html|js)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
-  for (const proibido of [/690/, /em breve/i, /Presente Certo/, /Última Chamada/, /Virada de Look/, /Natal Completo/, /pacotes?\b/i, /Enviar solicitação/, /carrinho/i, /Essencial/])
+  for (const proibido of [/690/, /em breve/i, /Presente Certo/, /Última Chamada/, /Virada de Look/, /pacotes?\b/i, /Enviar solicitação/, /carrinho/i, /Essencial/])
     assert.ok(!proibido.test(todo), `sobrou: ${proibido}`);
 });
 
 test("área paga: nenhum texto pago aparece nos arquivos públicos", () => {
   const publico = arquivosPublicos().filter(f => /\.(html|js|json|md|txt)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
-  const pagos = [
-    ...campanha.temas.slice(1).map(t => t.carrossel.legenda),
-    ...campanha.temas.flatMap(t => [t.reel.semAparecer, t.reel.chamadaFinal, ...t.stories.telas.map(x => x.mostrar)]),
-    ...campanha.whatsapp.map(m => m.texto),
-    ...campanha.tutorial.map(p => p.texto),
-    campanha.temas[0].carrossel.legenda
-  ];
-  for (const t of pagos) assert.ok(!publico.includes(t), `texto pago no público: ${t.slice(0, 50)}…`);
+  for (const c of [campanha, servico]) {
+    const todos = [...c.temas, ...c.extras, ...c.reveillon.temas];
+    const pagos = [
+      ...todos.map(t => t.carrossel.legenda),
+      ...todos.flatMap(t => [t.reel.semAparecer, t.reel.chamadaFinal, ...(t.stories ? t.stories.telas.map(x => x.mostrar) : [])]),
+      ...c.whatsapp.map(m => m.texto),
+      ...c.tutorial.map(p => p.texto)
+    ];
+    for (const t of pagos) assert.ok(!publico.includes(t), `${c.id}: texto pago no público: ${t.slice(0, 50)}…`);
+  }
   assert.ok(!existsSync(new URL("public/content", raiz)) && !existsSync(new URL("content", raiz)), "conteúdo pago fora de public/");
 });
 
-test("demonstração pública: 3 produtos com foto, cenas e enquete", () => {
-  assert.equal(demo.produtos.length, 3);
-  for (const p of demo.produtos) { assert.ok(p.nome && p.preco && p.paraQuem); assert.ok(existsSync(new URL(`public/${p.foto}`, raiz)), p.foto); }
-  assert.ok(existsSync(new URL(`public/${demo.capaFoto}`, raiz)));
-  assert.ok(demo.reel.length >= 3 && demo.reel.every(c => c.texto && c.gravar));
+test("demonstração pública dos dois perfis: 3 produtos com foto, cenas, enquete e temas dos planos", () => {
+  for (const d of [demo, demoServico]) {
+    assert.equal(d.produtos.length, 3);
+    for (const p of d.produtos) { assert.ok(p.nome && p.preco && p.paraQuem); assert.ok(existsSync(new URL(`public/${p.foto}`, raiz)), p.foto); }
+    assert.ok(existsSync(new URL(`public/${d.capaFoto}`, raiz)));
+    assert.ok(d.capa.texto && d.capa.preco);
+    assert.ok(d.reel.length >= 3 && d.reel.every(c => c.texto && c.gravar));
+    assert.ok(d.trechos.calendario.length <= 3, "só trecho do calendário");
+    assert.equal(d.extras.length, 3); assert.equal(d.reveillon.length, 3);
+  }
+  assert.deepEqual(demo.extras, campanha.extras.map(x => x.nome)); assert.deepEqual(demoServico.extras, servico.extras.map(x => x.nome));
+  assert.deepEqual(demo.reveillon, campanha.reveillon.temas.map(x => x.nome)); assert.deepEqual(demoServico.reveillon, servico.reveillon.temas.map(x => x.nome));
   assert.match(demo.stories.pergunta, /Qual você daria de presente\?/);
-  assert.ok(demo.trechos.calendario.length <= 3, "só trecho do calendário");
+  assert.match(demoServico.stories.pergunta, /Qual combina com a sua festa\?/);
 });
 
 test("acesso: token assinado, válido, adulterado, expirado e sem segredo", () => {
   const S = "s".repeat(40), agora = Date.UTC(2026, 10, 20);
-  const tk = emitirToken({ campanha: "presentes-por-orcamento", dias: 30, referencia: "pedido-1" }, S, agora);
+  const tk = emitirToken({ campanha: "presentes-por-orcamento", plano: "natal-virada", dias: 30, referencia: "pedido-1" }, S, agora);
+  const tkPronto = emitirToken({ campanha: "presentes-por-orcamento", plano: "natal-pronto", dias: 30 }, S, agora);
   const v = verificarToken(tk, S, agora + 1000);
-  assert.equal(v.campanha, "presentes-por-orcamento"); assert.equal(v.referencia, "pedido-1");
+  assert.equal(v.campanha, "presentes-por-orcamento"); assert.equal(v.plano, "natal-virada"); assert.equal(v.referencia, "pedido-1");
+  const [dd, ss] = tkPronto.split(".");  // cliente do Natal Pronto tentando virar Natal Completo
+  const promovido = Buffer.from(JSON.stringify({ ...JSON.parse(Buffer.from(dd, "base64url")), p: "natal-completo" })).toString("base64url");
+  assert.equal(verificarToken(`${promovido}.${ss}`, S, agora), null, "trocar o plano dentro do token invalida a assinatura");
   assert.equal(verificarToken(tk, "x".repeat(40), agora), null, "outro segredo");
   const [d, sig] = tk.split(".");
   const outra = Buffer.from(JSON.stringify({ c: "outra", e: 9e9, r: "x" })).toString("base64url");
@@ -204,36 +259,38 @@ function chamar(handler, { method = "GET", headers = {}, body } = {}) {
     Promise.resolve(handler({ method, headers, body }, res));
   });
 }
-test("API: campanha só com token válido; liberar só com token de admin; pagamento não liga sozinho", async () => {
+test("API: campanha só com token válido e filtrada pelo plano; liberar exige admin e plano", async () => {
   const { default: campanhaApi } = await import("../api/campanha.js");
   const { default: liberar } = await import("../api/liberar.js");
   const { default: pagamento } = await import("../api/pagamento.js");
   const antes = { ...process.env };
+  const ADM = { "x-admin-token": "a".repeat(40), host: "exemplo.test" };
   try {
     delete process.env.ACESSO_SECRET; delete process.env.ADMIN_TOKEN;
     assert.equal((await chamar(campanhaApi)).status, 503);
     process.env.ACESSO_SECRET = "k".repeat(48); process.env.ADMIN_TOKEN = "a".repeat(40);
     assert.equal((await chamar(campanhaApi)).status, 401);
     assert.equal((await chamar(campanhaApi, { headers: { authorization: "Bearer lixo" } })).status, 401);
-    assert.equal((await chamar(liberar, { method: "POST", headers: { "x-admin-token": "errado" }, body: { campanha: "presentes-por-orcamento" } })).status, 401);
-    assert.equal((await chamar(liberar, { method: "POST", headers: { "x-admin-token": "a".repeat(40) }, body: { campanha: "nao-existe" } })).status, 400);
-    const lib = await chamar(liberar, { method: "POST", headers: { "x-admin-token": "a".repeat(40), host: "exemplo.test" }, body: { campanha: "presentes-por-orcamento", dias: 7 } });
-    assert.equal(lib.status, 200); assert.match(lib.json.link, /^https:\/\/exemplo\.test\/#acesso=/);
-    const token = lib.json.link.split("#acesso=")[1];
-    const ok = await chamar(campanhaApi, { headers: { authorization: `Bearer ${token}` } });
-    assert.equal(ok.status, 200); assert.equal(ok.headers["cache-control"], "no-store");
-    assert.equal(ok.json.campanha.temas.length, 5); assert.equal(ok.json.campanha.whatsapp.length, 3);
+    assert.equal((await chamar(liberar, { method: "POST", headers: { "x-admin-token": "errado" }, body: { campanha: "presentes-por-orcamento", plano: "natal-pronto" } })).status, 401);
+    assert.equal((await chamar(liberar, { method: "POST", headers: ADM, body: { campanha: "nao-existe", plano: "natal-pronto" } })).status, 400);
+    assert.equal((await chamar(liberar, { method: "POST", headers: ADM, body: { campanha: "presentes-por-orcamento" } })).status, 400, "plano obrigatório");
+    for (const camp of ["presentes-por-orcamento", "seu-toque-nas-festas"]) for (const p of SITE.planos) {
+      const lib = await chamar(liberar, { method: "POST", headers: ADM, body: { campanha: camp, plano: p.id, dias: 7 } });
+      assert.equal(lib.status, 200); assert.match(lib.json.link, /^https:\/\/exemplo\.test\/#acesso=/); assert.equal(lib.json.plano, p.nome);
+      const ok = await chamar(campanhaApi, { headers: { authorization: `Bearer ${lib.json.link.split("#acesso=")[1]}` } });
+      assert.equal(ok.status, 200); assert.equal(ok.headers["cache-control"], "no-store");
+      assert.equal(ok.json.plano.id, p.id); assert.equal(ok.json.campanha.id, camp);
+      assert.equal(L.carrosseisLiberados(ok.json.campanha).length, p.carrosseis, `${camp} ${p.id}`);
+      assert.equal(!!ok.json.campanha.reveillon, p.nivel >= 3);
+    }
     assert.equal((await chamar(pagamento, { method: "POST", body: { status: "approved" } })).status, 503, "webhook não libera nada sem plataforma");
   } finally { process.env = antes; }
 });
 
-test("editor completo: modelo de cada um dos 5 carrosséis", () => {
-  for (const [i, t] of campanha.temas.entries()) {
-    const m = L.modeloDoTema(t);
-    assert.equal(m.telas.length, 4); assert.equal(m.telas[0].tipo, "capa");
-    const leg = L.legendaDoTema(campanha, i, { ...m, marca: "Loja X" });
-    assert.ok(leg.length > 50);
-    if (t.carrossel.legenda.includes("[nome da loja]")) assert.match(leg, /Loja X/);
+test("editor completo: modelo de todos os carrosséis do maior plano", () => {
+  for (const c of [campanha, servico]) for (const x of L.carrosseisLiberados(c)) {
+    const m = L.modeloDoTema(x.t);
+    assert.equal(m.telas.length, 4, x.t.id); assert.equal(m.telas[0].tipo, "capa");
   }
   assert.deepEqual(L.modeloDoTema(campanha.temas[0]).telas[0], { tipo: "capa", texto: "3 presentes até", preco: "R$ [valor]", apoio: "Arrasta pro lado →" });
 });
