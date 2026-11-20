@@ -10,22 +10,24 @@ export const todosTemas = site => site.publicos.flatMap(p => p.temas);
 export const temaPorId = (site, id) => todosTemas(site).find(t => t.id === id) || null;
 export const temasDoPublico = (site, id) => (publicoPorId(site, id) || { temas: [] }).temas;
 
-/* ---------- botão de compra ----------
-   em-preparacao: tema sem material pronto
-   em-breve:      compras fechadas (ou sem WhatsApp de vendas nem link)
-   checkout:      compras abertas e linkPagamento https do tema preenchido
-   whatsapp:      compras abertas: abre o WhatsApp de vendas com a mensagem pronta */
+/* ---------- compra ----------
+   checkoutDoTema: link do checkout (linkPagamento https do tema, senão WhatsApp de vendas
+                   com a mensagem pronta). null se nada estiver configurado.
+   estadoCompra:   em-preparacao (tema sem material) | revisao (modo de testes, ou sem
+                   checkout configurado: abre a revisão do pedido) | checkout (lançamento). */
 const linkValido = s => /^https?:\/\/\S+$/i.test(String(s || "").trim());
+export function checkoutDoTema(tema, site) {
+  if (linkValido(tema.linkPagamento)) return tema.linkPagamento.trim();
+  if (!site.whatsappVendas) return null;
+  const msg = String(site.mensagemCompra || "Quero comprar a campanha {campanha}.").replaceAll("{campanha}", tema.nome).replaceAll("{preco}", fmtBRL(site.precoCampanha));
+  return linkContato(site.whatsappVendas, msg);
+}
 export function estadoCompra(tema, site) {
   if (!tema || tema.status !== "disponivel") return { tipo: "em-preparacao", rotulo: "Em preparação" };
-  if (site.comprasAbertas && linkValido(tema.linkPagamento))
-    return { tipo: "checkout", rotulo: `Comprar por ${fmtBRL(site.precoCampanha)}`, href: tema.linkPagamento.trim() };
-  if (site.comprasAbertas && site.whatsappVendas) {
-    const msg = String(site.mensagemCompra || "Quero comprar a campanha {campanha}.").replaceAll("{campanha}", tema.nome).replaceAll("{preco}", fmtBRL(site.precoCampanha));
-    const href = linkContato(site.whatsappVendas, msg);
-    if (href) return { tipo: "whatsapp", rotulo: `Comprar por ${fmtBRL(site.precoCampanha)}`, href };
-  }
-  return { tipo: "em-breve", rotulo: "Compras abrem em breve" };
+  const rotulo = `Comprar campanha · ${fmtBRL(site.precoCampanha)}`;
+  const checkout = checkoutDoTema(tema, site);
+  if (site.modoCompra === "checkout" && checkout) return { tipo: "checkout", rotulo, href: checkout };
+  return { tipo: "revisao", rotulo, href: `#pedido/${tema.id}`, checkout };
 }
 
 /* ---------- contato da gestão mensal ----------

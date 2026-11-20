@@ -2,9 +2,12 @@
    CONFIGURAÇÃO DO SITE: tudo o que muda sem mexer na interface.
 
    precoCampanha   Preço de cada campanha (uma campanha por compra).
-   comprasAbertas  false = botões mostram "Compras abrem em breve".
-                   true  = o botão de compra abre o WhatsApp de vendas com a
-                           mensagem pronta (ou o linkPagamento do tema, se houver).
+   modoCompra      "revisao"  (testes): "Comprar campanha" abre a revisão do pedido
+                              no próprio site. Nada é cobrado nem aprovado ali; de lá a
+                              pessoa pode seguir para o checkout.
+                   "checkout" (lançamento): "Comprar campanha" leva direto ao checkout.
+                   Checkout = linkPagamento do tema; se vazio, o WhatsApp de vendas
+                   com a mensagem pronta.
    whatsappVendas  Número (com DDI e DDD) que recebe os pedidos de compra.
    mensagemCompra  Texto que já vem escrito; {campanha} e {preco} são trocados.
    contatoGestao   Destino do botão "Conversar sobre gestão mensal".
@@ -18,7 +21,7 @@
 export const SITE = {
   nome: "Natal no Ar",
   precoCampanha: 89.90,
-  comprasAbertas: true,
+  modoCompra: "revisao",
   whatsappVendas: "555599408766",
   mensagemCompra: "Olá, Arthur! Quero comprar a campanha {campanha} por {preco}. Como faço o pagamento?",
   contatoGestao: "555599408766",

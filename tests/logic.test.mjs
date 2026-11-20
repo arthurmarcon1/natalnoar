@@ -16,10 +16,10 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const arquivosPublicos = (dir = fileURLToPath(new URL("public/", raiz))) =>
   readdirSync(dir).flatMap(f => { const p = join(dir, f); return statSync(p).isDirectory() ? arquivosPublicos(p) : [p]; });
 
-test("configuração: preço, compras abertas pelo WhatsApp e públicos", () => {
+test("configuração: preço, modo de compra e públicos", () => {
   assert.equal(SITE.precoCampanha, 89.90);
   assert.equal(L.fmtBRL(SITE.precoCampanha), "R$ 89,90");
-  assert.equal(SITE.comprasAbertas, true);
+  assert.ok(["revisao", "checkout"].includes(SITE.modoCompra));
   assert.match(SITE.whatsappVendas, /^\d{12,13}$/);
   assert.deepEqual(SITE.publicos.map(p => p.nome), ["Tenho uma loja", "Presto um serviço"]);
   assert.deepEqual(L.temasDoPublico(SITE, "loja").map(t => t.nome),
@@ -43,22 +43,23 @@ test("temas: campos obrigatórios, ids únicos, status e paraQuem", () => {
   assert.equal(temas.filter(t => t.status === "em-preparacao").length, 9);
 });
 
-test("botão de compra: WhatsApp, em breve, checkout e em preparação", () => {
+test("compra: revisão do pedido nos testes, checkout no lançamento, nunca \"em breve\"", () => {
   const tema = clone(L.temaPorId(SITE, "presentes-por-orcamento"));
-  const wa = L.estadoCompra(tema, SITE);
-  assert.equal(wa.tipo, "whatsapp"); assert.equal(wa.rotulo, "Comprar por R$ 89,90");
-  assert.ok(wa.href.startsWith(`https://wa.me/${SITE.whatsappVendas}?text=`));
-  assert.match(decodeURIComponent(wa.href.split("?text=")[1]), /Quero comprar a campanha Presentes por orçamento por R\$ 89,90/);
-  const fechado = { ...SITE, comprasAbertas: false };
-  assert.deepEqual(L.estadoCompra(tema, fechado), { tipo: "em-breve", rotulo: "Compras abrem em breve" });
-  assert.equal(L.estadoCompra(tema, { ...SITE, whatsappVendas: "" }).tipo, "em-breve", "sem WhatsApp de vendas nem link: em breve");
-  tema.linkPagamento = "javascript:alert(1)";
-  assert.equal(L.estadoCompra(tema, SITE).tipo, "whatsapp", "link inválido é ignorado");
+  const teste = { ...SITE, modoCompra: "revisao" }, lancamento = { ...SITE, modoCompra: "checkout" };
+  const r = L.estadoCompra(tema, teste);
+  assert.equal(r.tipo, "revisao"); assert.equal(r.rotulo, "Comprar campanha · R$ 89,90"); assert.equal(r.href, "#pedido/presentes-por-orcamento");
+  assert.ok(r.checkout.startsWith(`https://wa.me/${SITE.whatsappVendas}?text=`), "a revisão sabe para onde seguir");
+  const c = L.estadoCompra(tema, lancamento);
+  assert.equal(c.tipo, "checkout"); assert.equal(c.rotulo, "Comprar campanha · R$ 89,90");
+  assert.match(decodeURIComponent(c.href.split("?text=")[1]), /Quero comprar a campanha Presentes por orçamento por R\$ 89,90/);
   tema.linkPagamento = " https://pagamento.exemplo/checkout/123 ";
-  assert.deepEqual(L.estadoCompra(tema, SITE), { tipo: "checkout", rotulo: "Comprar por R$ 89,90", href: "https://pagamento.exemplo/checkout/123" });
-  assert.equal(L.estadoCompra(tema, fechado).tipo, "em-breve", "com compras fechadas nada é vendido");
+  assert.equal(L.estadoCompra(tema, lancamento).href, "https://pagamento.exemplo/checkout/123", "link do tema tem prioridade");
+  tema.linkPagamento = "javascript:alert(1)";
+  assert.ok(L.estadoCompra(tema, lancamento).href.startsWith("https://wa.me/"), "link inválido é ignorado");
+  const semCheckout = { ...lancamento, whatsappVendas: "" }; tema.linkPagamento = "";
+  assert.equal(L.estadoCompra(tema, semCheckout).tipo, "revisao", "sem checkout configurado, cai na revisão (nunca em breve)");
   const prep = L.temaPorId(SITE, "looks-para-celebrar");
-  assert.equal(L.estadoCompra({ ...prep, linkPagamento: "https://x.y" }, SITE).tipo, "em-preparacao");
+  assert.equal(L.estadoCompra(prep, lancamento).tipo, "em-preparacao");
 });
 
 test("contato da gestão: número, link, vazio", () => {
@@ -154,7 +155,7 @@ test("zip store: estrutura válida e CRC correto", () => {
 
 test("sem restos do modelo antigo no site público", () => {
   const todo = arquivosPublicos().filter(f => /\.(html|js)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
-  for (const proibido of [/690/, /Presente Certo/, /Última Chamada/, /Virada de Look/, /Natal Completo/, /pacotes?\b/i, /Enviar solicitação/, /carrinho/i, /Essencial/])
+  for (const proibido of [/690/, /em breve/i, /Presente Certo/, /Última Chamada/, /Virada de Look/, /Natal Completo/, /pacotes?\b/i, /Enviar solicitação/, /carrinho/i, /Essencial/])
     assert.ok(!proibido.test(todo), `sobrou: ${proibido}`);
 });
 
