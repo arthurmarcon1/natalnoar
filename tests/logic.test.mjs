@@ -2,13 +2,19 @@
 // Rodar: node --test tests/*.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync, existsSync } from "node:fs";
-import { SITE } from "../config.js";
-import campanha from "../content/presentes-por-orcamento.js";
-import * as L from "../js/logic.js";
+import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { emitirToken, verificarToken, segredoConfere } from "../private/acesso.js";
+import { SITE } from "../public/config.js";
+import campanha from "../private/campanhas/presentes-por-orcamento.js";
+import demo from "../public/amostra/presentes-por-orcamento.js";
+import * as L from "../public/js/logic.js";
 
 const raiz = new URL("../", import.meta.url);
 const clone = o => JSON.parse(JSON.stringify(o));
+const arquivosPublicos = (dir = fileURLToPath(new URL("public/", raiz))) =>
+  readdirSync(dir).flatMap(f => { const p = join(dir, f); return statSync(p).isDirectory() ? arquivosPublicos(p) : [p]; });
 
 test("configuração: preço, compras fechadas e públicos", () => {
   assert.equal(SITE.precoCampanha, 89.90);
@@ -90,7 +96,7 @@ test("calendário cita cada peça pelo nome", () => {
 });
 
 test("editor: fotos do exemplo existem e legenda reflete marca, textos e preços", () => {
-  for (const t of campanha.editor.exemplo.telas) assert.ok(existsSync(new URL(t.foto, raiz)), t.foto);
+  for (const t of campanha.editor.exemplo.telas) assert.ok(existsSync(new URL(`public/${t.foto}`, raiz)), t.foto);
   const st = clone(campanha.editor.exemplo);
   st.marca = "Loja da Bia";
   st.telas[0].preco = "R$ 150";
@@ -141,9 +147,87 @@ test("zip store: estrutura válida e CRC correto", () => {
   assert.equal(dv.getUint16(fim + 10, true), 2);
 });
 
-test("sem restos do modelo antigo no site", () => {
-  const arquivos = ["index.html", "config.js", "content/presentes-por-orcamento.js", ...readdirSync(new URL("js/", raiz)).map(f => `js/${f}`)];
-  const todo = arquivos.map(f => readFileSync(new URL(f, raiz), "utf8")).join("\n");
+test("sem restos do modelo antigo no site público", () => {
+  const todo = arquivosPublicos().filter(f => /\.(html|js)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
   for (const proibido of [/690/, /Presente Certo/, /Última Chamada/, /Virada de Look/, /Natal Completo/, /pacotes?\b/i, /Enviar solicitação/, /carrinho/i, /Essencial/])
     assert.ok(!proibido.test(todo), `sobrou: ${proibido}`);
+});
+
+test("área paga: nenhum texto pago aparece nos arquivos públicos", () => {
+  const publico = arquivosPublicos().filter(f => /\.(html|js|json|md|txt)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
+  const pagos = [
+    ...campanha.temas.slice(1).map(t => t.carrossel.legenda),
+    ...campanha.temas.flatMap(t => [t.reel.semAparecer, t.reel.chamadaFinal, ...t.stories.telas.map(x => x.mostrar)]),
+    ...campanha.whatsapp.map(m => m.texto),
+    ...campanha.tutorial.map(p => p.texto),
+    campanha.temas[0].carrossel.legenda
+  ];
+  for (const t of pagos) assert.ok(!publico.includes(t), `texto pago no público: ${t.slice(0, 50)}…`);
+  assert.ok(!existsSync(new URL("public/content", raiz)) && !existsSync(new URL("content", raiz)), "conteúdo pago fora de public/");
+});
+
+test("demonstração pública: 3 produtos com foto, cenas e enquete", () => {
+  assert.equal(demo.produtos.length, 3);
+  for (const p of demo.produtos) { assert.ok(p.nome && p.preco && p.paraQuem); assert.ok(existsSync(new URL(`public/${p.foto}`, raiz)), p.foto); }
+  assert.ok(existsSync(new URL(`public/${demo.capaFoto}`, raiz)));
+  assert.ok(demo.reel.length >= 3 && demo.reel.every(c => c.texto && c.gravar));
+  assert.match(demo.stories.pergunta, /Qual você daria de presente\?/);
+  assert.ok(demo.trechos.calendario.length <= 3, "só trecho do calendário");
+});
+
+test("acesso: token assinado, válido, adulterado, expirado e sem segredo", () => {
+  const S = "s".repeat(40), agora = Date.UTC(2026, 10, 20);
+  const tk = emitirToken({ campanha: "presentes-por-orcamento", dias: 30, referencia: "pedido-1" }, S, agora);
+  const v = verificarToken(tk, S, agora + 1000);
+  assert.equal(v.campanha, "presentes-por-orcamento"); assert.equal(v.referencia, "pedido-1");
+  assert.equal(verificarToken(tk, "x".repeat(40), agora), null, "outro segredo");
+  const [d, sig] = tk.split(".");
+  const outra = Buffer.from(JSON.stringify({ c: "outra", e: 9e9, r: "x" })).toString("base64url");
+  assert.equal(verificarToken(`${outra}.${sig}`, S, agora), null, "payload trocado");
+  assert.equal(verificarToken(`${d}.${sig.slice(0, -2)}AA`, S, agora), null, "assinatura alterada");
+  assert.equal(verificarToken(tk, S, agora + 31 * 86400e3), null, "expirado");
+  for (const lixo of ["", "a.b.c", "abc", null, "x".repeat(3000)]) assert.equal(verificarToken(lixo, S, agora), null);
+  assert.throws(() => emitirToken({ campanha: "x" }, "curto"));
+  assert.ok(segredoConfere("abc", "abc") && !segredoConfere("abc", "abd") && !segredoConfere("", ""));
+});
+
+/* funções da API com req/res simulados */
+function chamar(handler, { method = "GET", headers = {}, body } = {}) {
+  return new Promise(ok => {
+    const res = { statusCode: 200, h: {}, setHeader(k, v) { this.h[k.toLowerCase()] = v; }, end(b) { ok({ status: this.statusCode, headers: this.h, json: b ? JSON.parse(b) : null }); } };
+    Promise.resolve(handler({ method, headers, body }, res));
+  });
+}
+test("API: campanha só com token válido; liberar só com token de admin; pagamento não liga sozinho", async () => {
+  const { default: campanhaApi } = await import("../api/campanha.js");
+  const { default: liberar } = await import("../api/liberar.js");
+  const { default: pagamento } = await import("../api/pagamento.js");
+  const antes = { ...process.env };
+  try {
+    delete process.env.ACESSO_SECRET; delete process.env.ADMIN_TOKEN;
+    assert.equal((await chamar(campanhaApi)).status, 503);
+    process.env.ACESSO_SECRET = "k".repeat(48); process.env.ADMIN_TOKEN = "a".repeat(40);
+    assert.equal((await chamar(campanhaApi)).status, 401);
+    assert.equal((await chamar(campanhaApi, { headers: { authorization: "Bearer lixo" } })).status, 401);
+    assert.equal((await chamar(liberar, { method: "POST", headers: { "x-admin-token": "errado" }, body: { campanha: "presentes-por-orcamento" } })).status, 401);
+    assert.equal((await chamar(liberar, { method: "POST", headers: { "x-admin-token": "a".repeat(40) }, body: { campanha: "nao-existe" } })).status, 400);
+    const lib = await chamar(liberar, { method: "POST", headers: { "x-admin-token": "a".repeat(40), host: "exemplo.test" }, body: { campanha: "presentes-por-orcamento", dias: 7 } });
+    assert.equal(lib.status, 200); assert.match(lib.json.link, /^https:\/\/exemplo\.test\/#acesso=/);
+    const token = lib.json.link.split("#acesso=")[1];
+    const ok = await chamar(campanhaApi, { headers: { authorization: `Bearer ${token}` } });
+    assert.equal(ok.status, 200); assert.equal(ok.headers["cache-control"], "no-store");
+    assert.equal(ok.json.campanha.temas.length, 5); assert.equal(ok.json.campanha.whatsapp.length, 3);
+    assert.equal((await chamar(pagamento, { method: "POST", body: { status: "approved" } })).status, 503, "webhook não libera nada sem plataforma");
+  } finally { process.env = antes; }
+});
+
+test("editor completo: modelo de cada um dos 5 carrosséis", () => {
+  for (const [i, t] of campanha.temas.entries()) {
+    const m = L.modeloDoTema(t);
+    assert.equal(m.telas.length, 4); assert.equal(m.telas[0].tipo, "capa");
+    const leg = L.legendaDoTema(campanha, i, { ...m, marca: "Loja X" });
+    assert.ok(leg.length > 50);
+    if (t.carrossel.legenda.includes("[nome da loja]")) assert.match(leg, /Loja X/);
+  }
+  assert.deepEqual(L.modeloDoTema(campanha.temas[0]).telas[0], { tipo: "capa", texto: "3 presentes até", preco: "R$ [valor]", apoio: "Arrasta pro lado →" });
 });

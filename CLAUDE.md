@@ -227,12 +227,15 @@ Ao final, entregue:
 - [x] Etapa 7: testes (12 de lógica + verificação no navegador da seção 11), deploy de prévia da branch `campanhas-prontas`
 - [x] Publicado em produção (Arthur pediu em 20/11/2026): https://natal-no-ar.vercel.app
 
+- [x] Demonstração interativa (3 produtos × Carrossel/Reel/Stories), "Testar com a minha foto" com marca-d'água AMOSTRA, trechos públicos e área da cliente protegida (20/11/2026)
+
 ### Pendências do Arthur para abrir as vendas
 - Plataforma de pagamento e entrega: preencher `linkPagamento` do tema e mudar `comprasAbertas` para `true` em `config.js`.
-- Definir como o kit é entregue depois da compra (hoje a página da campanha é pública; com vendas abertas ela deve ficar atrás do acesso pago).
-- Trocar as fotos provisórias de `assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
+- Criar os segredos `ACESSO_SECRET` e `ADMIN_TOKEN` na Vercel (ver "Área da cliente"). Sem eles a área fica fechada.
+- Ligar a plataforma de pagamento ao webhook `api/pagamento.js` e definir como o link de acesso chega à cliente.
+- Trocar as fotos provisórias de `public/assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
 - Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
-- Revisar os textos da campanha em `content/presentes-por-orcamento.js`.
+- Revisar os textos da campanha em `private/campanhas/presentes-por-orcamento.js`.
 - Material dos outros 9 temas (status `em-preparacao` até lá).
 
 ## Deploy
@@ -241,18 +244,44 @@ Ao final, entregue:
 - **Vercel:** projeto `natal-no-ar` (time `arthur-marcon-s-projects`), preset "Other", site estático sem build, repositório conectado.
   - Push em `main` → produção. Push em outra branch → deploy de prévia (as URLs de prévia pedem login na Vercel).
   - `vercel` → prévia a partir da pasta local; `vercel --prod` → produção.
-- **Testes:** `node --test tests/*.test.mjs` (não publique com teste falhando).
-- **Fora do site:** `.vercelignore` impede que `tests/`, `docs/`, `CLAUDE.md` e `.env*` sejam publicados.
+- **Testes:** `npm test` (não publique com teste falhando).
+- **Fora do site:** só `public/` é servido como arquivo; `private/` só é lido pelas funções. `.vercelignore` impede que `tests/`, `docs/`, `CLAUDE.md` e `.env*` sejam enviados.
 
-## Mapa do código (stack estática, sem build)
-- `index.html`: casca da página e todo o CSS.
-- `config.js`: **configuração única** (seção 8): preço, compras abertas, contato da gestão, públicos e temas (status e link de pagamento).
-- `content/presentes-por-orcamento.js`: todo o conteúdo da campanha (carrosséis, Reels, Stories, WhatsApp, calendário, tutorial, telas do editor).
-- `js/logic.js`: regras puras (botão de compra, preço, temas por público, enquadramento "cover", zip). Testadas em `tests/`.
-- `js/render.js`: desenha cada tela do carrossel em `<canvas>` 1080 × 1350 (prévia = exportação).
-- `js/editor.js`: editor "Experimentar uma publicação" (fotos, textos, PNGs, zip, compartilhar).
-- `js/app.js`: rotas por hash e telas.
-- `assets/exemplo/`: fotos do exemplo "depois" (provisórias; trocar por fotos reais mantendo os nomes).
+## Mapa do código (site estático em `public/` + funções em `api/`, sem build)
+- `public/`: **tudo o que é servido como arquivo** (a Vercel publica só esta pasta).
+  - `index.html`: casca da página e todo o CSS.
+  - `config.js`: **configuração única** (seção 8): preço, compras abertas, contato da gestão, públicos e temas (status e link de pagamento).
+  - `amostra/presentes-por-orcamento.js`: demonstração pública: 3 produtos de exemplo, cenas do Reel, enquete e **só trechos** de legenda, roteiro e calendário.
+  - `assets/exemplo/`: fotos provisórias (trocar pelas reais mantendo os nomes, ou mudar o campo `foto` na amostra).
+  - `js/logic.js`: regras puras (compra, contato, enquadramento, legendas, zip). `js/render.js`: desenho das telas em canvas 1080 × 1350, com marca-d'água "AMOSTRA" quando pedido. `js/demo.js`: demonstração Carrossel/Reel/Stories. `js/editor.js`: amostra (1 tela, com marca) e editor completo (área paga, sem marca). `js/app.js`: rotas.
+- `private/`: **conteúdo pago**, nunca servido como arquivo.
+  - `campanhas/presentes-por-orcamento.js`: 5 carrosséis, 5 Reels, 5 Stories, 3 mensagens, calendário, tutorial. `campanhas/index.js`: lista de campanhas.
+  - `acesso.js`: link de acesso assinado (HMAC-SHA256, com validade).
+- `api/`: funções da Vercel.
+  - `campanha.js`: `GET` com `Authorization: Bearer <token>` → conteúdo pago da campanha do token (401 sem acesso válido).
+  - `liberar.js`: `POST` com `x-admin-token` → gera link de acesso (revisão, cortesia ou venda manual).
+  - `pagamento.js`: webhook da plataforma de pagamento. **Ainda não ligado** (responde 503); ver comentário no arquivo.
+- Rotas: `#inicio` (com âncoras `#demo`, `#campanhas`, `#dentro`, `#gestao`), `#testar` (amostra com a minha foto), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
+- Testes: `npm test` (lógica, conteúdo, token, API e vazamento de conteúdo pago). Servidor local que imita a Vercel: `ACESSO_SECRET=... ADMIN_TOKEN=... node tests/servidor.mjs`.
+
+## Área da cliente: configurar e liberar acesso
+1. Criar os segredos na Vercel (uma vez, para produção e prévia):
+   ```bash
+   openssl rand -hex 32 | vercel env add ACESSO_SECRET production
+   openssl rand -hex 32 | vercel env add ACESSO_SECRET preview
+   openssl rand -hex 24 > .env.admin.local   # guarde: é o seu ADMIN_TOKEN (arquivo ignorado pelo git)
+   vercel env add ADMIN_TOKEN production < .env.admin.local
+   vercel env add ADMIN_TOKEN preview < .env.admin.local
+   ```
+   Depois, publique de novo (push na `main`) para as funções lerem os segredos.
+2. Gerar um link de acesso (ex.: para revisar a área ou para uma venda manual):
+   ```bash
+   curl -s -X POST https://natal-no-ar.vercel.app/api/liberar \
+     -H "x-admin-token: $(cat .env.admin.local)" -H "content-type: application/json" \
+     -d '{"campanha":"presentes-por-orcamento","dias":365,"referencia":"pedido-001"}'
+   ```
+   A resposta traz `link`: envie para a cliente. Trocar o `ACESSO_SECRET` invalida todos os links já enviados.
+3. Pagamento automático: escolher a plataforma e implementar `api/pagamento.js` (conferir o aviso com a plataforma, emitir o link e entregá-lo à cliente).
 
 ---
 
