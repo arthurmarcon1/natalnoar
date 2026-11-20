@@ -1,164 +1,149 @@
-// Testes da lógica pura do index.html (bloco entre // @logic-start e // @logic-end).
-// Rodar: node --test tests/
+// Testes da configuração, do conteúdo e das regras puras.
+// Rodar: node --test tests/*.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import vm from "node:vm";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { SITE } from "../config.js";
+import campanha from "../content/presentes-por-orcamento.js";
+import * as L from "../js/logic.js";
 
-const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const m = html.match(/\/\/ @logic-start([\s\S]*?)\/\/ @logic-end/);
-assert.ok(m, "bloco @logic não encontrado no index.html");
+const raiz = new URL("../", import.meta.url);
+const clone = o => JSON.parse(JSON.stringify(o));
 
-const ctx = vm.createContext({ Intl, Math, Number, String, Object, Date, Set, encodeURIComponent });
-vm.runInContext(m[1] + "\n;globalThis.L = { CONFIG, calc, sanitizeCart, setPerfil, getPublico, setPacote, addExtra, toggleTema, economiaPacote, valorAvulso, maxExtra, validateCustomer, buildSummary, waLink, fmt };", ctx);
-const L = ctx.L;
-
-const ANTES = new Date(2026, 10, 1);   // promo antecipada vigente (até 2026-11-20)
-const DEPOIS = new Date(2026, 11, 1);  // promo antecipada encerrada
-const vazio = (perfil = "lojistas") => ({ perfil, pacote: null, extras: {}, temas: [] });
-const cliente = { nome: "Ana Souza", loja: "Loja Teste", whatsapp: "55999998888", instagram: "lojateste" };
-
-test("carrinho vazio tem total zero", () => {
-  const r = L.calc(vazio(), DEPOIS);
-  assert.equal(r.total, 0);
-  assert.equal(r.vazio, true);
+test("configuração: preço, compras fechadas e públicos", () => {
+  assert.equal(SITE.precoCampanha, 89.90);
+  assert.equal(L.fmtBRL(SITE.precoCampanha), "R$ 89,90");
+  assert.equal(SITE.comprasAbertas, false);
+  assert.deepEqual(SITE.publicos.map(p => p.nome), ["Tenho uma loja", "Presto um serviço"]);
+  assert.deepEqual(L.temasDoPublico(SITE, "loja").map(t => t.nome),
+    ["Presentes por orçamento", "Looks para celebrar", "Favoritos da loja", "Natal de última hora", "Looks para a virada"]);
+  assert.deepEqual(L.temasDoPublico(SITE, "servico").map(t => t.nome),
+    ["Por trás do resultado", "Seu toque nas festas", "Um tempo para cuidar", "Memórias de dezembro", "Um ano de boas histórias"]);
 });
 
-test("adicionar e remover peças muda o total", () => {
-  let c = L.addExtra(vazio(), "video", 1);
-  assert.equal(L.calc(c, DEPOIS).total, 150);
-  c = L.addExtra(c, "video", 1);
-  assert.equal(L.calc(c, DEPOIS).total, 300);
-  c = L.addExtra(c, "video", -2);
-  assert.equal(L.calc(c, DEPOIS).total, 0);
-  assert.deepEqual({ ...c.extras }, {});
-});
-
-test("economia do pacote é calculada (avulso − preço)", () => {
-  for (const p of L.CONFIG.publicos.flatMap(pb => pb.planos)) assert.equal(L.economiaPacote(p), Math.max(0, L.valorAvulso(p) - p.preco));
-  const ess = L.getPublico("lojistas").planos.find(p => p.id === "essencial");
-  assert.equal(L.valorAvulso(ess), 80 + 3 * 120 + 90);
-});
-
-test("promoção percentual vale só até a data limite", () => {
-  const c = L.setPacote(vazio(), "natal-completo");
-  assert.equal(L.calc(c, ANTES).total, 621);   // 690 − 10%
-  assert.equal(L.calc(c, DEPOIS).total, 690);
-});
-
-test("leve 3 pague 2 em carrossel extra", () => {
-  let c = L.addExtra(vazio(), "carrossel", 3);
-  assert.equal(L.calc(c, DEPOIS).total, 240);
-  c = L.addExtra(c, "carrossel", 3);
-  assert.equal(L.calc(c, DEPOIS).total, 480);
-});
-
-test("max é o total por pedido: trocar de pacote reajusta extras", () => {
-  let c = L.addExtra(vazio(), "carrossel", 12);
-  assert.equal(c.extras.carrossel, 12);
-  c = L.addExtra(c, "carrossel", 5);
-  assert.equal(c.extras.carrossel, 12);
-  c = L.setPacote(c, "natal-reveillon");    // inclui 6 carrosséis
-  assert.equal(c.extras.carrossel, 6);
-  c = L.addExtra(L.setPacote(vazio(), "essencial"), "legendas", 1); // já incluso, max 1
-  assert.equal(c.extras.legendas, undefined);
-});
-
-test("temas inválidos são removidos e toggle funciona", () => {
-  let c = L.sanitizeCart({ perfil: "lojistas", pacote: null, extras: {}, temas: ["guia-de-presentes", "nao-existe"] });
-  assert.deepEqual([...c.temas], ["guia-de-presentes"]);
-  c = L.toggleTema(c, "guia-de-presentes");
-  assert.deepEqual([...c.temas], []);
-});
-
-test("validação bloqueia nome, loja e WhatsApp vazios", () => {
-  const e = L.validateCustomer({ nome: "", loja: "  ", whatsapp: "", instagram: "" });
-  assert.ok(e.nome && e.loja && e.whatsapp);
-  assert.ok(L.validateCustomer({ ...cliente, whatsapp: "123" }).whatsapp);
-  assert.deepEqual({ ...L.validateCustomer(cliente) }, {});
-});
-
-test("resumo do WhatsApp bate com o carrinho", () => {
-  let c = L.setPacote(vazio(), "natal-completo");
-  c = L.addExtra(c, "carrossel", 3);
-  c = L.toggleTema(c, "achados-para-as-festas");
-  const r = L.calc(c, ANTES);
-  const s = L.buildSummary(c, cliente, ANTES);
-  assert.match(s, /\*Perfil\*\nPara lojistas/);
-  assert.match(s, /Natal Completo/);
-  assert.match(s, /3× Carrossel/);
-  assert.match(s, /Achados para as festas/);
-  assert.match(s, /Loja: Loja Teste/);
-  assert.ok(s.includes(`*Total: ${L.fmt(r.total)}*`));
-  assert.equal(r.total, 690 + 360 - 69 - 120);
-  assert.match(s, /\(55\) 99999-8888/);
-  assert.match(s, /Instagram: @lojateste/);
-});
-
-test("link do WhatsApp usa o número configurado e leva o resumo", () => {
-  const original = L.CONFIG.whatsapp;
-  assert.match(original, /^\d{12,13}$/, "número só com dígitos, com DDI e DDD");
-  const resumo = L.buildSummary(L.setPacote(vazio(), "essencial"), cliente, DEPOIS);
-  const link = L.waLink(resumo);
-  assert.ok(link.startsWith(`https://wa.me/${original}?text=`));
-  assert.equal(decodeURIComponent(link.split("?text=")[1]), resumo);
-  L.CONFIG.whatsapp = "";                       // sem número: modo demonstração
-  assert.equal(L.waLink("oi"), null);
-  L.CONFIG.whatsapp = original;
-});
-
-test("catálogo: ids de planos e temas únicos entre perfis, exemplos completos", () => {
-  const planos = L.CONFIG.publicos.flatMap(pb => pb.planos.map(p => p.id));
-  const temas = L.CONFIG.publicos.flatMap(pb => pb.temas.map(t => t.id));
-  assert.equal(new Set(planos).size, planos.length);
-  assert.equal(new Set(temas).size, temas.length);
-  for (const pb of L.CONFIG.publicos) for (const t of pb.temas) {
-    assert.ok(t.exemplo.carrossel.length >= 3 && t.exemplo.stories.length >= 2, t.id);
+test("temas: campos obrigatórios, ids únicos, status e paraQuem", () => {
+  const temas = L.todosTemas(SITE);
+  assert.equal(new Set(temas.map(t => t.id)).size, temas.length);
+  for (const t of temas) {
+    for (const k of ["id", "nome", "publico", "descricao", "status", "linkPagamento"]) assert.ok(k in t, `${t.id} sem ${k}`);
+    assert.ok(["disponivel", "em-preparacao"].includes(t.status));
+    assert.equal(t.linkPagamento, "", "links de pagamento ficam vazios até o Arthur definir");
+    if (t.publico === "servico") assert.ok(t.paraQuem && t.paraQuem.length > 10, `${t.id} sem paraQuem`);
+    assert.ok(!/agendar/i.test(t.nome), "não usar 'como agendar' como tema");
   }
-  assert.deepEqual([...L.getPublico("lojistas").temas.map(t => t.nome)], ["Guia de presentes", "Achados para as festas", "Últimas compras de Natal"]);
-  assert.deepEqual([...L.getPublico("prestadores").temas.map(t => t.nome)], ["Especial de fim de ano", "Por trás do resultado"]);
+  const disponiveis = temas.filter(t => t.status === "disponivel").map(t => t.id);
+  assert.deepEqual(disponiveis, ["presentes-por-orcamento"]);
+  assert.equal(temas.filter(t => t.status === "em-preparacao").length, 9);
 });
 
-test("sem perfil não há plano nem tema no carrinho", () => {
-  const c = L.sanitizeCart({ perfil: null, pacote: "essencial", extras: { video: 1 }, temas: ["guia-de-presentes"] });
-  assert.equal(c.pacote, null);
-  assert.deepEqual([...c.temas], []);
-  assert.equal(c.extras.video, 1);
+test("botão de compra: em breve, checkout e em preparação", () => {
+  const tema = clone(L.temaPorId(SITE, "presentes-por-orcamento"));
+  assert.deepEqual(L.estadoCompra(tema, SITE), { tipo: "em-breve", rotulo: "Compras abrem em breve" });
+  const aberto = { ...SITE, comprasAbertas: true };
+  assert.equal(L.estadoCompra(tema, aberto).tipo, "em-breve", "sem link continua em breve");
+  tema.linkPagamento = "javascript:alert(1)";
+  assert.equal(L.estadoCompra(tema, aberto).tipo, "em-breve", "link inválido não vira botão");
+  tema.linkPagamento = " https://pagamento.exemplo/checkout/123 ";
+  assert.deepEqual(L.estadoCompra(tema, aberto), { tipo: "checkout", rotulo: "Comprar por R$ 89,90", href: "https://pagamento.exemplo/checkout/123" });
+  assert.equal(L.estadoCompra(tema, SITE).tipo, "em-breve", "com compras fechadas o link não aparece");
+  const prep = L.temaPorId(SITE, "looks-para-celebrar");
+  assert.equal(L.estadoCompra({ ...prep, linkPagamento: "https://x.y" }, aberto).tipo, "em-preparacao");
 });
 
-test("plano e tema de outro perfil não entram no carrinho", () => {
-  let c = L.setPacote(vazio("prestadores"), "natal-completo");
-  assert.equal(c.pacote, null);
-  c = L.toggleTema(c, "guia-de-presentes");
-  assert.deepEqual([...c.temas], []);
-  c = L.toggleTema(L.setPacote(c, "agenda-cheia"), "por-tras-do-resultado");
-  assert.equal(c.pacote, "agenda-cheia");
-  assert.deepEqual([...c.temas], ["por-tras-do-resultado"]);
+test("contato da gestão: número, link, vazio", () => {
+  assert.equal(L.linkContato("", "oi"), null);
+  assert.equal(L.linkContato("123", "oi"), null);
+  assert.equal(L.linkContato("55 55 9940-8766", "Olá"), "https://wa.me/555599408766?text=Ol%C3%A1");
+  assert.equal(L.linkContato("https://wa.me/5555999999999", "Oi"), "https://wa.me/5555999999999?text=Oi");
+  assert.equal(L.linkContato("https://calendly.com/arthur", "Oi"), "https://calendly.com/arthur");
+  assert.ok(L.linkContato(SITE.contatoGestao, SITE.mensagemGestao).startsWith("https://wa.me/"));
 });
 
-test("trocar de perfil remove plano e temas e mantém peças avulsas", () => {
-  let c = L.setPacote(vazio("lojistas"), "natal-reveillon");   // 6 carrosséis no plano
-  c = L.addExtra(c, "carrossel", 6);
-  c = L.addExtra(c, "video", 1);
-  c = L.toggleTema(c, "guia-de-presentes");
-  c = L.setPerfil(c, "prestadores");
-  assert.equal(c.perfil, "prestadores");
-  assert.equal(c.pacote, null);
-  assert.deepEqual([...c.temas], []);
-  assert.deepEqual({ ...c.extras }, { carrossel: 6, video: 1 });
-  assert.equal(L.calc(c, DEPOIS).total, 4 * 120 + 150);         // 6 carrosséis: leve 3 pague 2
-  c = L.setPerfil(c, "nao-existe");
-  assert.equal(c.perfil, null);
+test("conteúdo: 5 temas completos no nível pedido", () => {
+  assert.equal(campanha.temas.length, 5);
+  assert.deepEqual(campanha.temas.map(t => t.nome),
+    ["Presentes por faixa de preço", "Um presente para cada estilo", "O favorito da loja", "Duplas que combinam", "Últimas compras"]);
+  for (const t of campanha.temas) {
+    assert.equal(t.carrossel.telas.length, 4, t.id);
+    assert.ok(t.carrossel.legenda.length > 80 && /WhatsApp|direct/i.test(t.carrossel.legenda), `${t.id}: legenda com chamada`);
+    for (const k of ["abertura", "legenda", "chamadaFinal", "semAparecer"]) assert.ok(t.reel[k], `${t.id}: reel.${k}`);
+    assert.ok(t.reel.cenas.length >= 3 && t.reel.cenas.every(c => c.filmar && c.texto), `${t.id}: cenas`);
+    assert.equal(t.stories.telas.length, 3, `${t.id}: 3 telas de Stories`);
+  }
+  const t1 = campanha.temas[0];
+  assert.match(t1.carrossel.telas[0].titulo, /3 presentes até R\$ \[valor\]/);
+  assert.match(t1.carrossel.telas[1].apoio, /mãe que ama sair/);
+  assert.match(t1.stories.telas[0].texto, /Qual você daria de presente\?/);
+  assert.match(t1.stories.telas[2].recurso, /disponibilidade/);
+  assert.equal(campanha.whatsapp.length, 3);
+  assert.equal(campanha.calendario.dez.length, 10);
+  assert.equal(campanha.calendario.expressa.length, 3);
+  assert.ok(campanha.tutorial.length >= 4);
 });
 
-test("resumo de prestador informa perfil, plano e negócio", () => {
-  let c = L.setPacote(vazio("prestadores"), "agenda-cheia");
-  c = L.toggleTema(c, "especial-de-fim-de-ano");
-  const s = L.buildSummary(c, { ...cliente, loja: "Bia Make" }, DEPOIS);
-  assert.match(s, /\*Perfil\*\nPara prestadores de serviço/);
-  assert.match(s, /Agenda Cheia — /);
-  assert.match(s, /Especial de fim de ano/);
-  assert.match(s, /Negócio: Bia Make/);
-  assert.ok(s.includes(`*Total: ${L.fmt(L.calc(c, DEPOIS).total)}*`));
-  assert.equal(L.validateCustomer({ ...cliente, loja: "" }, L.getPublico("prestadores")).loja, "Informe o nome do negócio.");
+test("calendário cita cada peça pelo nome", () => {
+  const nomes = campanha.temas.flatMap(t => [`Carrossel: ${t.carrossel.nome}`, `Reel: ${t.reel.nome}`, `Stories: ${t.stories.nome}`]);
+  const citadas = campanha.calendario.dez.flatMap(d => d.pecas);
+  for (const n of nomes) assert.ok(citadas.includes(n), `calendário sem "${n}"`);
+  for (const p of [...citadas, ...campanha.calendario.expressa.flatMap(d => d.pecas)])
+    assert.ok(nomes.includes(p) || campanha.whatsapp.some(m => p === `WhatsApp: ${m.titulo}`), `peça desconhecida: ${p}`);
+});
+
+test("editor: fotos do exemplo existem e legenda reflete marca, textos e preços", () => {
+  for (const t of campanha.editor.exemplo.telas) assert.ok(existsSync(new URL(t.foto, raiz)), t.foto);
+  const st = clone(campanha.editor.exemplo);
+  st.marca = "Loja da Bia";
+  st.telas[0].preco = "R$ 150";
+  st.telas[1].texto = "Bolsa Lua"; st.telas[1].preco = "R$ 129";
+  const leg = L.legendaEditor(campanha.editor.legenda, st);
+  assert.match(leg, /3 presentes até R\$ 150 aqui na Loja da Bia/);
+  assert.match(leg, /• Bolsa Lua \(R\$ 129\), para a mãe que ama sair/);
+  assert.ok(!/\[tela \d\]/.test(leg));
+  const antes = L.legendaEditor(campanha.editor.legenda, campanha.editor.antes);
+  assert.match(antes, /\[nome da loja\]/);
+});
+
+test("enquadramento cover: cobre a caixa, sem distorcer, respeitando zoom e foco", () => {
+  const box = [1080, 1350];
+  for (const [iw, ih] of [[3024, 4032], [4032, 3024], [1080, 1350], [800, 800]]) {
+    const r = L.coverRect(iw, ih, ...box);
+    assert.ok(Math.abs(r.sw / r.sh - 1080 / 1350) < 1e-9, "mesma proporção da tela");
+    assert.ok(r.sx >= 0 && r.sy >= 0 && r.sx + r.sw <= iw + 1e-9 && r.sy + r.sh <= ih + 1e-9, "dentro da foto");
+    assert.ok(Math.abs(r.sw - iw) < 1e-6 || Math.abs(r.sh - ih) < 1e-6, "usa a dimensão limitante inteira");
+  }
+  const z = L.coverRect(4032, 3024, ...box, 2);
+  assert.ok(z.sh < 3024 / 1.99);
+  const esq = L.coverRect(4032, 3024, ...box, 1, 0, 0.5);
+  assert.equal(esq.sx, 0);
+});
+
+test("quebra de texto respeita a largura e diminui a fonte", () => {
+  const m = (s, size = 10) => s.length * size;
+  assert.deepEqual(L.quebrarLinhas("um dois tres quatro", 90, s => m(s)), ["um dois", "tres", "quatro"]);
+  const r = L.ajustarTexto("Presentes até cem reais", 160, 2, [10, 8, 6], m);
+  assert.ok(r.linhas.length <= 2 && r.linhas.every(l => m(l, r.size) <= 160));
+});
+
+test("nomes dos arquivos em ordem", () => {
+  const ts = campanha.editor.exemplo.telas;
+  assert.deepEqual(ts.map((t, i) => L.nomeArquivo(i, t)), ["01-capa.png", "02-clutch-noite.png", "03-lenco-de-seda.png", "04-brincos-dourados.png"]);
+  assert.equal(L.nomeArquivo(1, campanha.editor.antes.telas[1]), "02-produto.png");
+});
+
+test("zip store: estrutura válida e CRC correto", () => {
+  assert.equal(L.crc32(new TextEncoder().encode("123456789")), 0xCBF43926);
+  const a = new Uint8Array([1, 2, 3]), b = new TextEncoder().encode("olá");
+  const z = L.zipStore([{ name: "01-a.png", data: a }, { name: "02-b.png", data: b }]);
+  const dv = new DataView(z.buffer);
+  assert.equal(dv.getUint32(0, true), 0x04034b50);
+  const fim = z.length - 22;
+  assert.equal(dv.getUint32(fim, true), 0x06054b50);
+  assert.equal(dv.getUint16(fim + 10, true), 2);
+});
+
+test("sem restos do modelo antigo no site", () => {
+  const arquivos = ["index.html", "config.js", "content/presentes-por-orcamento.js", ...readdirSync(new URL("js/", raiz)).map(f => `js/${f}`)];
+  const todo = arquivos.map(f => readFileSync(new URL(f, raiz), "utf8")).join("\n");
+  for (const proibido of [/690/, /Presente Certo/, /Última Chamada/, /Virada de Look/, /Natal Completo/, /pacotes?\b/i, /Enviar solicitação/, /carrinho/i, /Essencial/])
+    assert.ok(!proibido.test(todo), `sobrou: ${proibido}`);
 });
