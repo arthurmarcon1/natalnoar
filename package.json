@@ -1,0 +1,11 @@
+{
+  "name": "natal-no-ar",
+  "private": true,
+  "type": "module",
+  "description": "Site estático em public/ + funções em api/ (área da cliente). Sem build.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "dev": "node tests/servidor.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
