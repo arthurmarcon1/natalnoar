@@ -8,7 +8,7 @@
    Em cada tema, o carrossel, o Reel e os Stories usam os MESMOS produtos,
    para a lojista fotografar uma vez e usar nas três peças.
    ===================================================================== */
-export default {
+const campanha = {
   id: "presentes-por-orcamento",
   nome: "Presentes por orçamento",
   resumo: "Ajude a cliente a escolher presentes pelo preço, pelo estilo de quem vai ganhar e pelo prazo, e leve a conversa para o WhatsApp ou o direct.",
@@ -278,3 +278,231 @@ export default {
     legenda: "Orçamento definido, presente resolvido 🎁\n\nSeparamos 3 presentes até [valor] aqui na [nome da loja]:\n• [tela 2]\n• [tela 3]\n• [tela 4]\n\nQual combina com quem você vai presentear? Chama no WhatsApp ou no direct que a gente separa e embrulha pra você.\n\n#presentedenatal"
   }
 };
+
+/* =====================================================================
+   PLANO NATAL COMPLETO: 3 temas extras (cada um: 1 carrossel + 1 roteiro)
+   ===================================================================== */
+campanha.extras = [
+  {
+    id: "amigo-secreto",
+    nome: "Achados para o amigo secreto",
+    ideia: "Presentes certeiros para quem você mal conhece. Resolve o sorteio da firma e da família.",
+    fotografar: "3 produtos de valor parecido, cada um sozinho, com um laço ou etiqueta de presente.",
+    carrossel: {
+      nome: "Amigo secreto sem erro",
+      telas: [
+        { titulo: "Amigo secreto sem erro", apoio: "Achados até R$ [valor] →", foto: "Os 3 produtos juntos, com laço." },
+        { titulo: "[produto 1]", preco: "R$ [preço]", apoio: "Para quem você mal conhece", foto: "Produto 1 sozinho." },
+        { titulo: "[produto 2]", preco: "R$ [preço]", apoio: "Para a colega de trabalho", foto: "Produto 2 sozinho." },
+        { titulo: "[produto 3]", preco: "R$ [preço]", apoio: "Para quem já tem tudo", foto: "Produto 3 sozinho." }
+      ],
+      legenda: "Tirou alguém que você mal conhece no amigo secreto? 🎁\n\nNa [nome da loja] tem achado até R$ [valor] que agrada qualquer pessoa:\n• [produto 1], para quem você mal conhece\n• [produto 2], para a colega de trabalho\n• [produto 3], para quem já tem tudo\n\nChama no WhatsApp ou no direct que a gente embrulha.\n\n#amigosecreto #presentedenatal"
+    },
+    reel: {
+      nome: "Tirei quem eu nem conheço",
+      duracao: "10 a 15 segundos",
+      abertura: "Você abrindo o papelzinho do sorteio, com cara de dúvida. Texto na tela: \"Tirei quem eu nem conheço…\".",
+      cenas: [
+        { filmar: "Mãos pegando o [produto 1] na prateleira.", texto: "Até R$ [valor]: [produto 1]" },
+        { filmar: "O [produto 2] sendo colocado na sacola.", texto: "Agrada qualquer pessoa" },
+        { filmar: "O [produto 3] sendo embrulhado com laço.", texto: "Já sai embrulhado" }
+      ],
+      legenda: "Amigo secreto resolvido em 10 segundos 🎁 Qual desses você daria?",
+      chamadaFinal: "Texto na tela: \"Chama no WhatsApp e a gente separa\".",
+      semAparecer: "Troque a abertura por uma tela com o texto sobre a foto dos 3 produtos e grave só as mãos."
+    }
+  },
+  {
+    id: "tres-jeitos",
+    nome: "Uma peça, três jeitos de usar",
+    ideia: "A mesma peça em três ocasiões. Mostra que ela vale o investimento e vira presente fácil.",
+    fotografar: "Uma peça combinada de 3 jeitos (no corpo, num manequim ou montada sobre a cama).",
+    carrossel: {
+      nome: "Uma peça, três jeitos",
+      telas: [
+        { titulo: "Uma peça, três jeitos", apoio: "Do trabalho à ceia →", foto: "A peça sozinha, bem iluminada." },
+        { titulo: "No trabalho", preco: "R$ [preço]", apoio: "[peça] + [combinação 1]", foto: "Combinação 1." },
+        { titulo: "No fim de semana", preco: "R$ [preço]", apoio: "[peça] + [combinação 2]", foto: "Combinação 2." },
+        { titulo: "Na ceia de Natal", preco: "R$ [preço]", apoio: "[peça] + [combinação 3]", foto: "Combinação 3." }
+      ],
+      legenda: "Uma peça só, três ocasiões ✨\n\nO [peça] da [nome da loja] vai do trabalho à ceia de Natal. Arrasta pra ver as combinações e me conta qual é a sua.\n\nSai por R$ [preço]. Chama no WhatsApp pra ver tamanhos e cores.\n\n#comousar #lookdenatal"
+    },
+    reel: {
+      nome: "Três looks com uma peça",
+      duracao: "15 segundos",
+      abertura: "A peça no cabide, de frente. Texto na tela: \"Uma peça, três jeitos\".",
+      cenas: [
+        { filmar: "Corte seco para a combinação de trabalho.", texto: "No trabalho" },
+        { filmar: "Corte seco para a combinação de fim de semana.", texto: "No fim de semana" },
+        { filmar: "Corte seco para a combinação de festa.", texto: "Na ceia de Natal" }
+      ],
+      legenda: "Qual dos três jeitos é a sua cara? Comenta 1, 2 ou 3 👇",
+      chamadaFinal: "Texto na tela: \"Comenta 1, 2 ou 3\".",
+      semAparecer: "Use um manequim ou monte as combinações sobre a cama, filmando de cima."
+    }
+  },
+  {
+    id: "escolhas-da-equipe",
+    nome: "Escolhas da equipe",
+    ideia: "Quem atende a cliente todo dia indica o presente. Dá rosto e confiança à loja.",
+    fotografar: "Cada pessoa da equipe (ou só as mãos dela) segurando o produto que escolheu.",
+    carrossel: {
+      nome: "Escolhas da equipe",
+      telas: [
+        { titulo: "Escolhas da equipe", apoio: "O que a gente daria de presente →", foto: "A equipe reunida, ou o balcão da loja." },
+        { titulo: "[nome 1] escolheu", preco: "R$ [preço]", apoio: "[produto] · porque [motivo]", foto: "Pessoa 1 com o produto." },
+        { titulo: "[nome 2] escolheu", preco: "R$ [preço]", apoio: "[produto] · porque [motivo]", foto: "Pessoa 2 com o produto." },
+        { titulo: "[nome 3] escolheu", preco: "R$ [preço]", apoio: "[produto] · porque [motivo]", foto: "Pessoa 3 com o produto." }
+      ],
+      legenda: "Pedimos para a equipe da [nome da loja] escolher um presente 💝\n\nCada uma explicou o porquê. Arrasta e descobre qual você levaria.\n\nChama no WhatsApp ou no direct que a gente separa.\n\n#escolhasdaequipe #presentedenatal"
+    },
+    reel: {
+      nome: "O presente que eu daria",
+      duracao: "15 a 20 segundos",
+      abertura: "Alguém da equipe olhando para a câmera: \"Se eu fosse dar um presente, seria esse\".",
+      cenas: [
+        { filmar: "A pessoa 1 mostrando o produto e dizendo o motivo em uma frase.", texto: "[nome 1]: [produto]" },
+        { filmar: "A pessoa 2 fazendo o mesmo.", texto: "[nome 2]: [produto]" },
+        { filmar: "A pessoa 3 fazendo o mesmo.", texto: "[nome 3]: [produto]" }
+      ],
+      legenda: "A equipe escolheu, agora é sua vez 🎁 Qual você levaria?",
+      chamadaFinal: "Texto na tela: \"Qual você levaria? Chama no WhatsApp\".",
+      semAparecer: "Cada pessoa aparece só com as mãos segurando o produto; o nome e o motivo vão no texto na tela."
+    }
+  }
+];
+
+/* =====================================================================
+   PLANO NATAL + VIRADA: minicampanha de Réveillon
+   (3 carrosséis, 3 roteiros, 3 sequências de Stories, calendário de 5 dias)
+   ===================================================================== */
+campanha.reveillon = {
+  nome: "Virada na [nome da loja]",
+  temas: [
+    {
+      id: "cores-da-virada",
+      nome: "Cores da virada",
+      ideia: "Cada cor com um desejo para o ano novo. A cliente escolhe a peça pela intenção.",
+      fotografar: "3 peças em cores diferentes (branco, dourado, rosa ou vermelho), cada uma sozinha.",
+      carrossel: {
+        nome: "Qual cor vai te acompanhar?",
+        telas: [
+          { titulo: "Qual cor vai te acompanhar?", apoio: "Cores da virada →", foto: "As 3 peças juntas." },
+          { titulo: "Branco: paz", preco: "R$ [preço]", apoio: "[peça branca]", foto: "Peça branca." },
+          { titulo: "Dourado: prosperidade", preco: "R$ [preço]", apoio: "[peça dourada]", foto: "Peça dourada." },
+          { titulo: "Rosa: amor", preco: "R$ [preço]", apoio: "[peça rosa ou vermelha]", foto: "Peça rosa ou vermelha." }
+        ],
+        legenda: "Qual cor vai te acompanhar no ano novo? ✨\n\n🤍 Branco: paz\n💛 Dourado: prosperidade\n💗 Rosa: amor\n\nNa [nome da loja] tem peça de cada cor. Chama no WhatsApp e escolhe a sua.\n\n#reveillon #corsdavirada"
+      },
+      reel: {
+        nome: "A cor da sua virada",
+        duracao: "15 segundos",
+        abertura: "As 3 peças lado a lado. Texto na tela: \"Qual cor vai te acompanhar?\".",
+        cenas: [
+          { filmar: "Close na peça branca, mexendo no tecido.", texto: "Branco: paz" },
+          { filmar: "Close na peça dourada, refletindo a luz.", texto: "Dourado: prosperidade" },
+          { filmar: "Close na peça rosa ou vermelha.", texto: "Rosa: amor" }
+        ],
+        legenda: "Paz, prosperidade ou amor? Comenta a sua cor 👇",
+        chamadaFinal: "Texto na tela: \"Comenta a sua cor\".",
+        semAparecer: "Todas as cenas são só de peças; filme com o celular parado e cortes secos."
+      },
+      stories: {
+        nome: "Qual é a sua cor da virada?",
+        telas: [
+          { mostrar: "As 3 peças juntas.", texto: "Qual é a sua cor da virada?", recurso: "Teste: Branco / Dourado / Rosa" },
+          { mostrar: "A peça da cor mais votada.", texto: "Essa sai por R$ [preço].", recurso: "Nenhum" },
+          { mostrar: "As 3 peças embrulhadas.", texto: "Quer garantir a sua?", recurso: "Link ou botão: \"Consultar disponibilidade\"" }
+        ]
+      }
+    },
+    {
+      id: "looks-da-virada",
+      nome: "Looks para a virada",
+      ideia: "Um look para cada jeito de passar o Réveillon: praia, casa ou festa.",
+      fotografar: "3 looks completos, no corpo, no manequim ou montados sobre a cama.",
+      carrossel: {
+        nome: "3 looks para a virada",
+        telas: [
+          { titulo: "3 looks para a virada", apoio: "Onde você vai passar? →", foto: "Os 3 looks juntos." },
+          { titulo: "Na praia", preco: "R$ [preço]", apoio: "[peças do look 1]", foto: "Look 1." },
+          { titulo: "Em casa com a família", preco: "R$ [preço]", apoio: "[peças do look 2]", foto: "Look 2." },
+          { titulo: "Na festa", preco: "R$ [preço]", apoio: "[peças do look 3]", foto: "Look 3." }
+        ],
+        legenda: "Praia, casa ou festa: onde vai ser a sua virada? 🥂\n\nMontamos um look para cada uma aqui na [nome da loja]. Arrasta e me conta qual é o seu.\n\nChama no WhatsApp pra ver tamanhos.\n\n#lookdavirada #reveillon"
+      },
+      reel: {
+        nome: "Onde vai ser a sua virada?",
+        duracao: "15 segundos",
+        abertura: "Texto na tela: \"Onde vai ser a sua virada?\" sobre a foto dos 3 looks.",
+        cenas: [
+          { filmar: "Look da praia, mostrando o caimento.", texto: "Na praia" },
+          { filmar: "Look de casa, mostrando o conforto.", texto: "Em casa com a família" },
+          { filmar: "Look de festa, mostrando o brilho.", texto: "Na festa" }
+        ],
+        legenda: "Praia, casa ou festa? Tem look pra todas aqui 🥂",
+        chamadaFinal: "Texto na tela: \"Escolha o seu pelo WhatsApp\".",
+        semAparecer: "Use manequim ou monte os looks sobre a cama, filmando de cima."
+      },
+      stories: {
+        nome: "Onde você vai passar a virada?",
+        telas: [
+          { mostrar: "Os 3 looks juntos.", texto: "Onde você vai passar a virada?", recurso: "Enquete: Praia / Casa / Festa" },
+          { mostrar: "O look mais votado.", texto: "Esse look sai por R$ [preço].", recurso: "Nenhum" },
+          { mostrar: "O look dobrado ou na sacola.", texto: "Quer ver no seu tamanho?", recurso: "Link ou botão: \"Consultar disponibilidade\"" }
+        ]
+      }
+    },
+    {
+      id: "ultimos-dias-do-ano",
+      nome: "Últimos dias do ano",
+      ideia: "Prazos claros de entrega e retirada para quem deixou o look da virada para o fim.",
+      fotografar: "Peças prontas para levar e o balcão ou a fachada da loja.",
+      carrossel: {
+        nome: "Ainda dá tempo para a virada",
+        telas: [
+          { titulo: "Ainda dá tempo para a virada", apoio: "Os prazos da [nome da loja] →", foto: "A fachada ou o balcão." },
+          { titulo: "Entrega até [data]", preco: "", apoio: "Pedido pelo WhatsApp até [horário]", foto: "Uma encomenda pronta." },
+          { titulo: "Retirada até [data]", preco: "", apoio: "Separado e pronto para levar", foto: "Peças separadas no balcão." },
+          { titulo: "[peça]", preco: "R$ [preço]", apoio: "Pronta para usar na virada", foto: "Uma peça em destaque." }
+        ],
+        legenda: "Ainda dá tempo de garantir o look da virada 🥂\n\n📦 Entrega: pedidos até [data], às [horário]\n🛍️ Retirada: até [data]\n\nChama no WhatsApp que a gente separa agora.\n\n#reveillon #ultimahora"
+      },
+      reel: {
+        nome: "Corre que ainda dá tempo",
+        duracao: "10 segundos",
+        abertura: "O celular mostrando a data. Texto na tela: \"Ainda dá tempo!\".",
+        cenas: [
+          { filmar: "Peças separadas no balcão.", texto: "Separadas para você" },
+          { filmar: "Mãos fechando uma sacola.", texto: "Retirada até [data]" },
+          { filmar: "Uma encomenda saindo para entrega.", texto: "Entrega até [data]" }
+        ],
+        legenda: "Ainda dá tempo para o look da virada ⏰ Chama no WhatsApp.",
+        chamadaFinal: "Texto na tela: \"Chama agora no WhatsApp\".",
+        semAparecer: "Grave só as peças, as sacolas e as mãos."
+      },
+      stories: {
+        nome: "Faltam [X] dias para a virada",
+        telas: [
+          { mostrar: "Peças separadas.", texto: "Faltam [X] dias para a virada 🥂", recurso: "Figurinha de contagem regressiva: \"Ano novo\"" },
+          { mostrar: "O balcão ou a fachada.", texto: "Entrega até [data] · retirada até [data].", recurso: "Nenhum" },
+          { mostrar: "Uma peça em destaque.", texto: "Ainda tem? Pergunta agora!", recurso: "Link ou botão: \"Consultar disponibilidade\"" }
+        ]
+      }
+    }
+  ]
+};
+
+/* ---------- calendários dos planos maiores (citam cada peça pelo nome) ---------- */
+const C = t => `Carrossel: ${t.carrossel.nome}`, R = t => `Reel: ${t.reel.nome}`, S = t => `Stories: ${t.stories.nome}`;
+const [t1, t2, t3, t4, t5] = campanha.temas, [x1, x2, x3] = campanha.extras, [v1, v2, v3] = campanha.reveillon.temas;
+const W = i => `WhatsApp: ${campanha.whatsapp[i].titulo}`;
+campanha.calendario.quinze = [
+  [C(t1), S(t1)], [R(t1)], [C(x1)], [C(t2), S(t2)], [R(t2), W(1)], [R(x1)], [C(t3), S(t3)], [R(t3)],
+  [C(x2)], [R(x2)], [C(t4), S(t4)], [R(t4)], [C(x3), R(x3)], [C(t5), S(t5), W(2)], [R(t5)]
+].map((pecas, i) => ({ dia: i + 1, pecas }));
+campanha.reveillon.calendario = [
+  [C(v1), S(v1)], [R(v1)], [C(v2), S(v2)], [R(v2), C(v3)], [R(v3), S(v3)]
+].map((pecas, i) => ({ dia: i + 1, pecas }));
+
+export default campanha;
