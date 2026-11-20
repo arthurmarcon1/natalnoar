@@ -225,7 +225,7 @@ Ao final, entregue:
 - [x] Etapa 5: editor "Experimentar uma publicação" e exportação (`#experimentar`: fotos do aparelho com EXIF, zoom/posição, PNG 1080 × 1350, zip, compartilhar no iPhone)
 - [x] Etapa 6: Gestão mensal, compra "em breve" e roteiro de anúncio (`docs/roteiro-anuncio.md`)
 - [x] Etapa 7: testes (12 de lógica + verificação no navegador da seção 11), deploy de prévia da branch `campanhas-prontas`
-- [ ] Publicar em produção: só quando o Arthur aprovar a prévia (Prompt 8)
+- [x] Publicado em produção (Arthur pediu em 20/11/2026): https://natal-no-ar.vercel.app
 
 ### Pendências do Arthur para abrir as vendas
 - Plataforma de pagamento e entrega: preencher `linkPagamento` do tema e mudar `comprasAbertas` para `true` em `config.js`.
