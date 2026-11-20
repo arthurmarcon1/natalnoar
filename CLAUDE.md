@@ -231,7 +231,7 @@ Ao final, entregue:
 
 ### Pendências do Arthur para abrir as vendas
 - Criar os segredos `ACESSO_SECRET` e `ADMIN_TOKEN` na Vercel (ver "Área da cliente"). Sem eles a área fica fechada.
-- Pagamento: decidido pelo WhatsApp (compras abertas). Para cada venda confirmada, gerar e enviar o link de acesso ("Área da cliente", passo 2).
+- Pagamento: pelo WhatsApp. No lançamento, mudar `modoCompra` para `"checkout"` em `config.js`. Para cada venda confirmada, gerar e enviar o link de acesso ("Área da cliente", passo 2).
 - Trocar as fotos provisórias de `public/assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
 - Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
 - Revisar os textos da campanha em `private/campanhas/presentes-por-orcamento.js`.
@@ -260,7 +260,14 @@ Ao final, entregue:
   - `campanha.js`: `GET` com `Authorization: Bearer <token>` → conteúdo pago da campanha do token (401 sem acesso válido).
   - `liberar.js`: `POST` com `x-admin-token` → gera link de acesso (revisão, cortesia ou venda manual).
   - `pagamento.js`: webhook da plataforma de pagamento. **Ainda não ligado** (responde 503); ver comentário no arquivo.
-- Rotas: `#inicio` (com âncoras `#demo`, `#campanhas`, `#dentro`, `#gestao`), `#testar` (amostra com a minha foto), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
+- Rotas: `#inicio` (âncoras `#campanhas`, `#gestao`), `#campanha/presentes-por-orcamento` (carrossel em destaque, Reel e Stories), `#testar` (teste grátis com a minha foto), `#pedido/<tema>` (revisão do pedido), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
+
+## Regras do redesenho (21/11/2026)
+- Página inicial: chamada em duas linhas ("Fim de ano corrido?" / "Seu conteúdo *vem pronto.*", só "vem pronto." em itálico), fundo claro, texto preto, botões principais em vermelho-cereja (`--cereja`). Ao lado (no celular, abaixo) da chamada, uma animação que acontece uma vez: a foto entra na capa do post, o preço aparece e três cartões abrem em leque. "Escolher minha campanha" funciona desde o início. Fotos e preços da animação vêm de `public/amostra/presentes-por-orcamento.js`.
+- Página da campanha: o carrossel preenchido ocupa a maior parte da primeira tela, desliza com o dedo e mostra parte do próximo cartão. Ação principal: **Comprar campanha · R$ 89,90** (botão cheio). Secundária: **Testar com a minha foto**.
+- Compra (`modoCompra` em `config.js`): `"revisao"` nos testes (abre a revisão do pedido, sem cobrar nem simular aprovação; de lá segue para o checkout) e `"checkout"` no lançamento (vai direto ao checkout: `linkPagamento` do tema ou WhatsApp de vendas). Não existe mais "Compras abrem em breve".
+- Marca-d'água: demonstrações com fotos de exemplo são **limpas**. "AMOSTRA" só aparece quando a visitante usa uma foto própria no teste grátis (prévia e PNG); voltar à foto de exemplo tira a marca. No kit comprado tudo sai limpo.
+- Textos longos ficam recolhidos em "Ver tudo que vem no kit". Transições curtas; com movimento reduzido, nada anima.
 - Testes: `npm test` (lógica, conteúdo, token, API e vazamento de conteúdo pago). Servidor local que imita a Vercel: `ACESSO_SECRET=... ADMIN_TOKEN=... node tests/servidor.mjs`.
 
 ## Área da cliente: configurar e liberar acesso
