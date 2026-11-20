@@ -1,5 +1,6 @@
 /* Editores de carrossel. As fotos são lidas e desenhadas só no navegador: nada é enviado a servidor.
-   - montarAmostra: 1 tela, com marca-d'água AMOSTRA (inclusive no PNG).
+   - montarAmostra: teste grátis de 1 tela. Foto de exemplo = limpa; foto própria = marca-d'água
+     AMOSTRA na prévia e no PNG; voltar à foto de exemplo tira a marca.
    - montarEditorCompleto: área da cliente, 4 telas por carrossel, PNGs numerados sem marca-d'água. */
 import { desenharTela, carregarFontes, carregarFoto, W, H } from "./render.js";
 import { nomeArquivo, zipStore, slug } from "./logic.js";
@@ -33,16 +34,16 @@ const blocoFoto = () => `
     <label class="campo mini"><span>Posição ↑ ↓</span><input type="range" data-aj="fy" min="0" max="1" step="0.01"></label>
   </div>`;
 const novaTela = t => ({ tipo: t.tipo, texto: t.texto, preco: t.preco || "", apoio: t.apoio || "", fotoSrc: t.foto || null, foto: null, ajuste: { zoom: 1, fx: 0.5, fy: 0.5 } });
-function ligarFoto(raiz, obterTela, aoMudar, toast) {
+function ligarFoto(raiz, obterTela, aoMudar, toast, { aoCarregar, aoTirar } = {}) {
   raiz.querySelectorAll("[data-arquivo]").forEach(inp => inp.addEventListener("change", async e => {
     const f = e.target.files[0]; e.target.value = "";
     if (!f) return;
     if (!ehImagem(f)) { toast("Escolha um arquivo de imagem."); return; }
     const t = obterTela();
-    try { t.foto = await carregarFoto(f); t.ajuste = { zoom: 1, fx: 0.5, fy: 0.5 }; aoMudar(true); toast("Foto trocada."); }
+    try { t.foto = await carregarFoto(f); t.ajuste = { zoom: 1, fx: 0.5, fy: 0.5 }; if (aoCarregar) aoCarregar(t); aoMudar(true); toast("Foto trocada."); }
     catch { toast("Não consegui abrir essa foto. Tente outra (JPG ou PNG)."); }
   }));
-  raiz.querySelector("[data-tirar]").addEventListener("click", () => { obterTela().foto = null; aoMudar(true); });
+  raiz.querySelector("[data-tirar]").addEventListener("click", async () => { if (aoTirar) await aoTirar(obterTela()); else obterTela().foto = null; aoMudar(true); });
   raiz.querySelectorAll("[data-aj]").forEach(inp => inp.addEventListener("input", () => { obterTela().ajuste[inp.dataset.aj] = +inp.value; aoMudar(false); }));
 }
 function sincronizarFoto(raiz, t) {
@@ -52,38 +53,48 @@ function sincronizarFoto(raiz, t) {
 const desenhar = (canvas, t, marca, indice, total, amostra) =>
   desenharTela(canvas, t, { marca, foto: t.foto && t.foto.img, fw: t.foto && t.foto.w, fh: t.foto && t.foto.h, ajuste: t.ajuste, indice, total, amostra });
 
-/* ---------------- amostra: 1 tela com marca-d'água ---------------- */
+/* ---------------- teste grátis: 1 tela ---------------- */
 export function montarAmostra(raiz, demo, { toast }) {
   const p = demo.produtos[0];
   const t = novaTela({ tipo: "produto", texto: p.nome, preco: p.preco, apoio: p.paraQuem, foto: p.foto });
+  t.propria = false;
   raiz.innerHTML = `
     <div class="am-grade">
-      <figure class="am-previa"><canvas width="${W}" height="${H}" aria-label="Prévia da tela de amostra"></canvas>
-        <figcaption class="hint">Amostra com marca-d'água. Na campanha comprada, as imagens saem sem marca.</figcaption></figure>
+      <figure class="am-previa"><canvas width="${W}" height="${H}" aria-label="Prévia da tela de teste"></canvas>
+        <figcaption class="hint" data-estado></figcaption></figure>
       <div class="ed-painel">
-        <p class="am-passo"><b>1.</b> Troque a foto</p>
         ${blocoFoto()}
-        <p class="am-passo"><b>2.</b> Mude o produto e o preço</p>
         <label class="campo"><span>Nome do produto</span><input data-campo="texto" maxlength="40" autocomplete="off"></label>
         <label class="campo"><span>Preço</span><input data-campo="preco" maxlength="20" autocomplete="off"></label>
-        <button type="button" class="btn ghost sm" data-baixar-amostra>Baixar amostra (PNG com marca-d'água)</button>
+        <button type="button" class="btn ghost sm" data-baixar-amostra>Baixar esta tela (PNG)</button>
       </div>
     </div>`;
-  const canvas = raiz.querySelector("canvas");
+  const canvas = raiz.querySelector("canvas"), estado = raiz.querySelector("[data-estado]");
+  raiz.querySelector("[data-tirar]").textContent = "Voltar à foto de exemplo";
   const campos = [...raiz.querySelectorAll("[data-campo]")];
   campos.forEach(c => c.value = t[c.dataset.campo]);
+  const pintar = () => {
+    desenhar(canvas, t, demo.marca, 1, 4, t.propria);
+    raiz.dataset.marca = t.propria ? "amostra" : "limpa";
+    estado.textContent = t.propria ? "Com a sua foto, o teste grátis leva a marca AMOSTRA. Na campanha comprada, as imagens saem limpas." : "Foto de exemplo. Troque pela sua para ver como fica.";
+    raiz.querySelector("[data-tirar]").hidden = !t.propria;
+  };
   let raf = 0;
-  const redesenhar = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; desenhar(canvas, t, demo.marca, 1, 4, true); }); };
-  ligarFoto(raiz, () => t, mudouFoto => { if (mudouFoto) sincronizarFoto(raiz, t); redesenhar(); }, toast);
+  const redesenhar = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; pintar(); }); };
+  ligarFoto(raiz, () => t, mudouFoto => { if (mudouFoto) { sincronizarFoto(raiz, t); raiz.querySelector("[data-tirar]").hidden = !t.propria; } redesenhar(); }, toast, {
+    aoCarregar: tela => { tela.propria = true; },
+    aoTirar: async tela => { tela.propria = false; tela.foto = await fotoDeArquivo(p.foto); tela.ajuste = { zoom: 1, fx: 0.5, fy: 0.5 }; toast("Foto de exemplo de volta, sem marca."); }
+  });
   campos.forEach(c => c.addEventListener("input", () => { t[c.dataset.campo] = c.value; redesenhar(); }));
   raiz.querySelector("[data-baixar-amostra]").addEventListener("click", async () => {
-    await carregarFontes(); desenhar(canvas, t, demo.marca, 1, 4, true);
-    baixar(await toBlob(canvas), "amostra-natal-no-ar.png"); toast("Amostra baixada (com marca-d'água).");
+    await carregarFontes(); pintar();
+    baixar(await toBlob(canvas), t.propria ? "teste-natal-no-ar-amostra.png" : "exemplo-natal-no-ar.png");
+    toast(t.propria ? "Tela baixada com a marca AMOSTRA." : "Tela de exemplo baixada.");
   });
   (async () => {
     await carregarFontes();
     t.foto = await fotoDeArquivo(p.foto); sincronizarFoto(raiz, t);
-    desenhar(canvas, t, demo.marca, 1, 4, true);
+    pintar();
   })();
 }
 
