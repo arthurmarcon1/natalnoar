@@ -49,18 +49,18 @@ export function montarCarrossel(raiz, demo, { aoMudar, telas: telasModelo, marca
 }
 
 /* ---------------- Reel e Stories ---------------- */
-export function montarFormatos(raiz, demo, { aoMudar } = {}) {
+export function montarFormatos(raiz, demo, { aoMudar, semControles = false } = {}) {
   const prods = demo.produtos;
   let prod = 0, fmt = "reel", timers = [];
   const limpar = () => { timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; };
   raiz.innerHTML = `
-    <div class="demo-abas" role="tablist" aria-label="Formato">
+    ${semControles ? "" : `<div class="demo-abas" role="tablist" aria-label="Formato">
       <button type="button" role="tab" data-fmt="reel" aria-selected="true">Reel</button>
       <button type="button" role="tab" data-fmt="stories" aria-selected="false">Stories</button>
     </div>
     <div class="demo-produtos" role="radiogroup" aria-label="Produto">
       ${prods.map((p, i) => `<button type="button" role="radio" class="dp" data-prod="${i}" aria-checked="${i === 0}"><img src="${esc(p.foto)}" alt="" width="44" height="55" loading="lazy"><span>${esc(p.nome)}</span></button>`).join("")}
-    </div>
+    </div>`}
     <div class="demo-palco">
       <section class="fmt" data-painel="reel" aria-label="Cenas do Reel">
         <div class="tel9">
@@ -160,6 +160,6 @@ export function montarFormatos(raiz, demo, { aoMudar } = {}) {
     else if (b.dataset.st) { limpar(); if (frame === 0 && !votou && +b.dataset.st > 0) { nota.textContent = "Vote na enquete para continuar."; return; } irFrame(frame + +b.dataset.st); }
     else if ("stReset" in b.dataset) resetStories();
   });
-  pintarReel(); pintarStories(); irCena(0); irFrame(0); mostrar("reel");
-  return { destruir: limpar, escolher: i => { if (i !== prod) escolher(i, false); } };
+  pintarReel(); pintarStories(); irCena(0); irFrame(0); if (!semControles) mostrar("reel");
+  return { destruir: limpar, escolher: i => { if (i !== prod) escolher(i, false); }, mostrar, produto: () => prod };
 }

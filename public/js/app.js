@@ -6,7 +6,7 @@ import {
 } from "./logic.js";
 import { montarAmostra, montarEditorCompleto } from "./editor.js";
 import { montarCarrossel, montarFormatos, telasDaDemo } from "./demo.js";
-import { MODELOS, PILOTOS, modelosDaColecao, aplicarLayout } from "../amostra/modelos.js";
+import { MODELOS, PILOTOS, modelosDaColecao, aplicarLayout, CAPA_CAMPANHA, CAPAS_NIVEIS } from "../amostra/modelos.js";
 import { COLECOES } from "./modelos.js";
 import { miniatura } from "./render.js";
 
@@ -62,13 +62,19 @@ function planoCard(p) {
   </div>`;
 }
 async function preencherCapas(tema) {
-  const capas = capasDoTema(tema);
-  const urls = await Promise.all(capas.map(c => miniatura(c.tela, { marca: c.marca }, 220).catch(() => "")));
+  const capas = capasDoTema(tema), niveis = CAPAS_NIVEIS[tema && tema.id];
+  const mini = (t, marca) => miniatura(t, { marca }, 220).catch(() => "");
+  const [base, extras, virada] = await Promise.all([
+    Promise.all(capas.map(c => mini(c.tela, c.marca))),
+    niveis ? Promise.all(niveis.extras.map(t => mini(t, niveis.marca))) : [],
+    niveis ? Promise.all(niveis.reveillon.map(t => mini(t, niveis.marca))) : []
+  ]);
+  const imgs = (urls, cls = "") => urls.filter(Boolean).map(u => `<img class="${cls}" src="${u}" alt="">`).join("");
   document.querySelectorAll("[data-capas]").forEach(box => {
     const n = +box.dataset.capas;
-    box.innerHTML = urls.map((u, i) => u ? `<img src="${u}" alt="" title="${esc(capas[i].nome)}">` : "").join("")
-      + (n >= 2 ? `<span class="pl-mais-capa">+3<small>temas novos</small></span>` : "")
-      + (n >= 3 ? `<span class="pl-mais-capa virada">+3<small>Réveillon</small></span>` : "");
+    box.innerHTML = n === 1 ? imgs(base)
+      : n === 2 ? `<span class="pl-rot">Tudo do Pronto +</span>${imgs(extras, "nova")}`
+      : `<span class="pl-rot">Tudo do Completo +</span>${imgs(virada, "nova virada")}`;
   });
 }
 function resumoPlano(tema, p) {
@@ -85,7 +91,7 @@ function secaoPlanos(tema) {
   </section>`;
 }
 
-/* ---------- "Ver tudo que vem no kit" (acompanha o plano) ---------- */
+/* ---------- "Ver o que vem no kit" (acompanha o plano) ---------- */
 function verTudo(demo, plano, { trechos = false, tema = null } = {}) {
   const t = demo.trechos, [p1, p2, p3] = demo.produtos, f = [demo.capaFoto, p1.foto, p2.foto, p3.foto].map(esc);
   const item = (num, titulo, sub, desc, visual, cls = "") => `<li class="kit-item ${cls}"><div class="kv" aria-hidden="true">${visual}</div>
@@ -113,7 +119,7 @@ function verTudo(demo, plano, { trechos = false, tema = null } = {}) {
   return `<details class="kit" id="kit">
     <summary>
       <span class="kit-fotos" aria-hidden="true"><img src="${f[1]}" alt=""><img src="${f[2]}" alt=""><img src="${f[3]}" alt=""></span>
-      <span class="kit-chamada"><b>Ver tudo que vem no kit</b><span>Carrosséis, Reels, Stories e calendário</span></span>
+      <span class="kit-chamada"><b>Ver o que vem no kit</b><span>Carrosséis, Reels, Stories e calendário</span></span>
       <span class="kit-seta" aria-hidden="true">↓</span>
     </summary>
     <div class="kit-corpo">
@@ -135,46 +141,94 @@ function verTudo(demo, plano, { trechos = false, tema = null } = {}) {
 const conviteGestao = () => `<p class="convite">Quer alguém cuidando do seu Instagram o ano todo? <a href="#gestao">Gestão mensal</a></p>`;
 
 /* ---------- início ---------- */
-function palco() {
-  const d = DEMO_HERO, [p1, p2, p3] = d.produtos;
-  const card = (p, k) => `<figure class="lq lq${k}"><img src="${esc(p.foto)}" alt=""><figcaption>${esc(p.preco)}</figcaption></figure>`;
-  return `<div class="palco ${animou ? "pronto" : ""}" aria-hidden="true">
-    <div class="leque">${card(p1, 1)}${card(p2, 2)}${card(p3, 3)}</div>
-    <div class="post">
-      <div class="post-top"><span class="post-av">${esc(d.marca.charAt(0))}</span>${esc(d.marca.toLowerCase().replace(/\s+/g, ""))}</div>
-      <div class="post-capa"><img class="post-foto" src="${esc(d.capaFoto)}" alt=""><div class="post-txt"><span class="post-tit">${esc(d.capa.texto)}</span><span class="post-preco">${esc(d.capa.preco)}</span></div></div>
+/* estrela desenhada (gira ao toque) e traço de fita entre seções */
+const estrela = (cls = "", estilo = "") => `<svg class="estrela-d ${cls}" style="${estilo}" viewBox="0 0 40 40" aria-hidden="true" data-estrela><path d="M20.4 2.6c.9 9.6 3.2 14.1 16.8 17.1-13.1 2.4-15.4 6.6-16.6 17.7-1.3-11-4.1-15.4-17.4-17.6 12.9-2.6 16-7.7 17.2-17.2z"/></svg>`;
+const fita = (cls = "") => `<svg class="fita-d desenha ${cls}" viewBox="0 0 400 38" preserveAspectRatio="none" aria-hidden="true"><path class="f2" d="M-5 24 C 40 8, 80 34, 130 20 S 220 4, 270 18 S 360 34, 405 14"/><path class="f1" d="M-5 18 C 50 4, 95 30, 150 16 S 245 2, 300 16 S 370 30, 405 10"/></svg>`;
+
+/* vitrine pop: a foto vira post, entram duas telas atrás (leque) e a pilha passa a deslizar */
+function vitrinePop() {
+  const d = DEMO_HERO, p = d.produtos[0];
+  return `<div class="vp ${animou ? "" : "abre"}" id="vitrine-pop" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Exemplo: sua foto vira post. Deslize para ver outras telas.">
+    <div class="vp-pilha">
+      <figure class="vp-card vp-post" data-pos="0" data-i="0">
+        <div class="vp-top"><span class="vp-av">${esc(d.marca.charAt(0))}</span>${esc(d.marca.toLowerCase().replace(/\s+/g, ""))}<span class="vp-mais">•••</span></div>
+        <div class="vp-foto"><img src="${esc(p.foto)}" alt="Foto de produto: ${esc(p.nome)}"><figcaption class="vp-cap"><b>${esc(p.nome)}</b><span class="vp-preco">${esc(p.preco)}</span></figcaption></div>
+        <div class="vp-rodape">♡ ◯ ➤</div>
+      </figure>
+      <figure class="vp-card" data-pos="1" data-i="1"><img data-vp-mini="cada-estilo" alt="Tela de carrossel: um presente para cada estilo"></figure>
+      <figure class="vp-card" data-pos="2" data-i="2"><img data-vp-mini="favorito-da-loja" alt="Tela de carrossel: o favorito da loja"></figure>
     </div>
+    <span class="selo-pronto">pronto pra postar</span>
+    ${estrela("", "left:2%;top:8%;--t2:30px")}${estrela("rosa", "right:6%;bottom:22%;--t2:22px")}${estrela("", "left:10%;bottom:16%;--t2:16px")}
+    <div class="vp-pontos">${[0, 1, 2].map(i => `<button type="button" data-vp="${i}" aria-label="Mostrar tela ${i + 1}" class="${i === 0 ? "on" : ""}"></button>`).join("")}<span class="vp-dica" aria-hidden="true">deslize ↔</span></div>
   </div>`;
+}
+function montarVitrinePop() {
+  const vp = $("#vitrine-pop"); if (!vp) return null;
+  const cartoes = [...vp.querySelectorAll(".vp-card")];
+  vp.querySelectorAll("[data-vp-mini]").forEach(img => { const m = MODELOS[img.dataset.vpMini]; miniatura(m.telas[0], { marca: m.marca }, 420).then(u => { img.src = u; }); });
+  let ordem = [0, 1, 2];
+  const aplicar = () => { ordem.forEach((c, pos) => cartoes[c].dataset.pos = pos); vp.querySelectorAll("[data-vp]").forEach(b => b.classList.toggle("on", +b.dataset.vp === ordem[0])); };
+  const girar = dir => { ordem = dir > 0 ? [ordem[2], ordem[0], ordem[1]] : [ordem[1], ordem[2], ordem[0]]; aplicar(); };
+  const ir = i => { let n = 0; while (ordem[0] !== i && n++ < 3) girar(1); };
+  // arrastar: a tela da frente acompanha o dedo
+  let x0 = null, dx = 0, frente = null;
+  vp.addEventListener("pointerdown", e => { if (e.target.closest("button,[data-estrela]")) return; frente = cartoes[ordem[0]]; x0 = e.clientX; dx = 0; frente.classList.add("arrasta"); vp.setPointerCapture(e.pointerId); });
+  vp.addEventListener("pointermove", e => { if (x0 == null) return; dx = e.clientX - x0; frente.style.transform = `translate(${dx}px,0) rotate(${-2 + dx / 18}deg)`; });
+  const soltar = () => { if (x0 == null) return; frente.classList.remove("arrasta"); frente.style.transform = ""; if (Math.abs(dx) > 50) girar(dx < 0 ? 1 : -1); x0 = null; };
+  vp.addEventListener("pointerup", soltar); vp.addEventListener("pointercancel", soltar);
+  vp.addEventListener("keydown", e => { if (e.key === "ArrowRight") girar(1); if (e.key === "ArrowLeft") girar(-1); });
+  vp.addEventListener("click", e => { const b = e.target.closest("[data-vp]"); if (b) ir(+b.dataset.vp); });
+  // a abertura acontece uma vez; depois a pilha fica só como carrossel
+  if (vp.classList.contains("abre")) setTimeout(() => vp.classList.remove("abre"), calmo() ? 0 : 2900);
+  return { destruir: () => {} };
+}
+const calmo = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* fitas se desenham quando entram na tela */
+function vidaNosDetalhes() {
+  const fitas = document.querySelectorAll(".fita-d.desenha:not(.viva)");
+  if (calmo() || !("IntersectionObserver" in window)) { fitas.forEach(f => f.classList.add("viva")); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("viva"); io.unobserve(e.target); } }), { threshold: 0.4 });
+  fitas.forEach(f => io.observe(f));
+}
+
+function capaCampanhaHTML(t) {
+  return `<a class="camp-card" href="#campanha/${t.id}">
+    <span class="camp-capa"><img data-capa-camp="${t.id}" alt="Capa da campanha ${esc(t.nome)}"><span class="selo-pronto">pronto pra postar</span></span>
+    <span class="camp-txt"><b>${esc(t.nome)}</b><span>${esc(t.descricao)}</span><span class="camp-rodape"><span class="camp-preco">${aPartir}</span><span class="camp-ir">Ver campanha →</span></span></span>
+  </a>`;
 }
 function viewInicio() {
   const pub = publicoPorId(SITE, estado.publico), temas = temasDoPublico(SITE, estado.publico);
   const prontos = temas.filter(t => t.status === "disponivel"), prep = temas.filter(t => t.status !== "disponivel");
   const demoPub = DEMOS[(prontos[0] || {}).id] || DEMO_HERO;
   return `
-  <section class="hero wrap">
-    <div class="hero-txt">
-      <h1><span class="l">Fim de ano corrido?</span><span class="l">Seu conteúdo <em>vem pronto.</em></span></h1>
-      <p class="lede">Campanhas de Natal para Instagram, ${aPartirMin}. Você coloca suas fotos e publica.</p>
-      <div class="ctas"><a class="btn grande" href="#campanhas">Escolher minha campanha</a></div>
+  <section class="hero">
+    <div class="wrap hero-in">
+      <div class="hero-txt">
+        <h1><span class="l">Fim de ano corrido?</span><span class="l">Seu conteúdo</span><em>vem pronto.</em></h1>
+      </div>
+      ${vitrinePop()}
+      <div class="hero-cta">
+        <div class="ctas"><a class="btn grande" href="#campanhas">Escolher minha campanha</a></div>
+        <p class="lede">Campanhas de Natal para Instagram, ${aPartirMin}. Você troca a foto e publica.</p>
+      </div>
     </div>
-    ${palco()}
+    ${fita()}
   </section>
 
   <section class="bloco wrap" id="campanhas" aria-labelledby="camp-t">
-    <div class="sec-cab"><h2 id="camp-t">Campanhas prontas</h2><span class="preco-tag">${aPartir}</span></div>
-    <p class="pub-pergunta">Qual é o seu negócio?</p>
+    <div class="sec-cab"><h2 id="camp-t">Campanhas prontas ${estrela("", "position:relative;display:inline-block;vertical-align:.1em;--t2:.7em")}</h2><span class="preco-tag">${aPartir}</span></div>
     <div class="publicos" role="tablist" aria-label="Seu negócio">
       ${SITE.publicos.map(p => `<button type="button" role="tab" data-publico="${p.id}" aria-selected="${p.id === estado.publico}">${p.id === "loja" ? "Sou lojista" : "Sou prestadora de serviço"}</button>`).join("")}
     </div>
     <p class="pub-chamada">${esc(pub.chamada)}</p>
-    ${prontos.map(t => { const d = DEMOS[t.id] || DEMO_HERO; return `<a class="destaque-camp" href="#campanha/${t.id}">
-        <img src="${esc(d.capaFoto)}" alt="">
-        <span class="dc-txt"><span class="selo ok">Disponível</span><b>${esc(t.nome)}</b><span>${esc(t.descricao)}</span><span class="dc-planos">3 planos · ${aPartirMin}</span><span class="dc-ir">Ver campanha e planos →</span></span>
-      </a>`; }).join("")}
-    <ul class="lista-prep">${prep.map(t => `<li><div><b>${esc(t.nome)}</b>${t.paraQuem ? `<span>Para: ${esc(t.paraQuem)}</span>` : `<span>${esc(t.descricao)}</span>`}</div><span class="selo prep">Em preparação</span></li>`).join("")}</ul>
+    <div class="camp-grade">${prontos.map(capaCampanhaHTML).join("")}</div>
+    <p class="prep-t">Em preparação</p>
+    <ul class="lista-prep">${prep.map(t => `<li><div><b>${esc(t.nome)}</b>${t.paraQuem ? `<span>Para: ${esc(t.paraQuem)}</span>` : `<span>${esc(t.descricao)}</span>`}</div></li>`).join("")}</ul>
     ${verTudo(demoPub, planoPadrao(SITE))}
   </section>
-
+  ${fita("inverte")}
   <section class="gestao" id="gestao" aria-labelledby="gestao-t">
     <div class="wrap">
       <h2 id="gestao-t">Gestão mensal de conteúdo</h2>
@@ -185,6 +239,9 @@ function viewInicio() {
     </div>
   </section>`;
 }
+function montarCapasCampanhas() {
+  document.querySelectorAll("[data-capa-camp]").forEach(img => { const c = CAPA_CAMPANHA[img.dataset.capaCamp]; if (c) miniatura(c.tela, { marca: c.marca }, 540).then(u => { img.src = u; }); });
+}
 
 /* ---------- campanha ---------- */
 function viewCampanha(id) {
@@ -194,15 +251,17 @@ function viewCampanha(id) {
   <section class="wrap camp-top">
     <p class="eyebrow">${tema.publico === "loja" ? "Para lojistas" : "Para prestadoras de serviço"} · ${aPartir}</p>
     <h1>${esc(tema.nome)}</h1>
-    <div id="carrossel"></div>
+    <div class="previa" id="previa">
+      <div class="prod-mini" role="radiogroup" aria-label="Escolha um produto">${demo.produtos.map((p, i) => `<button type="button" role="radio" class="pm" data-pm="${i}" aria-checked="${i === 0}"><img src="${esc(p.foto)}" alt=""><span><b>${esc(p.nome)}</b><small>${esc(p.preco)}</small></span></button>`).join("")}</div>
+      <div class="prev-abas" role="tablist" aria-label="Formato">${[["carrossel", "Carrossel"], ["stories", "Stories"], ["reel", "Reel"]].map(([k, n], i) => `<button type="button" role="tab" data-aba-prev="${k}" aria-selected="${i === 0}">${n}</button>`).join("")}</div>
+      <div id="carrossel" data-painel-prev="carrossel"></div>
+      <div id="formatos" class="demo" data-painel-prev="formatos" hidden></div>
+    </div>
     ${MODELOS["faixa-de-preco"] && tema.id === "presentes-por-orcamento" ? `<p class="ver-galeria"><a href="#galeria">Ver os 5 carrosséis desta campanha →</a></p>` : ""}
     <div class="acoes"><button type="button" class="btn grande" data-ir-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></button><a class="btn grande ghost" href="#testar/${tema.id}">Testar com a minha foto</a></div>
   </section>
+  ${fita()}
   ${secaoPlanos(tema)}
-  <section class="wrap bloco formatos" aria-labelledby="fmt-t">
-    <h2 id="fmt-t" class="sub-t">Também em Reel e Stories</h2>
-    <div id="formatos" class="demo"></div>
-  </section>
   <section class="wrap bloco" id="kit-sec">${verTudo(demo, planoAtual(), { trechos: true, tema })}${conviteGestao()}</section>`;
 }
 /* troca de plano sem redesenhar a página (mantém carrossel, Reel e Stories onde estão) */
@@ -423,12 +482,15 @@ function render(rolar = true) {
     montados.forEach(m => m && m.destruir && m.destruir()); montados = [];
     app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "testar" ? viewTestar(r.id) : r.tela === "area" ? viewArea() : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
     if (r.tela === "galeria") montarGaleria(r.id);
-    if (r.tela === "inicio") animou = true; // a animação da capa acontece uma vez por visita
+    if (r.tela === "inicio") { montados.push(montarVitrinePop()); montarCapasCampanhas(); animou = true; } // a abertura acontece uma vez por visita
+    vidaNosDetalhes();
     if (r.tela === "campanha" && $("#carrossel")) {
       const demo = DEMOS[r.id]; let fmts = null;
       const mod = r.id === "presentes-por-orcamento" && MODELOS["faixa-de-preco"];
-      const car = montarCarrossel($("#carrossel"), demo, { aoMudar: i => fmts && fmts.escolher(i), telas: mod ? mod.telas : undefined, marca: mod ? mod.marca : undefined });
-      fmts = montarFormatos($("#formatos"), demo, { aoMudar: i => car.irParaProduto(i) });
+      const marcarPm = i => document.querySelectorAll("[data-pm]").forEach(b => { const on = +b.dataset.pm === i; b.setAttribute("aria-checked", String(on)); b.classList.toggle("on", on); });
+      const car = montarCarrossel($("#carrossel"), demo, { aoMudar: i => { marcarPm(i); fmts && fmts.escolher(i); }, telas: mod ? mod.telas : undefined, marca: mod ? mod.marca : undefined });
+      fmts = montarFormatos($("#formatos"), demo, { semControles: true, aoMudar: i => { marcarPm(i); car.irParaProduto(i); } });
+      estado.previa = { car, fmts, marcarPm };
       montados.push(car, fmts);
       preencherCapas(temaPorId(SITE, r.id));
     }
@@ -450,6 +512,23 @@ function render(rolar = true) {
 
 document.addEventListener("click", e => {
   const manter = fn => { const y = scrollY; fn(); render(false); scrollTo(0, y); };
+  const est = e.target.closest("[data-estrela]");
+  if (est) { est.classList.remove("gira"); void est.getBoundingClientRect(); est.classList.add("gira"); setTimeout(() => est.classList.remove("gira"), 600); return; }
+  const pm = e.target.closest("[data-pm]");
+  if (pm && estado.previa) {
+    const i = +pm.dataset.pm, pv = estado.previa;
+    pv.marcarPm(i); pv.fmts.escolher(i); pv.car.irParaProduto(i);
+    const tela = document.querySelectorAll("#carrossel .car-item")[i + 1]; if (tela && !calmo()) { tela.classList.remove("pulso"); void tela.offsetWidth; tela.classList.add("pulso"); }
+    return;
+  }
+  const ab = e.target.closest("[data-aba-prev]");
+  if (ab && estado.previa) {
+    const f = ab.dataset.abaPrev;
+    document.querySelectorAll("[data-aba-prev]").forEach(b => b.setAttribute("aria-selected", String(b === ab)));
+    $("#carrossel").hidden = f !== "carrossel"; $("#formatos").hidden = f === "carrossel";
+    if (f === "carrossel") estado.previa.fmts.destruir(); else estado.previa.fmts.mostrar(f);
+    return;
+  }
   const pl = e.target.closest("[data-plano]");
   if (pl) { aplicarPlano(pl.dataset.plano); return; }
   if (e.target.closest("[data-ir-planos]")) { $("#planos")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); return; }
@@ -480,4 +559,5 @@ document.addEventListener("keydown", e => {
   if (["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) { e.preventDefault(); const d = /Right|Down/.test(e.key) ? 1 : -1; aplicarPlano(ids[(i + d + ids.length) % ids.length], true); }
 });
 addEventListener("hashchange", () => render());
+if (document.fonts) document.fonts.ready.then(() => document.documentElement.classList.add("fontes-ok"));
 render();

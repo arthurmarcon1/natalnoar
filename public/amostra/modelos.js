@@ -103,3 +103,40 @@ export function aplicarLayout(modelo, id) {
     })
   };
 }
+
+/* Capa de cada campanha na vitrine, com a identidade da sua coleção */
+const glow = F("07-glow.jpg"), make = F("06-make-leve.jpg"), penteado = F("08-penteado.jpg"), servicoCapa = F("05-servico-capa.jpg");
+export const CAPA_CAMPANHA = {
+  "presentes-por-orcamento": { marca: MARCA, tela: MODELOS["faixa-de-preco"].telas[0] },
+  "seu-toque-nas-festas": { marca: "Bia Make", tela: { layout: "bastidores-capa", texto: "Seu toque nas festas", apoio: "Bia Make · fim de ano", foto: glow } }
+};
+
+/* Capas que cada nível de plano acrescenta (prévia visual na comparação dos planos) */
+export const CAPAS_NIVEIS = {
+  "presentes-por-orcamento": {
+    marca: MARCA,
+    extras: [
+      { layout: "faixa-capa", texto: "Amigo secreto até", preco: "R$ 60", apoio: "Achados que agradam qualquer pessoa →", foto: lenco },
+      { layout: "estilo-capa", texto: "Uma peça, três jeitos de usar", apoio: "Do trabalho à ceia", chips: ["Trabalho", "Fim de semana", "Ceia"], foto: clutch },
+      { layout: "favorito-capa", texto: "Escolhas da equipe", apoio: "O que a gente daria de presente →", foto: brincos, ajuste: { zoom: 1.8, fx: 0.5, fy: 0.5 } }
+    ],
+    reveillon: [
+      { layout: "estilo-capa", texto: "Cores da virada", apoio: "Qual cor vai te acompanhar?", chips: ["Branco", "Dourado", "Rosa"], foto: brincos },
+      { layout: "dupla-capa", texto: "Looks para a virada", apoio: "Praia, casa ou festa →", foto: clutch, foto2: brincos },
+      { layout: "urgencia-capa", texto: "Ainda dá tempo para a virada", preco: "30/12", apoio: "Os prazos de Réveillon →", foto: presentes }
+    ]
+  },
+  "seu-toque-nas-festas": {
+    marca: "Bia Make",
+    extras: [
+      { layout: "bastidores-capa", texto: "Uma dúvida que sempre me fazem", apoio: "Bia Make · dúvidas", foto: make },
+      { layout: "bastidores-capa", texto: "Como escolho cada detalhe", apoio: "Bia Make · escolhas", foto: servicoCapa },
+      { layout: "bastidores-capa", texto: "A história por trás de um trabalho", apoio: "Bia Make · histórias", foto: penteado }
+    ],
+    reveillon: [
+      { layout: "bastidores-capa", texto: "Produção para a virada", apoio: "Bia Make · Réveillon", foto: glow },
+      { layout: "bastidores-capa", texto: "Ritual de fim de ano", apoio: "Bia Make · Réveillon", foto: make },
+      { layout: "bastidores-capa", texto: "Obrigada por este ano", apoio: "Bia Make · Réveillon", foto: penteado }
+    ]
+  }
+};
