@@ -119,11 +119,11 @@ await ctx.close();
 /* ===== cartões dos planos ===== */
 ({ ctx, page } = await novo());
 await page.goto(URL + "#campanha/presentes-por-orcamento", { waitUntil: "networkidle" }); await w(page, 3500);
-const cards = await page.locator(".plano").evaluateAll(cs => cs.map(c => ({ txt: c.innerText.replace(/\s+/g, " "), capas: [...c.querySelectorAll(".pl-capas img")].filter(i => i.naturalWidth > 0).length, mais: c.querySelectorAll(".pl-mais-capa").length, right: c.getBoundingClientRect().right })));
-const esper = [["Natal Pronto", "R$ 89,90", "5 carrosséis editáveis + 5 roteiros de Reels", "5 sequências de Stories (15 telas)", "Calendário de 10 dias", 0],
-  ["Natal Completo", "R$ 139,90", "8 carrosséis + 8 roteiros de Reels", "Calendário de 15 dias", "Por R$ 50 a mais, leve 3 novos temas, cada um com carrossel e roteiro de Reel.", 1],
-  ["Natal + Virada", "R$ 189,90", "11 carrosséis + 11 roteiros de Reels", "8 sequências de Stories (24 telas)", "Por mais R$ 50 em relação ao Completo, seu conteúdo de Réveillon também vem pronto.", 2]];
-esper.forEach((e, i) => ok(e.slice(0, 5).every(x => cards[i].txt.includes(x)) && cards[i].capas === 5 && cards[i].mais === e[5] && cards[i].right <= 390, `cartão ${e[0]}: quantidades, textos e ${cards[i].capas} capas reais${e[5] ? ` + ${e[5]} acréscimo(s)` : ""}`));
+const cards = await page.locator(".plano").evaluateAll(cs => cs.map(c => ({ txt: c.innerText.replace(/\s+/g, " "), capas: [...c.querySelectorAll(".pl-capas img")].filter(i => i.naturalWidth > 0).length, novas: c.querySelectorAll(".pl-capas img.nova").length, right: c.getBoundingClientRect().right })));
+const esper = [["Natal Pronto", "R$ 89,90", "5 carrosséis editáveis + 5 roteiros de Reels", "5 sequências de Stories (15 telas)", "Calendário de 10 dias", 5, 0],
+  ["Natal Completo", "R$ 139,90", "8 carrosséis + 8 roteiros de Reels", "Calendário de 15 dias", "Por R$ 50 a mais, leve 3 novos temas, cada um com carrossel e roteiro de Reel.", 3, 3],
+  ["Natal + Virada", "R$ 189,90", "11 carrosséis + 11 roteiros de Reels", "8 sequências de Stories (24 telas)", "Por mais R$ 50 em relação ao Completo, seu conteúdo de Réveillon também vem pronto.", 3, 3]];
+esper.forEach((e, i) => ok(e.slice(0, 5).every(x => cards[i].txt.includes(x)) && cards[i].capas === e[5] && cards[i].novas === e[6] && cards[i].right <= 390, `cartão ${e[0]}: quantidades, textos e ${cards[i].capas} capas reais (${cards[i].novas} novas no nível)`));
 const corpo = await page.locator("body").innerText();
 ok((corpo.match(/Todos os planos incluem legendas, 3 mensagens de WhatsApp, calendário e tutorial\./g) || []).length === 1, "\"Todos os planos incluem…\" aparece uma vez");
 ok(!/peças prontas/.test(corpo), "sem \"peças prontas\"");

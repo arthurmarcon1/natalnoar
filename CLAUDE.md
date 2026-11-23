@@ -263,6 +263,17 @@ Ao final, entregue:
   - `pagamento.js`: webhook da plataforma de pagamento. **Ainda não ligado** (responde 503); ver comentário no arquivo.
 - Rotas: `#inicio` (âncoras `#campanhas`, `#gestao`), `#campanha/presentes-por-orcamento` (carrossel em destaque, Reel e Stories), `#testar` (teste grátis com a minha foto), `#pedido/<tema>` (revisão do pedido), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
 
+## Identidade "vitrine pop" (23/11/2026)
+- **Paleta:** cereja `--cereja` (ação), rosa-claro `--fundo-2`/`--rosa`, branco e texto escuro `--tinta`. Gestão mensal em cereja escuro.
+- **Tipografia:** Fraunces variável (eixos SOFT e WONK) em peso 800 nos títulos; "vem pronto." em itálico expressivo (SOFT 100, WONK 1), 1,42× maior, com traço de fita rosa embaixo. Plus Jakarta Sans no texto.
+- **Abertura:** chamada em 3 linhas (Fim de ano corrido? / Seu conteúdo / *vem pronto.*), logo abaixo a foto de produto que vira post (moldura → título e preço → duas telas atrás em leque) uma vez por visita; termina numa pilha que desliza com o dedo (pontos e setas do teclado também). Botão "Escolher minha campanha" visível desde o início (base a 616 px em 390 × 664). Fotos da abertura: `public/amostra/presentes-por-orcamento.js` e capas dos modelos.
+- **Assinatura:** etiqueta cereja com recorte ondulado "pronto pra postar" (`.selo-pronto`). Estrelas desenhadas (giram ao toque) e traços de fita entre seções (se desenham ao entrar na tela).
+- **Vitrine de campanhas:** capa real de cada campanha na identidade da coleção (`CAPA_CAMPANHA` em `public/amostra/modelos.js`).
+- **Campanha:** 3 miniaturas de produto comandam a prévia (abas Carrossel / Stories / Reel). Tocar troca a tela do carrossel (imagem, nome e preço juntos); deslizar acompanha o dedo; Stories usam a mesma foto na enquete.
+- **Planos:** cada nível mostra as capas que acrescenta (`CAPAS_NIVEIS`): Pronto = 5 capas; Completo = "Tudo do Pronto +" 3 temas novos; Virada = "Tudo do Completo +" 3 de Réveillon.
+- **Movimento reduzido:** nada anima; o leque já aparece pronto.
+- Verificação no navegador: `tests/navegador/vitrine.mjs`. Capturas: `docs/capturas/`.
+
 ## Modelos de carrossel: identidade por coleção (23/11/2026, etapa 1 aguardando aprovação)
 - **Galeria para revisão:** https://natal-no-ar.vercel.app/#galeria (sequência de cada um em `#galeria/<id>`; editar em `#testar/<id>`).
 - **Código:** `public/js/modelos.js` = coleções (paleta, tipografia, fotos, elementos) + composições (`LAYOUTS`) + rótulos dos campos (`LAYOUT_INFO`). `public/amostra/modelos.js` = carrosséis de exemplo preenchidos (`MODELOS`), capa-piloto (`PILOTOS`) e `aplicarLayout` (aplica a composição aos textos do kit pago, que ficam em `private/`).
@@ -301,7 +312,7 @@ Os cartões mostram capas reais dos templates, as quantidades em destaque (`qtd`
 - Página da campanha: o carrossel preenchido ocupa a maior parte da primeira tela, desliza com o dedo e mostra parte do próximo cartão. Ação principal: **Comprar campanha · R$ 89,90** (botão cheio). Secundária: **Testar com a minha foto**.
 - Compra (`modoCompra` em `config.js`): `"revisao"` nos testes (abre a revisão do pedido, sem cobrar nem simular aprovação; de lá segue para o checkout) e `"checkout"` no lançamento (vai direto ao checkout: `linkPagamento` do tema ou WhatsApp de vendas). Não existe mais "Compras abrem em breve".
 - Marca-d'água: demonstrações com fotos de exemplo são **limpas**. "AMOSTRA" só aparece quando a visitante usa uma foto própria no teste grátis (prévia e PNG); voltar à foto de exemplo tira a marca. No kit comprado tudo sai limpo.
-- Textos longos ficam em "Ver tudo que vem no kit": botão de destaque (borda cereja, miniaturas das fotos, "45 peças prontas") que abre uma vitrine com um cartão ilustrado por material (5 carrosséis, 5 Reels, 5 Stories, 3 mensagens, calendário de 10 dias, tutorial), o total "45 peças por R$ 89,90" e o botão de compra. A conta: 20 telas de carrossel + 5 roteiros + 15 telas de Stories + 3 mensagens + calendário + tutorial = 45. Transições curtas; com movimento reduzido, nada anima.
+- Textos longos ficam em "Ver o que vem no kit": botão de destaque (borda cereja, miniaturas das fotos, "45 peças prontas") que abre uma vitrine com um cartão ilustrado por material (5 carrosséis, 5 Reels, 5 Stories, 3 mensagens, calendário de 10 dias, tutorial), o total "45 peças por R$ 89,90" e o botão de compra. A conta: 20 telas de carrossel + 5 roteiros + 15 telas de Stories + 3 mensagens + calendário + tutorial = 45. Transições curtas; com movimento reduzido, nada anima.
 - Testes: `npm test` (lógica, conteúdo, token, API e vazamento de conteúdo pago). Servidor local que imita a Vercel: `ACESSO_SECRET=... ADMIN_TOKEN=... node tests/servidor.mjs`.
 
 ## Área da cliente: configurar e liberar acesso
