@@ -1,12 +1,13 @@
 /* Desenha uma tela do carrossel em <canvas> 1080 × 1350 (4:5, Instagram).
    A prévia e o PNG exportado saem do mesmo desenho. */
 import { coverRect, ajustarTexto } from "./logic.js";
+import { desenharModelo, temLayout } from "./modelos.js";
 
 export const W = 1080, H = 1350;
 // iOS 15 e navegadores antigos não têm roundRect no canvas
 if (typeof CanvasRenderingContext2D !== "undefined" && !CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-    r = Math.min(typeof r === "number" ? r : 0, w / 2, h / 2);
+    r = Math.min(Array.isArray(r) ? (r[0] || 0) : typeof r === "number" ? r : 0, w / 2, h / 2);
     this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r);
     this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath();
   };
@@ -78,6 +79,7 @@ function sombraTexto(ctx, on) { ctx.shadowColor = on ? "rgba(0,0,0,.35)" : "tran
 export function desenharTela(canvas, tela, o) {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
+  if (temLayout(tela)) { ctx.clearRect(0, 0, W, H); desenharModelo(ctx, tela, o); return; }
   ctx.save(); ctx.clearRect(0, 0, W, H);
 
   // 1. Foto em "cover" (ou espaço para a foto)
@@ -182,4 +184,33 @@ export async function carregarFoto(fonte) {
   c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
   if (img.close) img.close();
   return { img: c, w: c.width, h: c.height };
+}
+
+/* ---------- fotos de exemplo (com cache) e telas prontas a partir dos caminhos ---------- */
+const fotosCache = new Map();
+export function fotoDeArquivo(caminho) {
+  if (!caminho) return Promise.resolve(null);
+  if (!fotosCache.has(caminho)) fotosCache.set(caminho, fetch(caminho).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(carregarFoto).catch(() => null));
+  return fotosCache.get(caminho);
+}
+/* desenha uma tela de exemplo (fotos por caminho) num canvas */
+export async function desenharExemplo(canvas, tela, o) {
+  await carregarFontes();
+  const [f, f2] = await Promise.all([fotoDeArquivo(tela.foto), fotoDeArquivo(tela.foto2)]);
+  desenharTela(canvas, tela, { ...o, foto: f && f.img, fw: f && f.w, fh: f && f.h, ajuste: tela.ajuste, foto2: f2 && f2.img, fw2: f2 && f2.w, fh2: f2 && f2.h, ajuste2: tela.ajuste2 });
+}
+/* miniatura leve (JPEG) de uma tela, para capas em cartões e galerias */
+const minis = new Map();
+let fila = Promise.resolve();
+export function miniatura(tela, o, largura = 360) {
+  const chave = JSON.stringify([tela, o.marca, o.cor, largura]);
+  if (!minis.has(chave)) minis.set(chave, fila = fila.then(async () => {
+    const grande = document.createElement("canvas");
+    await desenharExemplo(grande, tela, { indice: 0, total: 4, ...o, amostra: false });
+    const peq = document.createElement("canvas"); peq.width = largura; peq.height = Math.round(largura * H / W);
+    const ctx = peq.getContext("2d"); ctx.imageSmoothingQuality = "high"; ctx.drawImage(grande, 0, 0, peq.width, peq.height);
+    grande.width = grande.height = 0;
+    return peq.toDataURL("image/jpeg", 0.86);
+  }));
+  return minis.get(chave);
 }
