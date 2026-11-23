@@ -263,14 +263,31 @@ Ao final, entregue:
   - `pagamento.js`: webhook da plataforma de pagamento. **Ainda não ligado** (responde 503); ver comentário no arquivo.
 - Rotas: `#inicio` (âncoras `#campanhas`, `#gestao`), `#campanha/presentes-por-orcamento` (carrossel em destaque, Reel e Stories), `#testar` (teste grátis com a minha foto), `#pedido/<tema>` (revisão do pedido), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
 
+## Modelos de carrossel: identidade por coleção (23/11/2026, etapa 1 aguardando aprovação)
+- **Galeria para revisão:** https://natal-no-ar.vercel.app/#galeria (sequência de cada um em `#galeria/<id>`; editar em `#testar/<id>`).
+- **Código:** `public/js/modelos.js` = coleções (paleta, tipografia, fotos, elementos) + composições (`LAYOUTS`) + rótulos dos campos (`LAYOUT_INFO`). `public/amostra/modelos.js` = carrosséis de exemplo preenchidos (`MODELOS`), capa-piloto (`PILOTOS`) e `aplicarLayout` (aplica a composição aos textos do kit pago, que ficam em `private/`).
+- **Coleção Presentes por orçamento** (lojistas): papel creme, cereja/pinho/dourado/ameixa como cor de destaque (a cliente escolhe), Fraunces + Plus Jakarta Sans, foto com moldura de papel, etiqueta de presente com o preço, estrela ✦ e fita dupla. Os 5 carrosséis-base (ids iguais aos temas do kit):
+  1. `faixa-de-preco`: capa com o valor gigante; uma foto grande por tela com etiqueta de preço.
+  2. `cada-estilo`: capa com os estilos em etiquetas; produtos em polaroide com o estilo de quem ganha.
+  3. `favorito-da-loja`: capa em close com selo "Favorito"; o zoom abre a cada tela até a peça inteira.
+  4. `duplas`: duas fotos lado a lado com "+" em todas as telas (editor tem Foto 1 / Foto 2).
+  5. `ultimas-compras`: fundo pinho com página de calendário e a data.
+- **Coleção Por trás do resultado** (prestadoras): só a capa-piloto (`bastidores-capa`): fundo escuro, quadro de filme, ponto REC, títulos em Fraunces itálico.
+- **Legibilidade:** título e preço sempre em papel, cartão ou etiqueta; o texto diminui para caber (e, em último caso, termina em "…", nunca some). Testado com título de 67 caracteres e preço "R$ 1.289,90" em todas as composições.
+- **Editor:** abre o layout da vitrine; troca foto (e Foto 2), enquadramento, marca, texto, cor e preço quando a composição tem preço; copiar legenda; 4 PNGs 1080 × 1350 numerados. Teste grátis: só as telas com foto própria levam AMOSTRA (inclusive no PNG); voltar à foto de exemplo tira a marca. Kit pago: limpo.
+- **Etapa 2 (depois da aprovação):** criar as composições dos temas extras e do Réveillon de lojistas, da coleção completa das prestadoras e dos outros temas. Enquanto isso, eles abrem no editor com o desenho anterior.
+- **Testes no navegador:** `tests/navegador/galeria.mjs` e `tests/navegador/regressao.mjs` (precisam de Playwright instalado fora do projeto).
+
 ## Planos de compra única (22/11/2026)
 A cliente escolhe o perfil (**Sou lojista** / **Sou prestadora de serviço**), vê a campanha do perfil e compara três planos. Os preços são FINAIS por plano (definidos em `public/config.js`, `SITE.planos`):
 
-| Plano | Preço | Carrosséis | Roteiros | Stories | Calendário | Peças |
+| Plano | Preço | Carrosséis | Roteiros | Stories | Calendário | |
 |---|---:|---:|---:|---:|---|---:|
-| Natal Pronto | R$ 89,90 | 5 | 5 | 5 | 10 dias (+ expressa de 3) | 45 |
-| Natal Completo | R$ 139,90 | 8 | 8 | 5 | 15 dias | 60 |
-| Natal + Virada | R$ 189,90 | 11 | 11 | 8 | 15 dias + 5 de Réveillon | 85 |
+| Natal Pronto | R$ 89,90 | 5 | 5 | 5 (15 telas) | 10 dias (+ expressa de 3) | — |
+| Natal Completo | R$ 139,90 | 8 | 8 | 5 (15 telas) | 15 dias | — |
+| Natal + Virada | R$ 189,90 | 11 | 11 | 8 (24 telas) | 15 dias + 5 de Réveillon | — |
+
+Os cartões mostram capas reais dos templates, as quantidades em destaque (`qtd`), os itens e a frase de venda (`destaque`, "Por R$ 50 a mais…"); "Todos os planos incluem legendas, 3 mensagens de WhatsApp, calendário e tutorial." aparece uma vez abaixo (`incluemTodos`). Não usar contagens como "45 peças prontas".
 
 - Campanha de cada perfil: lojistas → **Presentes por orçamento**; prestadoras → **Seu toque nas festas** (exemplo de maquiadora). Conteúdo pago em `private/campanhas/<id>.js`; cada um tem `temas` (5), `extras` (3, Natal Completo) e `reveillon` (3 temas + calendário de 5 dias, Natal + Virada).
 - Temas extras: lojistas = Achados para o amigo secreto, Uma peça três jeitos de usar, Escolhas da equipe. Prestadoras = Uma dúvida que sempre me fazem, Como escolho cada detalhe, A história por trás de um trabalho. Réveillon: lojistas = Cores da virada, Looks para a virada, Últimos dias do ano; prestadoras = Produção para a virada, Ritual de fim de ano, Obrigada por este ano.

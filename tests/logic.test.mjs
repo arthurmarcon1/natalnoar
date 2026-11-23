@@ -294,3 +294,55 @@ test("editor completo: modelo de todos os carrosséis do maior plano", () => {
   }
   assert.deepEqual(L.modeloDoTema(campanha.temas[0]).telas[0], { tipo: "capa", texto: "3 presentes até", preco: "R$ [valor]", apoio: "Arrasta pro lado →" });
 });
+
+test("modelos: 5 carrosséis-base de Presentes por orçamento, 4 telas e legenda própria cada", async () => {
+  const { MODELOS, PILOTOS, modelosDaColecao, aplicarLayout } = await import("../public/amostra/modelos.js");
+  const { LAYOUT_INFO, COLECOES } = await import("../public/js/modelos.js");
+  const lista = modelosDaColecao("presentes");
+  assert.deepEqual(lista.map(m => m.id), ["faixa-de-preco", "cada-estilo", "favorito-da-loja", "duplas", "ultimas-compras"]);
+  assert.deepEqual(lista.map(m => m.id), campanha.temas.map(t => t.id), "um modelo por tema da campanha, mesmos ids");
+  const capas = new Set(), legendas = new Set();
+  for (const m of lista) {
+    assert.equal(m.telas.length, 4, m.id);
+    for (const t of m.telas) {
+      assert.ok(LAYOUT_INFO[t.layout], `${m.id}: layout ${t.layout}`);
+      assert.ok(existsSync(new URL(`public/${t.foto}`, raiz)), t.foto);
+      if (LAYOUT_INFO[t.layout].fotos === 2) assert.ok(t.foto2 && existsSync(new URL(`public/${t.foto2}`, raiz)), `${m.id}: segunda foto`);
+    }
+    capas.add(m.telas[0].layout); legendas.add(m.legenda);
+    assert.ok(m.legenda.length > 120 && /WhatsApp|direct/.test(m.legenda), `${m.id}: legenda com chamada`);
+  }
+  assert.equal(capas.size, 5, "as 5 capas têm composições diferentes");
+  assert.equal(legendas.size, 5, "legenda própria em cada carrossel");
+  assert.ok(lista.find(m => m.id === "duplas").telas.every(t => LAYOUT_INFO[t.layout].fotos === 2), "duplas: duas fotos em todas as telas");
+  const fav = lista.find(m => m.id === "favorito-da-loja").telas.map(t => t.ajuste.zoom);
+  assert.ok(fav.every((z, i) => i === 0 || z < fav[i - 1]), "favorito: começa em close e abre a cada tela");
+  // piloto em outra coleção
+  const pl = PILOTOS["por-tras-do-resultado"];
+  assert.equal(LAYOUT_INFO[pl.tela.layout].colecao, "bastidores");
+  assert.notEqual(COLECOES.bastidores.paleta.fundo, COLECOES.presentes.paleta.papel);
+  // o kit pago usa as mesmas composições, com os marcadores
+  for (const t of campanha.temas) {
+    const m = aplicarLayout(L.modeloDoTema(t), t.id);
+    assert.deepEqual(m.telas.map(x => x.layout), MODELOS[t.id].telas.map(x => x.layout), t.id);
+    assert.ok(m.telas.some(x => /\[/.test(x.texto + x.preco + x.apoio)), `${t.id}: mantém os marcadores do kit`);
+  }
+  const urg = aplicarLayout(L.modeloDoTema(campanha.temas[4]), "ultimas-compras");
+  assert.deepEqual([urg.telas[1].texto, urg.telas[1].preco], ["Entrega até", "[data]"], "data vai para a página do calendário");
+  assert.equal(aplicarLayout({ telas: [{ texto: "x" }] }, "nao-existe").telas[0].layout, undefined, "sem modelo, fica como está");
+});
+
+test("cartões dos planos: quantidades e frases exatas, sem contagem de peças", () => {
+  assert.deepEqual(SITE.planos.map(p => p.qtd), ["5 carrosséis editáveis + 5 roteiros de Reels", "8 carrosséis + 8 roteiros de Reels", "11 carrosséis + 11 roteiros de Reels"]);
+  assert.deepEqual(SITE.planos.map(p => p.itens), [
+    ["5 sequências de Stories (15 telas)", "Calendário de 10 dias"],
+    ["5 sequências de Stories (15 telas)", "Calendário de 15 dias"],
+    ["8 sequências de Stories (24 telas)", "Calendário de 15 dias de Natal + 5 de Réveillon"]]);
+  assert.equal(SITE.planos[1].destaque, "Por R$ 50 a mais, leve 3 novos temas, cada um com carrossel e roteiro de Reel.");
+  assert.equal(SITE.planos[2].destaque, "Por mais R$ 50 em relação ao Completo, seu conteúdo de Réveillon também vem pronto.");
+  assert.equal(SITE.incluemTodos, "Todos os planos incluem legendas, 3 mensagens de WhatsApp, calendário e tutorial.");
+  assert.equal(Math.round((SITE.planos[1].preco - SITE.planos[0].preco) * 100), 5000);
+  assert.equal(Math.round((SITE.planos[2].preco - SITE.planos[1].preco) * 100), 5000);
+  const app = readFileSync(new URL("public/js/app.js", raiz), "utf8");
+  assert.ok(!/peças prontas/.test(app), "sem \"N peças prontas\"");
+});
