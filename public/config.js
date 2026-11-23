@@ -26,20 +26,33 @@
 export const SITE = {
   nome: "Natal no Ar",
   precoCampanha: 89.90,
+  /* Cartões dos planos: "qtd" vai em destaque; "itens" logo abaixo; "destaque" é a frase de venda.
+     "incluemTodos" aparece uma vez, abaixo dos cartões. */
+  incluemTodos: "Todos os planos incluem legendas, 3 mensagens de WhatsApp, calendário e tutorial.",
   planos: [
     { id: "natal-pronto", nome: "Natal Pronto", preco: 89.90, nivel: 1,
       carrosseis: 5, roteiros: 5, stories: 5, mensagens: 3, calendario: "10 dias",
+      qtd: "5 carrosséis editáveis + 5 roteiros de Reels",
+      itens: ["5 sequências de Stories (15 telas)", "Calendário de 10 dias"],
+      destaque: "",
       resumo: "A campanha de Natal completa para você postar.",
       acrescenta: ["5 carrosséis editáveis com legendas", "5 roteiros de Reels", "5 sequências de Stories", "3 mensagens de WhatsApp", "Calendário de 10 dias", "Tutorial"] },
     { id: "natal-completo", nome: "Natal Completo", preco: 139.90, nivel: 2,
       carrosseis: 8, roteiros: 8, stories: 5, mensagens: 3, calendario: "15 dias",
+      qtd: "8 carrosséis + 8 roteiros de Reels",
+      itens: ["5 sequências de Stories (15 telas)", "Calendário de 15 dias"],
+      destaque: "Por R$ 50 a mais, leve 3 novos temas, cada um com carrossel e roteiro de Reel.",
       resumo: "Tudo do Natal Pronto, com mais três temas.",
       acrescenta: ["+ 3 carrosséis sobre temas novos", "+ 3 roteiros de Reels", "Calendário ampliado para 15 dias"] },
     { id: "natal-virada", nome: "Natal + Virada", preco: 189.90, nivel: 3,
       carrosseis: 11, roteiros: 11, stories: 8, mensagens: 3, calendario: "15 dias + 5 de Réveillon",
+      qtd: "11 carrosséis + 11 roteiros de Reels",
+      itens: ["8 sequências de Stories (24 telas)", "Calendário de 15 dias de Natal + 5 de Réveillon"],
+      destaque: "Por mais R$ 50 em relação ao Completo, seu conteúdo de Réveillon também vem pronto.",
       resumo: "Tudo do Natal Completo, mais uma minicampanha de Réveillon.",
       acrescenta: ["+ Minicampanha de Réveillon", "+ 3 carrosséis e 3 roteiros de Reels", "+ 3 sequências de Stories", "Calendário próprio de 5 dias"] }
   ],
+
   modoCompra: "revisao",
   whatsappVendas: "555599408766",
   mensagemCompra: "Olá, Arthur! Quero comprar a campanha {campanha} no plano {plano}, por {preco}. Como faço o pagamento?",

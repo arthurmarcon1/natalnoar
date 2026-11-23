@@ -5,7 +5,10 @@ import {
   planoPorId, planoPadrao, pecasDoPlano, entregasDoPlano, carrosseisLiberados
 } from "./logic.js";
 import { montarAmostra, montarEditorCompleto } from "./editor.js";
-import { montarCarrossel, montarFormatos } from "./demo.js";
+import { montarCarrossel, montarFormatos, telasDaDemo } from "./demo.js";
+import { MODELOS, PILOTOS, modelosDaColecao, aplicarLayout } from "../amostra/modelos.js";
+import { COLECOES } from "./modelos.js";
+import { miniatura } from "./render.js";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -41,28 +44,43 @@ function botaoComprar(tema, plano, extra = "") {
 }
 
 /* ---------- planos ---------- */
-function planoCard(p, tema, demo) {
+/* capas reais dos carrosséis da campanha (miniaturas desenhadas pelos próprios modelos) */
+function capasDoTema(tema) {
+  const col = modelosDaColecao("presentes");
+  if (tema && tema.id === "presentes-por-orcamento" && col.length) return col.map(m => ({ tela: m.telas[0], marca: m.marca, nome: m.nome }));
+  const d = DEMOS[tema && tema.id] || DEMO_HERO;
+  return telasDaDemo(d).map(t => ({ tela: t, marca: d.marca, nome: t.texto }));
+}
+function planoCard(p) {
   const on = p.id === estado.plano;
-  const mais = p.nivel === 1 ? p.acrescenta.slice(0, 3)
-    : p.nivel === 2 ? [`+ 3 temas: ${demo.extras.join(", ")}`, "Calendário ampliado para 15 dias"]
-    : [`+ Minicampanha de Réveillon: ${demo.reveillon.join(", ")}`, "+ 3 sequências de Stories", "Calendário próprio de 5 dias"];
   return `<div class="plano ${on ? "on" : ""}" role="radio" tabindex="${on ? 0 : -1}" aria-checked="${on}" data-plano="${p.id}">
-    <div class="pl-topo"><b class="pl-nome">${esc(p.nome)}</b><span class="pl-check" aria-hidden="true"></span></div>
-    <div class="pl-preco">${fmtBRL(p.preco)}</div>
-    <div class="pl-nums"><span><b>${p.carrosseis}</b> carrosséis</span><span><b>${p.roteiros}</b> roteiros de Reels</span><span><b>${p.stories}</b> Stories</span></div>
-    <p class="pl-resumo">${esc(p.resumo)}</p>
-    <ul class="pl-mais">${mais.map(m => `<li>${esc(m)}</li>`).join("")}</ul>
+    <div class="pl-topo"><b class="pl-nome">${esc(p.nome)}</b><span class="pl-preco num">${fmtBRL(p.preco)}</span><span class="pl-check" aria-hidden="true"></span></div>
+    <div class="pl-capas" data-capas="${p.nivel}" aria-hidden="true"></div>
+    <p class="pl-qtd">${esc(p.qtd)}</p>
+    <ul class="pl-itens">${p.itens.map(m => `<li>${esc(m)}</li>`).join("")}</ul>
+    ${p.destaque ? `<p class="pl-destaque">${esc(p.destaque)}</p>` : ""}
   </div>`;
 }
-function resumoPlano(tema, p) {
-  return `<p class="pl-escolhido" id="pl-escolhido" aria-live="polite"><span>${esc(tema.nome)} ·</span> <b>${esc(p.nome)}</b> <span class="num">${fmtBRL(p.preco)}</span> <span class="hint">· ${pecasDoPlano(p)} peças prontas</span></p>`;
+async function preencherCapas(tema) {
+  const capas = capasDoTema(tema);
+  const urls = await Promise.all(capas.map(c => miniatura(c.tela, { marca: c.marca }, 220).catch(() => "")));
+  document.querySelectorAll("[data-capas]").forEach(box => {
+    const n = +box.dataset.capas;
+    box.innerHTML = urls.map((u, i) => u ? `<img src="${u}" alt="" title="${esc(capas[i].nome)}">` : "").join("")
+      + (n >= 2 ? `<span class="pl-mais-capa">+3<small>temas novos</small></span>` : "")
+      + (n >= 3 ? `<span class="pl-mais-capa virada">+3<small>Réveillon</small></span>` : "");
+  });
 }
-function secaoPlanos(tema, demo) {
+function resumoPlano(tema, p) {
+  return `<p class="pl-escolhido" id="pl-escolhido" aria-live="polite"><span>${esc(tema.nome)} ·</span> <b>${esc(p.nome)}</b> <span class="num">${fmtBRL(p.preco)}</span></p>`;
+}
+function secaoPlanos(tema) {
   const p = planoAtual();
   return `<section class="wrap bloco planos-sec" id="planos" aria-labelledby="planos-t">
     <h2 id="planos-t" class="sub-t">Escolha seu plano</h2>
     <p class="hint">Compra única. O preço é o valor total do plano.</p>
-    <div class="planos" role="radiogroup" aria-label="Planos">${SITE.planos.map(x => planoCard(x, tema, demo)).join("")}</div>
+    <div class="planos" role="radiogroup" aria-label="Planos">${SITE.planos.map(planoCard).join("")}</div>
+    <p class="pl-todos">${esc(SITE.incluemTodos)}</p>
     <div class="pl-acao">${resumoPlano(tema, p)}<div id="pl-botao">${botaoComprar(tema, p, "block")}</div></div>
   </section>`;
 }
@@ -95,14 +113,14 @@ function verTudo(demo, plano, { trechos = false, tema = null } = {}) {
   return `<details class="kit" id="kit">
     <summary>
       <span class="kit-fotos" aria-hidden="true"><img src="${f[1]}" alt=""><img src="${f[2]}" alt=""><img src="${f[3]}" alt=""></span>
-      <span class="kit-chamada"><b>Ver tudo que vem no kit</b><span>${pecasDoPlano(plano)} peças prontas</span></span>
+      <span class="kit-chamada"><b>Ver tudo que vem no kit</b><span>Carrosséis, Reels, Stories e calendário</span></span>
       <span class="kit-seta" aria-hidden="true">↓</span>
     </summary>
     <div class="kit-corpo">
       <p class="kit-intro">${tema ? `${esc(plano.nome)}: tudo pensado para o seu Natal, ` : "Tudo pensado para o seu Natal, "}<em>pronto para usar.</em></p>
       <ul class="kit-grade">${itens}</ul>
       <div class="kit-total">
-        <div><span class="kt-num">${pecasDoPlano(plano)}</span><span>peças prontas no ${esc(plano.nome)}</span></div>
+        <div><span class="kt-num">${plano.carrosseis}</span><span>carrosséis + ${plano.roteiros} roteiros de Reels no ${esc(plano.nome)}</span></div>
         <b>${tema ? `por ${fmtBRL(plano.preco)}` : aPartirMin}</b>
       </div>
       ${trechos ? `<h3 class="trechos-t">Um pedaço do conteúdo</h3><div class="trechos">
@@ -177,9 +195,10 @@ function viewCampanha(id) {
     <p class="eyebrow">${tema.publico === "loja" ? "Para lojistas" : "Para prestadoras de serviço"} · ${aPartir}</p>
     <h1>${esc(tema.nome)}</h1>
     <div id="carrossel"></div>
+    ${MODELOS["faixa-de-preco"] && tema.id === "presentes-por-orcamento" ? `<p class="ver-galeria"><a href="#galeria">Ver os 5 carrosséis desta campanha →</a></p>` : ""}
     <div class="acoes"><button type="button" class="btn grande" data-ir-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></button><a class="btn grande ghost" href="#testar/${tema.id}">Testar com a minha foto</a></div>
   </section>
-  ${secaoPlanos(tema, demo)}
+  ${secaoPlanos(tema)}
   <section class="wrap bloco formatos" aria-labelledby="fmt-t">
     <h2 id="fmt-t" class="sub-t">Também em Reel e Stories</h2>
     <div id="formatos" class="demo"></div>
@@ -222,7 +241,24 @@ function viewPedido(id, planoId) {
 }
 
 /* ---------- teste grátis ---------- */
+/* modelo de carrossel para testar: id de modelo (#testar/duplas) ou campanha com modelos (#testar/presentes-por-orcamento) */
+const modeloParaTeste = id => MODELOS[id] ? id : id === "presentes-por-orcamento" ? "faixa-de-preco" : null;
 function viewTestar(id) {
+  const mid = modeloParaTeste(id);
+  if (mid) {
+    const m = MODELOS[mid];
+    return `
+  <section class="wrap topo-pag">
+    <a class="link voltar" href="#galeria/${mid}">← ${esc(m.nome)}</a>
+    <h1>Teste com a sua foto</h1>
+    <p class="lede">Este é o carrossel <b>${esc(m.nome)}</b>. Troque fotos, marca, textos, cor e preços. As fotos ficam só no seu celular.</p>
+  </section>
+  <section class="wrap" id="editor-teste" data-teste-modelo="${mid}"></section>
+  <section class="wrap bloco">
+    <div class="acoes"><a class="btn grande" href="#campanha/presentes-por-orcamento" data-voltar-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></a></div>
+    <p class="hint">Com fotos de exemplo, as telas saem limpas. Com a sua foto, o teste grátis leva a marca AMOSTRA. Em qualquer plano pago, tudo sai sem marca-d'água.</p>
+  </section>`;
+  }
   const tema = temaPorId(SITE, id) || campanhaDoPublico(estado.publico);
   return `
   <section class="wrap topo-pag">
@@ -232,9 +268,57 @@ function viewTestar(id) {
   </section>
   <section class="wrap" id="amostra-editor" data-tema="${tema.id}"></section>
   <section class="wrap bloco">
-    <div class="acoes"><a class="btn grande" href="#campanha/${tema.id}" data-voltar-planos>Ver planos · ${aPartirMin}</a></div>
+    <div class="acoes"><a class="btn grande" href="#campanha/${tema.id}" data-voltar-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></a></div>
     <p class="hint">Em qualquer plano você edita as peças compradas e baixa tudo sem marca-d'água.</p>
   </section>`;
+}
+const legendaDoModelo = m => st => { const marca = (st.marca || "").trim(); return marca && marca !== m.marca ? m.legenda.replaceAll(m.marca, marca) : m.legenda; };
+
+/* ---------- galeria de modelos (revisão da direção visual) ---------- */
+function identidadeHTML(col) {
+  const paleta = Object.values(col.paleta).concat(col.cores.map(c => c.hex));
+  return `<div class="ident">
+    <div class="ident-cores" aria-label="Paleta">${[...new Set(paleta)].map(h => `<span style="background:${h}" title="${h}"></span>`).join("")}</div>
+    <dl><dt>Tipografia</dt><dd>${esc(col.tipografia)}</dd><dt>Fotos</dt><dd>${esc(col.fotos)}</dd><dt>Elementos</dt><dd>${esc(col.elementos)}</dd></dl>
+  </div>`;
+}
+function viewGaleria(id) {
+  const lista = modelosDaColecao("presentes"), m = id && MODELOS[id], col = COLECOES.presentes, piloto = PILOTOS["por-tras-do-resultado"];
+  return `
+  <section class="wrap topo-pag galeria-top">
+    <p class="eyebrow">Galeria para revisão</p>
+    <h1>Os 5 carrosséis de <em>Presentes por orçamento</em></h1>
+    <p class="lede">Cada um com 4 telas editáveis e legenda própria. Toque numa capa para ver a sequência e editar.</p>
+  </section>
+  ${m ? `<section class="wrap seq" id="sequencia" aria-labelledby="seq-t">
+    <div class="seq-cab"><span class="seq-n">${m.ordem}</span><div><h2 id="seq-t" class="sub-t">${esc(m.nome)}</h2><p class="hint">${esc(m.ideia)}</p></div></div>
+    <div id="seq-carrossel"></div>
+    <div class="seq-leg"><div class="lb-cab"><b>Legenda</b><button type="button" class="btn ghost sm" data-copiar="seq-legenda">Copiar legenda</button></div><p id="seq-legenda">${multi(m.legenda)}</p></div>
+    <div class="acoes"><a class="btn grande" href="#testar/${id}">Editar este modelo</a><a class="btn grande ghost" href="#galeria">Ver as 5 capas</a></div>
+  </section>` : ""}
+  <section class="wrap bloco" aria-labelledby="gal-t">
+    <h2 id="gal-t" class="sub-t">Coleção ${esc(col.nome)}</h2>
+    ${identidadeHTML(col)}
+    <div class="gal-grade">${lista.map(x => `<a class="gal-item ${x.id === id ? "on" : ""}" href="#galeria/${x.id}">
+      <span class="gal-capa"><img data-mini="${x.id}" alt="Capa: ${esc(x.nome)}"></span>
+      <span class="gal-txt"><span class="gal-n">${x.ordem}</span><b>${esc(x.nome)}</b><span>${esc(x.ideia)}</span><span class="gal-abrir">Abrir sequência →</span></span></a>`).join("")}</div>
+  </section>
+  <section class="wrap bloco comparacao" aria-labelledby="cmp-t">
+    <h2 id="cmp-t" class="sub-t">Duas coleções, duas identidades</h2>
+    <p class="hint">Capa de Presentes por orçamento (lojistas) ao lado da capa-piloto de Por trás do resultado (prestadoras de serviço).</p>
+    <div class="cmp-grade">
+      <figure><img data-mini="faixa-de-preco" alt="Capa de Presentes por faixa de preço"><figcaption><b>${esc(col.nome)}</b> · ${esc(col.publico)}</figcaption>${identidadeHTML(col)}</figure>
+      <figure><img data-mini-piloto="por-tras-do-resultado" alt="Capa-piloto de Por trás do resultado"><figcaption><b>${esc(piloto.nome)}</b> · ${esc(COLECOES.bastidores.publico)} <span class="selo prep">Piloto</span></figcaption>${identidadeHTML(COLECOES.bastidores)}</figure>
+    </div>
+  </section>`;
+}
+async function montarGaleria(id) {
+  if (id && MODELOS[id]) {
+    const m = MODELOS[id];
+    montados.push(montarCarrossel($("#seq-carrossel"), DEMO_HERO, { telas: m.telas, marca: m.marca }));
+  }
+  for (const img of document.querySelectorAll("[data-mini]")) { const m = MODELOS[img.dataset.mini]; miniatura(m.telas[0], { marca: m.marca }, 540).then(u => { img.src = u; }); }
+  for (const img of document.querySelectorAll("[data-mini-piloto]")) { const p = PILOTOS[img.dataset.miniPiloto]; miniatura(p.tela, { marca: p.marca }, 540).then(u => { img.src = u; }); }
 }
 
 /* ---------- área da cliente ---------- */
@@ -301,13 +385,17 @@ async function carregarArea() {
 }
 function montarEditorDaArea() {
   const c = estado.area.campanha, lista = carrosseisLiberados(c), sel = lista[Math.min(estado.item, lista.length - 1)], k = lista.indexOf(sel);
-  const principal = sel.grupo === "Natal" && sel.i === 0 && c.editor;
+  const comModelo = MODELOS[sel.t.id];
+  const principal = !comModelo && sel.grupo === "Natal" && sel.i === 0 && c.editor;
   const legenda = st => {
     if (principal) return legendaEditor(c.editor.legenda, st);
     const m = (st.marca || "").trim(), marca = m && !/^\[.*\]$/.test(m) ? m : null;
     return marca ? sel.t.carrossel.legenda.replaceAll("[nome da loja]", marca).replaceAll("[nome do negócio]", marca) : sel.t.carrossel.legenda;
   };
-  montarEditorCompleto($("#editor-completo"), modeloDoTema(sel.t), { nome: sel.t.carrossel.nome.replace(/\[|\]/g, ""), numero: k + 1, exemplo: principal ? c.editor.exemplo : null, legenda, toast });
+  const modelo = aplicarLayout(modeloDoTema(sel.t), sel.t.id);
+  const exemplo = comModelo ? { marca: comModelo.marca, telas: comModelo.telas } : principal ? c.editor.exemplo : null;
+  montarEditorCompleto($("#editor-completo"), modelo, { nome: sel.t.carrossel.nome.replace(/\[|\]/g, ""), numero: k + 1, exemplo, legenda, toast,
+    cores: comModelo ? COLECOES[comModelo.colecao].cores : null });
 }
 
 /* ---------- rotas ---------- */
@@ -319,6 +407,7 @@ function rota() {
   if (h.startsWith("testar")) return { tela: "testar", id: h.split("/")[1] || (campanhaDoPublico(estado.publico) || {}).id };
   if (h === "experimentar") return { tela: "testar", id: "presentes-por-orcamento" };
   if (h === "area") return { tela: "area" };
+  if (h === "galeria" || h.startsWith("galeria/")) return { tela: "galeria", id: h.split("/")[1] || "" };
   if (h === "demo") return { tela: "campanha", id: "presentes-por-orcamento" };
   if (["campanhas", "gestao", "dentro"].includes(h)) return { tela: "inicio", ancora: h };
   return { tela: "inicio" };
@@ -332,21 +421,28 @@ function render(rolar = true) {
   const chave = r.tela + (r.id || "") + (r.plano || ""), mesma = telaAtual === chave;
   if (!mesma || !rolar) {
     montados.forEach(m => m && m.destruir && m.destruir()); montados = [];
-    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "testar" ? viewTestar(r.id) : r.tela === "area" ? viewArea() : viewInicio();
+    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "testar" ? viewTestar(r.id) : r.tela === "area" ? viewArea() : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
+    if (r.tela === "galeria") montarGaleria(r.id);
     if (r.tela === "inicio") animou = true; // a animação da capa acontece uma vez por visita
     if (r.tela === "campanha" && $("#carrossel")) {
       const demo = DEMOS[r.id]; let fmts = null;
-      const car = montarCarrossel($("#carrossel"), demo, { aoMudar: i => fmts && fmts.escolher(i) });
+      const mod = r.id === "presentes-por-orcamento" && MODELOS["faixa-de-preco"];
+      const car = montarCarrossel($("#carrossel"), demo, { aoMudar: i => fmts && fmts.escolher(i), telas: mod ? mod.telas : undefined, marca: mod ? mod.marca : undefined });
       fmts = montarFormatos($("#formatos"), demo, { aoMudar: i => car.irParaProduto(i) });
       montados.push(car, fmts);
+      preencherCapas(temaPorId(SITE, r.id));
     }
-    if (r.tela === "testar") montarAmostra($("#amostra-editor"), DEMOS[$("#amostra-editor").dataset.tema] || DEMO_HERO, { toast });
+    if (r.tela === "testar" && $("#editor-teste")) {
+      const mid = $("#editor-teste").dataset.testeModelo, m = MODELOS[mid];
+      montarEditorCompleto($("#editor-teste"), { marca: m.marca, telas: m.telas }, { nome: m.nome, numero: m.ordem, exemplo: { marca: m.marca, telas: m.telas }, amostra: true, legenda: legendaDoModelo(m), toast, cores: COLECOES[m.colecao].cores });
+    } else if (r.tela === "testar") montarAmostra($("#amostra-editor"), DEMOS[$("#amostra-editor").dataset.tema] || DEMO_HERO, { toast });
     if (r.tela === "area" && estado.area && estado.area.campanha) montarEditorDaArea();
   }
   telaAtual = chave;
   document.querySelectorAll(".menu a").forEach(a => a.classList.toggle("on", (a.getAttribute("href") === "#campanhas" && (r.ancora === "campanhas" || r.tela === "campanha")) || (a.getAttribute("href") === "#gestao" && r.ancora === "gestao")));
   if (!rolar) return;
   const suave = mesma && !matchMedia("(prefers-reduced-motion: reduce)").matches ? "smooth" : "auto";
+  if (r.tela === "galeria" && r.id && $("#sequencia")) { requestAnimationFrame(() => $("#sequencia").scrollIntoView({ behavior: "auto" })); return; }
   if (r.tela === "campanha" && estado.rolarPlanos) { estado.rolarPlanos = false; requestAnimationFrame(() => $("#planos")?.scrollIntoView({ behavior: "auto" })); }
   else if (r.ancora) requestAnimationFrame(() => document.getElementById(r.ancora)?.scrollIntoView({ behavior: suave }));
   else scrollTo(0, 0);
