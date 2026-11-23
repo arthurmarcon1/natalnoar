@@ -1,8 +1,7 @@
 /* Demonstração pública de Presentes por orçamento. Fotos de exemplo LIMPAS (sem marca-d'água).
    - montarCarrossel: carrossel preenchido, desliza com o dedo e mostra parte do próximo cartão.
    - montarFormatos: Reel (cenas do roteiro) e Stories (enquete → produto escolhido). */
-import { desenharTela, carregarFontes, W, H } from "./render.js";
-import { fotoDeArquivo } from "./editor.js";
+import { desenharExemplo, W, H } from "./render.js";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const calmo = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -14,8 +13,8 @@ export const telasDaDemo = demo => [
 ];
 
 /* ---------------- carrossel ---------------- */
-export function montarCarrossel(raiz, demo, { aoMudar } = {}) {
-  const telas = telasDaDemo(demo);
+export function montarCarrossel(raiz, demo, { aoMudar, telas: telasModelo, marca } = {}) {
+  const telas = telasModelo || telasDaDemo(demo), nomeMarca = marca || demo.marca;
   raiz.innerHTML = `
     <div class="carrossel" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Carrossel de exemplo: ${telas.length} telas">
       ${telas.map((t, i) => `<figure class="car-item" data-i="${i}"><canvas width="${W}" height="${H}" role="img" aria-label="Tela ${i + 1} de ${telas.length}: ${esc(t.texto)} ${esc(t.preco)}"></canvas></figure>`).join("")}
@@ -44,13 +43,7 @@ export function montarCarrossel(raiz, demo, { aoMudar } = {}) {
   itens.forEach(el => obs.observe(el));
   raiz.addEventListener("click", e => { const b = e.target.closest("[data-car]"); if (b) ir(atual + +b.dataset.car); });
   trilho.addEventListener("keydown", e => { if (e.key === "ArrowRight") { e.preventDefault(); ir(atual + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); ir(atual - 1); } });
-  (async () => {
-    await carregarFontes();
-    await Promise.all(telas.map(async (t, i) => {
-      const f = await fotoDeArquivo(t.foto);
-      desenharTela(itens[i].querySelector("canvas"), t, { marca: demo.marca, foto: f && f.img, fw: f && f.w, fh: f && f.h, indice: i, total: telas.length, amostra: false });
-    }));
-  })();
+  telas.forEach((t, i) => desenharExemplo(itens[i].querySelector("canvas"), t, { marca: nomeMarca, indice: i, total: telas.length, amostra: false }));
   marcar(0);
   return { irParaProduto: i => ir(i + 1), destruir: () => obs.disconnect() };
 }
