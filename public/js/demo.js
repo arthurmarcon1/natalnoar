@@ -17,7 +17,7 @@ export function montarCarrossel(raiz, demo, { aoMudar, telas: telasModelo, marca
   const telas = telasModelo || telasDaDemo(demo), nomeMarca = marca || demo.marca;
   raiz.innerHTML = `
     <div class="carrossel" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Carrossel de exemplo: ${telas.length} telas">
-      ${telas.map((t, i) => `<figure class="car-item" data-i="${i}"><canvas width="${W}" height="${H}" role="img" aria-label="Tela ${i + 1} de ${telas.length}: ${esc(t.texto)} ${esc(t.preco)}"></canvas></figure>`).join("")}
+      ${telas.map((t, i) => `<figure class="car-item" data-i="${i}"><canvas width="${W}" height="${H}" role="img" aria-label="Tela ${i + 1} de ${telas.length}: ${esc(t.c ? Object.values(t.c).slice(0, 3).join(" · ").replace(/\*/g, "") : `${t.texto} ${t.preco}`)}"></canvas></figure>`).join("")}
     </div>
     <div class="car-rodape">
       <div class="car-pontos" aria-hidden="true">${telas.map((_, i) => `<span data-p="${i}"></span>`).join("")}</div>

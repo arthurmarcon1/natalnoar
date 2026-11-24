@@ -1,7 +1,7 @@
 /* Desenha uma tela do carrossel em <canvas> 1080 × 1350 (4:5, Instagram).
    A prévia e o PNG exportado saem do mesmo desenho. */
 import { coverRect, ajustarTexto } from "./logic.js";
-import { desenharModelo, temLayout } from "./modelos.js";
+import { desenharEstudio, carregarPar } from "./estudio.js";
 
 export const W = 1080, H = 1350;
 // iOS 15 e navegadores antigos não têm roundRect no canvas
@@ -79,7 +79,6 @@ function sombraTexto(ctx, on) { ctx.shadowColor = on ? "rgba(0,0,0,.35)" : "tran
 export function desenharTela(canvas, tela, o) {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
-  if (temLayout(tela)) { ctx.clearRect(0, 0, W, H); desenharModelo(ctx, tela, o); return; }
   ctx.save(); ctx.clearRect(0, 0, W, H);
 
   // 1. Foto em "cover" (ou espaço para a foto)
@@ -195,6 +194,12 @@ export function fotoDeArquivo(caminho) {
 }
 /* desenha uma tela de exemplo (fotos por caminho) num canvas */
 export async function desenharExemplo(canvas, tela, o) {
+  if (tela.l && tela.estilo) { // tela do estúdio (catálogo): fotos por caminho + estilo da coleção
+    const [imgs] = await Promise.all([Promise.all((tela.f || []).map(fotoDeArquivo)), carregarPar(tela.estilo.par), carregarFontes()]);
+    canvas.width = W; canvas.height = H;
+    desenharEstudio(canvas.getContext("2d"), tela, tela.estilo, { marca: o.marca, imgs, ajustes: tela.aj || [], amostra: false });
+    return;
+  }
   await carregarFontes();
   const [f, f2] = await Promise.all([fotoDeArquivo(tela.foto), fotoDeArquivo(tela.foto2)]);
   desenharTela(canvas, tela, { ...o, foto: f && f.img, fw: f && f.w, fh: f && f.h, ajuste: tela.ajuste, foto2: f2 && f2.img, fw2: f2 && f2.w, fh2: f2 && f2.h, ajuste2: tela.ajuste2 });

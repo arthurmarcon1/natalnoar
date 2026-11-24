@@ -1,13 +1,12 @@
 import { SITE } from "../config.js";
 import { DEMOS } from "../amostra/index.js";
 import {
-  fmtBRL, temasDoPublico, publicoPorId, temaPorId, estadoCompra, linkContato, modeloDoTema, legendaEditor,
-  planoPorId, planoPadrao, pecasDoPlano, entregasDoPlano, carrosseisLiberados
+  fmtBRL, temasDoPublico, publicoPorId, temaPorId, estadoCompra, linkContato,
+  planoPorId, planoPadrao, pecasDoPlano, entregasDoPlano
 } from "./logic.js";
-import { montarAmostra, montarEditorCompleto } from "./editor.js";
-import { montarCarrossel, montarFormatos, telasDaDemo } from "./demo.js";
-import { MODELOS, PILOTOS, modelosDaColecao, aplicarLayout, CAPA_CAMPANHA, CAPAS_NIVEIS } from "../amostra/modelos.js";
-import { COLECOES } from "./modelos.js";
+import { montarEstudio } from "./estudio-editor.js";
+import { montarCarrossel, montarFormatos } from "./demo.js";
+import { CATALOGO, GRUPOS, COLECOES, carrosseisDoNivel, estiloOriginal, marcaExemplo } from "../catalogo/index.js";
 import { miniatura } from "./render.js";
 
 const $ = s => document.querySelector(s);
@@ -26,7 +25,7 @@ const ses = (() => { try { return sessionStorage; } catch { return null; } })();
 const estado = {
   publico: publicoPorId(SITE, guardado.get("nna-publico", "loja")) ? guardado.get("nna-publico", "loja") : "loja",
   plano: planoPorId(SITE, ses && guardado.get("nna-plano", "", ses)) ? guardado.get("nna-plano", "", ses) : planoPadrao(SITE).id,
-  item: 0, cal: null, area: null, rolarPlanos: false
+  carrArea: null, cal: null, area: null, rolarPlanos: false
 };
 const DEMO_HERO = DEMOS["presentes-por-orcamento"];
 let montados = [], animou = false;
@@ -44,12 +43,11 @@ function botaoComprar(tema, plano, extra = "") {
 }
 
 /* ---------- planos ---------- */
-/* capas reais dos carrosséis da campanha (miniaturas desenhadas pelos próprios modelos) */
-function capasDoTema(tema) {
-  const col = modelosDaColecao("presentes");
-  if (tema && tema.id === "presentes-por-orcamento" && col.length) return col.map(m => ({ tela: m.telas[0], marca: m.marca, nome: m.nome }));
-  const d = DEMOS[tema && tema.id] || DEMO_HERO;
-  return telasDaDemo(d).map(t => ({ tela: t, marca: d.marca, nome: t.texto }));
+/* capas reais do catálogo (desenhadas pelo próprio motor do editor) */
+const telaCat = (campId, x, i = 0) => ({ ...x.telas[i], estilo: estiloOriginal(campId, x) });
+function capaCat(campId, carrId, largura) {
+  const c = CATALOGO[campId], x = c && (c.carrosseis.find(y => y.id === carrId) || c.carrosseis[0]);
+  return x ? miniatura(telaCat(campId, x), { marca: marcaExemplo(campId, x) }, largura).catch(() => "") : Promise.resolve("");
 }
 function planoCard(p) {
   const on = p.id === estado.plano;
@@ -62,14 +60,9 @@ function planoCard(p) {
   </div>`;
 }
 async function preencherCapas(tema) {
-  const capas = capasDoTema(tema), niveis = CAPAS_NIVEIS[tema && tema.id];
-  const mini = (t, marca) => miniatura(t, { marca }, 220).catch(() => "");
-  const [base, extras, virada] = await Promise.all([
-    Promise.all(capas.map(c => mini(c.tela, c.marca))),
-    niveis ? Promise.all(niveis.extras.map(t => mini(t, niveis.marca))) : [],
-    niveis ? Promise.all(niveis.reveillon.map(t => mini(t, niveis.marca))) : []
-  ]);
-  const imgs = (urls, cls = "") => urls.filter(Boolean).map(u => `<img class="${cls}" src="${u}" alt="">`).join("");
+  const c = tema && CATALOGO[tema.id]; if (!c) return;
+  const [base, extras, virada] = await Promise.all([1, 2, 3].map(n => Promise.all(c.carrosseis.filter(x => x.nivel === n).map(async x => ({ x, u: await capaCat(c.id, x.id, 220) })))));
+  const imgs = (lista, cls = "") => lista.filter(v => v.u).map(({ x, u }) => `<a href="#editar/${c.id}/${x.id}" data-capa-link title="Abrir no editor: ${esc(x.nome)}"><img class="${cls}" src="${u}" alt="${esc(x.nome)}"></a>`).join("");
   document.querySelectorAll("[data-capas]").forEach(box => {
     const n = +box.dataset.capas;
     box.innerHTML = n === 1 ? imgs(base)
@@ -155,8 +148,8 @@ function vitrinePop() {
         <div class="vp-foto"><img src="${esc(p.foto)}" alt="Foto de produto: ${esc(p.nome)}"><figcaption class="vp-cap"><b>${esc(p.nome)}</b><span class="vp-preco">${esc(p.preco)}</span></figcaption></div>
         <div class="vp-rodape">♡ ◯ ➤</div>
       </figure>
-      <figure class="vp-card" data-pos="1" data-i="1"><img data-vp-mini="cada-estilo" alt="Tela de carrossel: um presente para cada estilo"></figure>
-      <figure class="vp-card" data-pos="2" data-i="2"><img data-vp-mini="favorito-da-loja" alt="Tela de carrossel: o favorito da loja"></figure>
+      <figure class="vp-card" data-pos="1" data-i="1"><img data-vp-mini="cara-dela" alt="Capa de carrossel: É a cara dela."></figure>
+      <figure class="vp-card" data-pos="2" data-i="2"><img data-vp-mini="ate-100" alt="Capa de carrossel: 5 presentes até R$ 100"></figure>
     </div>
     <span class="selo-pronto">pronto pra postar</span>
     ${estrela("", "left:2%;top:8%;--t2:30px")}${estrela("rosa", "right:6%;bottom:22%;--t2:22px")}${estrela("", "left:10%;bottom:16%;--t2:16px")}
@@ -166,7 +159,7 @@ function vitrinePop() {
 function montarVitrinePop() {
   const vp = $("#vitrine-pop"); if (!vp) return null;
   const cartoes = [...vp.querySelectorAll(".vp-card")];
-  vp.querySelectorAll("[data-vp-mini]").forEach(img => { const m = MODELOS[img.dataset.vpMini]; miniatura(m.telas[0], { marca: m.marca }, 420).then(u => { img.src = u; }); });
+  vp.querySelectorAll("[data-vp-mini]").forEach(img => capaCat("presentes-por-orcamento", img.dataset.vpMini, 420).then(u => { img.src = u; }));
   let ordem = [0, 1, 2];
   const aplicar = () => { ordem.forEach((c, pos) => cartoes[c].dataset.pos = pos); vp.querySelectorAll("[data-vp]").forEach(b => b.classList.toggle("on", +b.dataset.vp === ordem[0])); };
   const girar = dir => { ordem = dir > 0 ? [ordem[2], ordem[0], ordem[1]] : [ordem[1], ordem[2], ordem[0]]; aplicar(); };
@@ -225,7 +218,8 @@ function viewInicio() {
     <p class="pub-chamada">${esc(pub.chamada)}</p>
     <div class="camp-grade">${prontos.map(capaCampanhaHTML).join("")}</div>
     <p class="prep-t">Em preparação</p>
-    <ul class="lista-prep">${prep.map(t => `<li><div><b>${esc(t.nome)}</b>${t.paraQuem ? `<span>Para: ${esc(t.paraQuem)}</span>` : `<span>${esc(t.descricao)}</span>`}</div></li>`).join("")}</ul>
+    <ul class="lista-prep">${prep.map(t => `<li><div><b>${esc(t.nome)}</b>${t.paraQuem ? `<span>Para: ${esc(t.paraQuem)}</span>` : `<span>${esc(t.descricao)}</span>`}${CATALOGO[t.id] ? `<a class="link-modelos" href="#galeria/${t.id}">Ver os ${CATALOGO[t.id].carrosseis.length} carrosséis →</a>` : ""}</div></li>`).join("")}</ul>
+    <p class="ver-galeria"><a href="#galeria">Ver a galeria com todos os modelos →</a></p>
     ${verTudo(demoPub, planoPadrao(SITE))}
   </section>
   ${fita("inverte")}
@@ -240,7 +234,7 @@ function viewInicio() {
   </section>`;
 }
 function montarCapasCampanhas() {
-  document.querySelectorAll("[data-capa-camp]").forEach(img => { const c = CAPA_CAMPANHA[img.dataset.capaCamp]; if (c) miniatura(c.tela, { marca: c.marca }, 540).then(u => { img.src = u; }); });
+  document.querySelectorAll("[data-capa-camp]").forEach(img => capaCat(img.dataset.capaCamp, null, 540).then(u => { img.src = u; }));
 }
 
 /* ---------- campanha ---------- */
@@ -257,8 +251,8 @@ function viewCampanha(id) {
       <div id="carrossel" data-painel-prev="carrossel"></div>
       <div id="formatos" class="demo" data-painel-prev="formatos" hidden></div>
     </div>
-    ${MODELOS["faixa-de-preco"] && tema.id === "presentes-por-orcamento" ? `<p class="ver-galeria"><a href="#galeria">Ver os 5 carrosséis desta campanha →</a></p>` : ""}
-    <div class="acoes"><button type="button" class="btn grande" data-ir-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></button><a class="btn grande ghost" href="#testar/${tema.id}">Testar com a minha foto</a></div>
+    ${CATALOGO[tema.id] ? `<p class="ver-galeria"><a href="#galeria/${tema.id}">Ver os ${CATALOGO[tema.id].carrosseis.length} carrosséis desta campanha →</a></p>` : ""}
+    <div class="acoes"><button type="button" class="btn grande" data-ir-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></button><a class="btn grande ghost" href="#editar/${tema.id}/${CATALOGO[tema.id] ? CATALOGO[tema.id].previa : ""}">Testar com a minha foto</a></div>
   </section>
   ${fita()}
   ${secaoPlanos(tema)}
@@ -299,89 +293,76 @@ function viewPedido(id, planoId) {
   </section>`;
 }
 
-/* ---------- teste grátis ---------- */
-/* modelo de carrossel para testar: id de modelo (#testar/duplas) ou campanha com modelos (#testar/presentes-por-orcamento) */
-const modeloParaTeste = id => MODELOS[id] ? id : id === "presentes-por-orcamento" ? "faixa-de-preco" : null;
-function viewTestar(id) {
-  const mid = modeloParaTeste(id);
-  if (mid) {
-    const m = MODELOS[mid];
-    return `
-  <section class="wrap topo-pag">
-    <a class="link voltar" href="#galeria/${mid}">← ${esc(m.nome)}</a>
-    <h1>Teste com a sua foto</h1>
-    <p class="lede">Este é o carrossel <b>${esc(m.nome)}</b>. Troque fotos, marca, textos, cor e preços. As fotos ficam só no seu celular.</p>
-  </section>
-  <section class="wrap" id="editor-teste" data-teste-modelo="${mid}"></section>
-  <section class="wrap bloco">
-    <div class="acoes"><a class="btn grande" href="#campanha/presentes-por-orcamento" data-voltar-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></a></div>
-    <p class="hint">Com fotos de exemplo, as telas saem limpas. Com a sua foto, o teste grátis leva a marca AMOSTRA. Em qualquer plano pago, tudo sai sem marca-d'água.</p>
-  </section>`;
-  }
-  const tema = temaPorId(SITE, id) || campanhaDoPublico(estado.publico);
+/* ---------- editor (teste grátis): abre exatamente a composição escolhida ---------- */
+function viewEditar(campId, carrId) {
+  const c = CATALOGO[campId], tema = temaPorId(SITE, campId);
+  if (!c) return `<section class="wrap topo-pag"><h1>Modelo não encontrado</h1><a class="btn" href="#galeria">Ver a galeria</a></section>`;
+  const x = c.carrosseis.find(y => y.id === carrId) || c.carrosseis[0], pronta = tema && tema.status === "disponivel";
   return `
   <section class="wrap topo-pag">
-    <a class="link voltar" href="#campanha/${tema.id}">← ${esc(tema.nome)}</a>
+    <a class="link voltar" href="#galeria/${c.id}">← ${esc(COLECOES[c.id].nome)}: todos os carrosséis</a>
     <h1>Teste com a sua foto</h1>
-    <p class="lede">Troque a foto, o nome e o preço. A foto fica só no seu celular.</p>
+    <p class="lede">Troque fotos, marca ou logo, textos, preços, cores e fontes. Tudo fica salvo neste aparelho.</p>
   </section>
-  <section class="wrap" id="amostra-editor" data-tema="${tema.id}"></section>
+  <section class="wrap" id="estudio" data-camp="${c.id}" data-carr="${x.id}"></section>
   <section class="wrap bloco">
-    <div class="acoes"><a class="btn grande" href="#campanha/${tema.id}" data-voltar-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></a></div>
-    <p class="hint">Em qualquer plano você edita as peças compradas e baixa tudo sem marca-d'água.</p>
+    <div class="acoes">${pronta ? `<a class="btn grande" href="#campanha/${c.id}" data-voltar-planos><span>Ver planos · ${semQuebra(aPartirMin)}</span></a>` : `<p class="aviso">Esta campanha está em preparação: dá para testar os carrosséis, mas a compra abre quando o kit completo (Reels, Stories e calendário) estiver pronto.</p>`}</div>
+    <p class="hint">Com fotos de exemplo, as telas saem limpas. Com a sua foto, o teste grátis leva a marca AMOSTRA. No plano comprado, tudo sai sem marca-d'água.</p>
   </section>`;
 }
-const legendaDoModelo = m => st => { const marca = (st.marca || "").trim(); return marca && marca !== m.marca ? m.legenda.replaceAll(m.marca, marca) : m.legenda; };
 
-/* ---------- galeria de modelos (revisão da direção visual) ---------- */
-function identidadeHTML(col) {
-  const paleta = Object.values(col.paleta).concat(col.cores.map(c => c.hex));
-  return `<div class="ident">
-    <div class="ident-cores" aria-label="Paleta">${[...new Set(paleta)].map(h => `<span style="background:${h}" title="${h}"></span>`).join("")}</div>
-    <dl><dt>Tipografia</dt><dd>${esc(col.tipografia)}</dd><dt>Fotos</dt><dd>${esc(col.fotos)}</dd><dt>Elementos</dt><dd>${esc(col.elementos)}</dd></dl>
-  </div>`;
-}
+/* ---------- galeria: as capas reais dos 110 carrosséis ---------- */
 function viewGaleria(id) {
-  const lista = modelosDaColecao("presentes"), m = id && MODELOS[id], col = COLECOES.presentes, piloto = PILOTOS["por-tras-do-resultado"];
+  const pubs = SITE.publicos.map(p => ({ p, camps: p.temas.map(t => ({ t, c: CATALOGO[t.id] })).filter(x => x.c) }));
+  const total = Object.values(CATALOGO).reduce((s, c) => s + c.carrosseis.length, 0);
   return `
   <section class="wrap topo-pag galeria-top">
-    <p class="eyebrow">Galeria para revisão</p>
-    <h1>Os 5 carrosséis de <em>Presentes por orçamento</em></h1>
-    <p class="lede">Cada um com 4 telas editáveis e legenda própria. Toque numa capa para ver a sequência e editar.</p>
+    <p class="eyebrow">Galeria de modelos</p>
+    <h1>${total} carrosséis, <em>10 coleções</em></h1>
+    <p class="lede">Cada carrossel tem 4 telas editáveis e legenda própria. Toque numa capa para abrir aquela composição no editor.</p>
+    <nav class="gal-nav" aria-label="Campanhas">${pubs.map(({ p, camps }) => `<p class="grupo-t">${p.id === "loja" ? "Lojistas" : "Prestadoras de serviço"}</p><div class="chips">${camps.map(({ t }) => `<a class="chip ${t.id === id ? "on" : ""}" href="#galeria/${t.id}">${esc(t.nome)}</a>`).join("")}</div>`).join("")}</nav>
   </section>
-  ${m ? `<section class="wrap seq" id="sequencia" aria-labelledby="seq-t">
-    <div class="seq-cab"><span class="seq-n">${m.ordem}</span><div><h2 id="seq-t" class="sub-t">${esc(m.nome)}</h2><p class="hint">${esc(m.ideia)}</p></div></div>
-    <div id="seq-carrossel"></div>
-    <div class="seq-leg"><div class="lb-cab"><b>Legenda</b><button type="button" class="btn ghost sm" data-copiar="seq-legenda">Copiar legenda</button></div><p id="seq-legenda">${multi(m.legenda)}</p></div>
-    <div class="acoes"><a class="btn grande" href="#testar/${id}">Editar este modelo</a><a class="btn grande ghost" href="#galeria">Ver as 5 capas</a></div>
-  </section>` : ""}
-  <section class="wrap bloco" aria-labelledby="gal-t">
-    <h2 id="gal-t" class="sub-t">Coleção ${esc(col.nome)}</h2>
-    ${identidadeHTML(col)}
-    <div class="gal-grade">${lista.map(x => `<a class="gal-item ${x.id === id ? "on" : ""}" href="#galeria/${x.id}">
-      <span class="gal-capa"><img data-mini="${x.id}" alt="Capa: ${esc(x.nome)}"></span>
-      <span class="gal-txt"><span class="gal-n">${x.ordem}</span><b>${esc(x.nome)}</b><span>${esc(x.ideia)}</span><span class="gal-abrir">Abrir sequência →</span></span></a>`).join("")}</div>
-  </section>
-  <section class="wrap bloco comparacao" aria-labelledby="cmp-t">
-    <h2 id="cmp-t" class="sub-t">Duas coleções, duas identidades</h2>
-    <p class="hint">Capa de Presentes por orçamento (lojistas) ao lado da capa-piloto de Por trás do resultado (prestadoras de serviço).</p>
-    <div class="cmp-grade">
-      <figure><img data-mini="faixa-de-preco" alt="Capa de Presentes por faixa de preço"><figcaption><b>${esc(col.nome)}</b> · ${esc(col.publico)}</figcaption>${identidadeHTML(col)}</figure>
-      <figure><img data-mini-piloto="por-tras-do-resultado" alt="Capa-piloto de Por trás do resultado"><figcaption><b>${esc(piloto.nome)}</b> · ${esc(COLECOES.bastidores.publico)} <span class="selo prep">Piloto</span></figcaption>${identidadeHTML(COLECOES.bastidores)}</figure>
-    </div>
-  </section>`;
+  ${pubs.map(({ camps }) => camps.map(({ t, c }) => {
+    const col = COLECOES[c.id], cores = [col.base.fundo, col.base.texto, col.base.destaque, col.base.papel];
+    return `<section class="wrap bloco gal-camp" id="gal-${c.id}" aria-labelledby="gt-${c.id}">
+      <div class="gal-cab"><div><h2 id="gt-${c.id}" class="sub-t">${esc(t.nome)}</h2>
+        <p class="hint">${t.publico === "loja" ? "Para lojistas" : `Para: ${esc(t.paraQuem || "prestadoras de serviço")}`} · ${t.status === "disponivel" ? `<span class="selo ok">À venda</span>` : `<span class="selo prep">Em preparação</span>`}</p></div>
+        <span class="ident-cores" aria-hidden="true">${cores.map(h => `<span style="background:${h}"></span>`).join("")}</span></div>
+      <p class="gal-ident">${esc(col.identidade)}</p>
+      ${GRUPOS.map(([n, g, plano]) => `<p class="grupo-t">${esc(g)} <span class="hint">· ${n === 1 ? plano : `entra no ${plano}`}</span></p>
+        <div class="gal-capas">${c.carrosseis.filter(x => x.nivel === n).map(x => `<a class="gal-capa" href="#editar/${c.id}/${x.id}" title="${esc(x.ideia)}"><img data-gal="${c.id}/${x.id}" alt="Capa: ${esc(x.nome)}" width="270" height="338"><span>${esc(x.nome)}</span></a>`).join("")}</div>`).join("")}
+    </section>`;
+  }).join("")).join("")}`;
 }
-async function montarGaleria(id) {
-  if (id && MODELOS[id]) {
-    const m = MODELOS[id];
-    montados.push(montarCarrossel($("#seq-carrossel"), DEMO_HERO, { telas: m.telas, marca: m.marca }));
-  }
-  for (const img of document.querySelectorAll("[data-mini]")) { const m = MODELOS[img.dataset.mini]; miniatura(m.telas[0], { marca: m.marca }, 540).then(u => { img.src = u; }); }
-  for (const img of document.querySelectorAll("[data-mini-piloto]")) { const p = PILOTOS[img.dataset.miniPiloto]; miniatura(p.tela, { marca: p.marca }, 540).then(u => { img.src = u; }); }
+function montarGaleria(id) {
+  const imgs = [...document.querySelectorAll("[data-gal]")];
+  const carregar = img => { const [c, x] = img.dataset.gal.split("/"); capaCat(c, x, 360).then(u => { img.src = u; }); };
+  if (!("IntersectionObserver" in window)) { imgs.forEach(carregar); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); carregar(e.target); } }), { rootMargin: "400px 0px" });
+  imgs.forEach(i => io.observe(i));
+  montados.push({ destruir: () => io.disconnect() });
 }
 
 /* ---------- área da cliente ---------- */
 const TOKEN_K = "nna-acesso";
+/* conteúdo pago que acompanha o carrossel (Reel e Stories do mesmo tema, pela posição no plano) */
+function temaPagoDoCarrossel(c, campId, carrId) {
+  const x = CATALOGO[campId] && CATALOGO[campId].carrosseis.find(y => y.id === carrId); if (!x) return null;
+  const i = CATALOGO[campId].carrosseis.filter(y => y.nivel === x.nivel).indexOf(x);
+  return (x.nivel === 1 ? c.temas : x.nivel === 2 ? c.extras : c.reveillon && c.reveillon.temas || [])[i] || null;
+}
+function detalhesPagos(t) {
+  if (!t) return "";
+  return `<details class="kit-det" open><summary>Roteiro de Reel · ${marc(t.reel.nome)}</summary><div class="kit-det-corpo">
+      <p class="aviso-reel">Roteiro para você gravar (${esc(t.reel.duracao)}). Não é um vídeo pronto.</p>
+      <dl class="roteiro">
+        <dt>Abertura</dt><dd>${marc(t.reel.abertura)}</dd>
+        <dt>Cenas</dt><dd><ol>${t.reel.cenas.map(s => `<li>${marc(s.filmar)}<br><span class="tt">Texto na tela: “${marc(s.texto)}”</span></li>`).join("")}</ol></dd>
+        <dt>Legenda</dt><dd>${marc(t.reel.legenda)}</dd><dt>Chamada final</dt><dd>${marc(t.reel.chamadaFinal)}</dd><dt>Sem aparecer</dt><dd>${marc(t.reel.semAparecer)}</dd>
+      </dl></div></details>
+    ${t.stories ? `<details class="kit-det"><summary>Stories · ${marc(t.stories.nome)}</summary><div class="kit-det-corpo">
+      <ol class="stories-txt">${t.stories.telas.map((s, i) => `<li><span class="n">Tela ${i + 1}</span><b>${marc(s.texto)}</b><span>Mostre: ${marc(s.mostrar)}</span><small>${marc(s.recurso)}</small></li>`).join("")}</ol></div></details>` : ""}`;
+}
 function viewArea() {
   const a = estado.area;
   if (!guardado.get(TOKEN_K, "")) return `
@@ -391,39 +372,23 @@ function viewArea() {
   if (!a || a.carregando) return `<section class="wrap topo-pag"><p class="eyebrow">Área da cliente</p><h1>Abrindo sua campanha…</h1></section>`;
   if (a.erro) return `<section class="wrap topo-pag"><p class="eyebrow">Área da cliente</p><h1>Não foi possível abrir</h1><p class="lede">${esc(a.erro)}</p>
       <button type="button" class="btn ghost" data-sair>Remover acesso deste aparelho</button></section>`;
-  const c = a.campanha, plano = a.plano, lista = carrosseisLiberados(c);
-  const sel = lista[Math.min(estado.item, lista.length - 1)], t = sel.t;
+  const c = a.campanha, plano = a.plano, n = carrosseisDoNivel(c.id, plano.nivel).length;
   const cals = [["dez", "10 dias", c.calendario.dez], ["quinze", "15 dias", c.calendario.quinze], ["expressa", "Expressa: 3 dias", c.calendario.expressa], ["reveillon", "Réveillon: 5 dias", c.reveillon && c.reveillon.calendario]]
     .filter(([k, , v]) => v && !(k === "dez" && c.calendario.quinze));
   if (!cals.some(([k]) => k === estado.cal)) estado.cal = cals[0][0];
-  const grupos = [...new Set(lista.map(x => x.grupo))];
   return `
   <section class="wrap topo-pag">
     <p class="eyebrow">Área da cliente · ${esc(plano.nome)} · acesso até ${new Date(a.acesso.expira).toLocaleDateString("pt-BR")}</p>
     <h1>${esc(c.nome)}</h1>
-    <p class="hint">${plano.carrosseis} carrosséis, ${plano.roteiros} roteiros de Reels e ${plano.stories} sequências de Stories liberados.</p>
+    <p class="hint">${n} carrosséis, ${plano.roteiros} roteiros de Reels e ${plano.stories} sequências de Stories liberados. Tudo sai sem marca-d'água.</p>
   </section>
-  <section class="wrap bloco" aria-labelledby="car-t">
-    <h2 id="car-t" class="sub-t">${lista.length} carrosséis</h2>
-    ${grupos.map(g => `<p class="grupo-t">${g === "Natal" ? "Natal" : g === "Tema extra" ? "Temas extras" : "Réveillon"}</p>
-      <div class="chips" role="tablist" aria-label="${esc(g)}">${lista.map((x, k) => x.grupo !== g ? "" : `<button type="button" role="tab" class="chip ${k === estado.item ? "on" : ""}" data-item="${k}" aria-selected="${k === estado.item}">${k + 1}. ${esc(x.t.nome)}</button>`).join("")}</div>`).join("")}
-    <p class="ideia"><b>${esc(t.nome)}.</b> ${esc(t.ideia)} <span class="hint">Fotografe: ${esc(t.fotografar)}</span></p>
-    <div id="editor-completo"></div>
-  </section>
+  <section class="wrap bloco" aria-label="Carrosséis"><div id="estudio-kit"></div></section>
   <section class="wrap bloco">
-    <details class="kit-det" open><summary>Roteiro de Reel · ${marc(t.reel.nome)}</summary><div class="kit-det-corpo">
-      <p class="aviso-reel">Roteiro para você gravar (${esc(t.reel.duracao)}). Não é um vídeo pronto.</p>
-      <dl class="roteiro">
-        <dt>Abertura</dt><dd>${marc(t.reel.abertura)}</dd>
-        <dt>Cenas</dt><dd><ol>${t.reel.cenas.map(s => `<li>${marc(s.filmar)}<br><span class="tt">Texto na tela: “${marc(s.texto)}”</span></li>`).join("")}</ol></dd>
-        <dt>Legenda</dt><dd>${marc(t.reel.legenda)}</dd><dt>Chamada final</dt><dd>${marc(t.reel.chamadaFinal)}</dd><dt>Sem aparecer</dt><dd>${marc(t.reel.semAparecer)}</dd>
-      </dl></div></details>
-    ${t.stories ? `<details class="kit-det"><summary>Stories · ${marc(t.stories.nome)}</summary><div class="kit-det-corpo">
-      <ol class="stories-txt">${t.stories.telas.map((s, i) => `<li><span class="n">Tela ${i + 1}</span><b>${marc(s.texto)}</b><span>Mostre: ${marc(s.mostrar)}</span><small>${marc(s.recurso)}</small></li>`).join("")}</ol></div></details>` : ""}
+    <div id="pagos-do-tema">${detalhesPagos(temaPagoDoCarrossel(c, c.id, estado.carrArea))}</div>
     <details class="kit-det"><summary>3 mensagens de WhatsApp</summary><div class="kit-det-corpo">
       <div class="msgs">${c.whatsapp.map((m, i) => `<article class="msg"><b>${esc(m.titulo)}</b><span class="hint">${esc(m.quando)}</span><p id="wa${i}">${marc(m.texto)}</p><button type="button" class="btn ghost sm" data-copiar="wa${i}">Copiar mensagem</button></article>`).join("")}</div></div></details>
     <details class="kit-det"><summary>Calendário</summary><div class="kit-det-corpo">
-      <div class="chips" role="tablist" aria-label="Calendário">${cals.map(([k, n]) => `<button type="button" role="tab" class="chip ${k === estado.cal ? "on" : ""}" data-cal="${k}" aria-selected="${k === estado.cal}">${n}</button>`).join("")}</div>
+      <div class="chips" role="tablist" aria-label="Calendário">${cals.map(([k, nn]) => `<button type="button" role="tab" class="chip ${k === estado.cal ? "on" : ""}" data-cal="${k}" aria-selected="${k === estado.cal}">${nn}</button>`).join("")}</div>
       ${cals.map(([k, , dias]) => `<ol class="cal" data-calv="${k}" ${k === estado.cal ? "" : "hidden"}>${dias.map(d => `<li><span class="dia">Dia ${d.dia}</span><ul>${d.pecas.map(p => { const [tipo, ...nome] = p.split(": "); return `<li><span class="tipo">${esc(tipo)}</span> ${marc(nome.join(": "))}</li>`; }).join("")}</ul></li>`).join("")}</ol>`).join("")}
       <p class="hint">${esc(c.calendario.dica)}</p></div></details>
     <details class="kit-det"><summary>Tutorial</summary><div class="kit-det-corpo">
@@ -442,19 +407,11 @@ async function carregarArea() {
   } catch { estado.area = { erro: "Sem conexão. Tente de novo em instantes." }; }
   if (rota().tela === "area") render(false);
 }
-function montarEditorDaArea() {
-  const c = estado.area.campanha, lista = carrosseisLiberados(c), sel = lista[Math.min(estado.item, lista.length - 1)], k = lista.indexOf(sel);
-  const comModelo = MODELOS[sel.t.id];
-  const principal = !comModelo && sel.grupo === "Natal" && sel.i === 0 && c.editor;
-  const legenda = st => {
-    if (principal) return legendaEditor(c.editor.legenda, st);
-    const m = (st.marca || "").trim(), marca = m && !/^\[.*\]$/.test(m) ? m : null;
-    return marca ? sel.t.carrossel.legenda.replaceAll("[nome da loja]", marca).replaceAll("[nome do negócio]", marca) : sel.t.carrossel.legenda;
-  };
-  const modelo = aplicarLayout(modeloDoTema(sel.t), sel.t.id);
-  const exemplo = comModelo ? { marca: comModelo.marca, telas: comModelo.telas } : principal ? c.editor.exemplo : null;
-  montarEditorCompleto($("#editor-completo"), modelo, { nome: sel.t.carrossel.nome.replace(/\[|\]/g, ""), numero: k + 1, exemplo, legenda, toast,
-    cores: comModelo ? COLECOES[comModelo.colecao].cores : null });
+function montarEstudioDaArea() {
+  const c = estado.area.campanha, plano = estado.area.plano;
+  if (!CATALOGO[c.id]) return;
+  montados.push(montarEstudio($("#estudio-kit"), { campanha: c.id, carrossel: estado.carrArea, modo: "kit", nivel: plano.nivel, toast,
+    aoTrocar: id => { estado.carrArea = id; const box = $("#pagos-do-tema"); if (box) box.innerHTML = detalhesPagos(temaPagoDoCarrossel(c, c.id, id)); } }));
 }
 
 /* ---------- rotas ---------- */
@@ -463,8 +420,8 @@ function rota() {
   if (h.startsWith("acesso=")) return { tela: "acesso", token: h.slice(7) };
   if (h.startsWith("campanha/")) return { tela: "campanha", id: h.slice(9) };
   if (h.startsWith("pedido/")) { const [id, plano] = h.slice(7).split("/"); return { tela: "pedido", id, plano: plano || planoPadrao(SITE).id }; }
-  if (h.startsWith("testar")) return { tela: "testar", id: h.split("/")[1] || (campanhaDoPublico(estado.publico) || {}).id };
-  if (h === "experimentar") return { tela: "testar", id: "presentes-por-orcamento" };
+  if (h.startsWith("editar/")) { const [, id, carr] = h.split("/"); return { tela: "editar", id, carr: carr || "" }; }
+  if (h.startsWith("testar") || h === "experimentar") { const id = h.split("/")[1] || (campanhaDoPublico(estado.publico) || {}).id || "presentes-por-orcamento"; const c = CATALOGO[id]; return { tela: "editar", id: c ? id : "presentes-por-orcamento", carr: c ? c.previa : "" }; }
   if (h === "area") return { tela: "area" };
   if (h === "galeria" || h.startsWith("galeria/")) return { tela: "galeria", id: h.split("/")[1] || "" };
   if (h === "demo") return { tela: "campanha", id: "presentes-por-orcamento" };
@@ -474,37 +431,37 @@ function rota() {
 let telaAtual = null;
 function render(rolar = true) {
   const r = rota(), app = $("#app");
-  if (r.tela === "acesso") { guardado.set(TOKEN_K, r.token); estado.area = null; estado.item = 0; history.replaceState(null, "", "#area"); return render(); }
+  if (r.tela === "acesso") { guardado.set(TOKEN_K, r.token); estado.area = null; estado.carrArea = null; history.replaceState(null, "", "#area"); return render(); }
   if (r.tela === "area" && !estado.area && guardado.get(TOKEN_K, "")) carregarArea();
   if (r.tela === "pedido" && planoPorId(SITE, r.plano)) { estado.plano = r.plano; if (ses) guardado.set("nna-plano", r.plano, ses); }
-  const chave = r.tela + (r.id || "") + (r.plano || ""), mesma = telaAtual === chave;
+  const chave = r.tela + (r.id || "") + (r.plano || "") + (r.carr || ""), mesma = telaAtual === chave;
   if (!mesma || !rolar) {
     montados.forEach(m => m && m.destruir && m.destruir()); montados = [];
-    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "testar" ? viewTestar(r.id) : r.tela === "area" ? viewArea() : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
+    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "editar" ? viewEditar(r.id, r.carr) : r.tela === "area" ? viewArea() : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
     if (r.tela === "galeria") montarGaleria(r.id);
     if (r.tela === "inicio") { montados.push(montarVitrinePop()); montarCapasCampanhas(); animou = true; } // a abertura acontece uma vez por visita
     vidaNosDetalhes();
     if (r.tela === "campanha" && $("#carrossel")) {
-      const demo = DEMOS[r.id]; let fmts = null;
-      const mod = r.id === "presentes-por-orcamento" && MODELOS["faixa-de-preco"];
+      const demo = DEMOS[r.id], cat = CATALOGO[r.id], pv = cat && (cat.carrosseis.find(x => x.id === cat.previa) || cat.carrosseis[0]); let fmts = null;
       const marcarPm = i => document.querySelectorAll("[data-pm]").forEach(b => { const on = +b.dataset.pm === i; b.setAttribute("aria-checked", String(on)); b.classList.toggle("on", on); });
-      const car = montarCarrossel($("#carrossel"), demo, { aoMudar: i => { marcarPm(i); fmts && fmts.escolher(i); }, telas: mod ? mod.telas : undefined, marca: mod ? mod.marca : undefined });
+      const car = montarCarrossel($("#carrossel"), demo, { aoMudar: i => { marcarPm(i); fmts && fmts.escolher(i); }, telas: pv ? pv.telas.map((t, i) => telaCat(r.id, pv, i)) : undefined, marca: pv ? marcaExemplo(r.id, pv) : undefined });
       fmts = montarFormatos($("#formatos"), demo, { semControles: true, aoMudar: i => { marcarPm(i); car.irParaProduto(i); } });
       estado.previa = { car, fmts, marcarPm };
       montados.push(car, fmts);
       preencherCapas(temaPorId(SITE, r.id));
     }
-    if (r.tela === "testar" && $("#editor-teste")) {
-      const mid = $("#editor-teste").dataset.testeModelo, m = MODELOS[mid];
-      montarEditorCompleto($("#editor-teste"), { marca: m.marca, telas: m.telas }, { nome: m.nome, numero: m.ordem, exemplo: { marca: m.marca, telas: m.telas }, amostra: true, legenda: legendaDoModelo(m), toast, cores: COLECOES[m.colecao].cores });
-    } else if (r.tela === "testar") montarAmostra($("#amostra-editor"), DEMOS[$("#amostra-editor").dataset.tema] || DEMO_HERO, { toast });
-    if (r.tela === "area" && estado.area && estado.area.campanha) montarEditorDaArea();
+    if (r.tela === "editar" && $("#estudio")) {
+      const box = $("#estudio");
+      montados.push(montarEstudio(box, { campanha: box.dataset.camp, carrossel: box.dataset.carr, modo: "teste", nivel: 3, toast,
+        aoTrocar: id => { const h = `#editar/${box.dataset.camp}/${id}`; if (location.hash !== h) { history.replaceState(null, "", h); telaAtual = "editar" + box.dataset.camp + id; } } }));
+    }
+    if (r.tela === "area" && estado.area && estado.area.campanha) montarEstudioDaArea();
   }
   telaAtual = chave;
-  document.querySelectorAll(".menu a").forEach(a => a.classList.toggle("on", (a.getAttribute("href") === "#campanhas" && (r.ancora === "campanhas" || r.tela === "campanha")) || (a.getAttribute("href") === "#gestao" && r.ancora === "gestao")));
+  document.querySelectorAll(".menu a").forEach(a => a.classList.toggle("on", (a.getAttribute("href") === "#campanhas" && (r.ancora === "campanhas" || r.tela === "campanha")) || (a.getAttribute("href") === "#gestao" && r.ancora === "gestao") || (a.getAttribute("href") === "#galeria" && (r.tela === "galeria" || r.tela === "editar"))));
   if (!rolar) return;
   const suave = mesma && !matchMedia("(prefers-reduced-motion: reduce)").matches ? "smooth" : "auto";
-  if (r.tela === "galeria" && r.id && $("#sequencia")) { requestAnimationFrame(() => $("#sequencia").scrollIntoView({ behavior: "auto" })); return; }
+  if (r.tela === "galeria" && r.id && document.getElementById(`gal-${r.id}`)) { requestAnimationFrame(() => document.getElementById(`gal-${r.id}`).scrollIntoView({ behavior: "auto" })); return; }
   if (r.tela === "campanha" && estado.rolarPlanos) { estado.rolarPlanos = false; requestAnimationFrame(() => $("#planos")?.scrollIntoView({ behavior: "auto" })); }
   else if (r.ancora) requestAnimationFrame(() => document.getElementById(r.ancora)?.scrollIntoView({ behavior: suave }));
   else scrollTo(0, 0);
@@ -529,14 +486,13 @@ document.addEventListener("click", e => {
     if (f === "carrossel") estado.previa.fmts.destruir(); else estado.previa.fmts.mostrar(f);
     return;
   }
+  if (e.target.closest("[data-capa-link]")) return; // capa do plano abre a composição no editor
   const pl = e.target.closest("[data-plano]");
   if (pl) { aplicarPlano(pl.dataset.plano); return; }
   if (e.target.closest("[data-ir-planos]")) { $("#planos")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); return; }
   if (e.target.closest("[data-voltar-planos]")) estado.rolarPlanos = true;
   const pb = e.target.closest("[data-publico]");
   if (pb) { manter(() => { estado.publico = pb.dataset.publico; guardado.set("nna-publico", estado.publico); }); return; }
-  const it = e.target.closest("[data-item]");
-  if (it) { manter(() => { estado.item = +it.dataset.item; }); return; }
   const cl = e.target.closest("[data-cal]");
   if (cl) {
     estado.cal = cl.dataset.cal;
