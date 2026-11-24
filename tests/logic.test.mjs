@@ -295,41 +295,62 @@ test("editor completo: modelo de todos os carrosséis do maior plano", () => {
   assert.deepEqual(L.modeloDoTema(campanha.temas[0]).telas[0], { tipo: "capa", texto: "3 presentes até", preco: "R$ [valor]", apoio: "Arrasta pro lado →" });
 });
 
-test("modelos: 5 carrosséis-base de Presentes por orçamento, 4 telas e legenda própria cada", async () => {
-  const { MODELOS, PILOTOS, modelosDaColecao, aplicarLayout } = await import("../public/amostra/modelos.js");
-  const { LAYOUT_INFO, COLECOES } = await import("../public/js/modelos.js");
-  const lista = modelosDaColecao("presentes");
-  assert.deepEqual(lista.map(m => m.id), ["faixa-de-preco", "cada-estilo", "favorito-da-loja", "duplas", "ultimas-compras"]);
-  assert.deepEqual(lista.map(m => m.id), campanha.temas.map(t => t.id), "um modelo por tema da campanha, mesmos ids");
-  const capas = new Set(), legendas = new Set();
-  for (const m of lista) {
-    assert.equal(m.telas.length, 4, m.id);
-    for (const t of m.telas) {
-      assert.ok(LAYOUT_INFO[t.layout], `${m.id}: layout ${t.layout}`);
-      assert.ok(existsSync(new URL(`public/${t.foto}`, raiz)), t.foto);
-      if (LAYOUT_INFO[t.layout].fotos === 2) assert.ok(t.foto2 && existsSync(new URL(`public/${t.foto2}`, raiz)), `${m.id}: segunda foto`);
+test("catálogo: 10 campanhas × 11 carrosséis (5 + 3 + 3), 4 telas e legenda própria em cada", async () => {
+  const { CATALOGO, carrosseisDoNivel, legendaPreenchida, COLECOES, estiloOriginal } = await import("../public/catalogo/index.js");
+  const { LAYOUTS, PARES, ICONES } = await import("../public/js/estudio.js");
+  const temas = SITE.publicos.flatMap(p => p.temas);
+  assert.deepEqual(Object.keys(CATALOGO).sort(), temas.map(t => t.id).sort(), "uma coleção por tema da configuração");
+  let carrosseis = 0, telas = 0; const legendas = new Set(), identidades = new Set();
+  for (const [id, c] of Object.entries(CATALOGO)) {
+    assert.deepEqual([1, 2, 3].map(n => carrosseisDoNivel(id, n).length), [5, 8, 11], `${id}: 5 / 8 / 11 por plano`);
+    assert.equal(new Set(c.carrosseis.map(x => x.id)).size, 11, `${id}: ids únicos`);
+    assert.equal(new Set(c.carrosseis.map(x => x.telas[0].l)).size, 11, `${id}: as 11 capas têm composições diferentes`);
+    assert.ok(c.carrosseis.some(x => x.id === c.previa), `${id}: carrossel da prévia existe`);
+    const col = COLECOES[id]; assert.ok(col && PARES[col.base.par] && ICONES[col.base.icone] && col.cores.length >= 4, `${id}: identidade completa`);
+    identidades.add(JSON.stringify([col.base.fundo, col.base.par, col.base.moldura]));
+    for (const x of c.carrosseis) {
+      carrosseis++;
+      assert.ok(x.nome && x.ideia && [1, 2, 3].includes(x.nivel), `${id}/${x.id}: nome, ideia e nível`);
+      assert.equal(x.telas.length, 4, `${id}/${x.id}: 4 telas`);
+      assert.ok(x.telas[0].l.startsWith("capa-") && x.telas.slice(1).every(t => t.l.startsWith("int-")), `${id}/${x.id}: capa + 3 telas internas`);
+      for (const t of x.telas) {
+        telas++;
+        const lay = LAYOUTS[t.l]; assert.ok(lay, `${id}/${x.id}: composição ${t.l}`);
+        const chaves = lay.campos.map(([k]) => k);
+        for (const k of Object.keys(t.c)) assert.ok(chaves.includes(k), `${id}/${x.id}/${t.l}: campo ${k}`);
+        assert.equal((t.f || []).length, lay.fotos, `${id}/${x.id}/${t.l}: ${lay.fotos} foto(s)`);
+        for (const f of t.f || []) assert.ok(existsSync(new URL(`public/${f}`, raiz)), f);
+      }
+      assert.ok(x.legenda.length > 120 && /WhatsApp|direct|comentários/.test(x.legenda), `${id}/${x.id}: legenda com chamada`);
+      legendas.add(x.legenda);
+      const leg = legendaPreenchida(x, x.telas, "Minha Loja", c.marca);
+      assert.ok(!/\{[^}]*\}/.test(leg) && !/undefined/.test(leg), `${id}/${x.id}: legenda sem marcador sobrando`);
+      for (const [, n, k] of x.legenda.matchAll(/\{(\d)\.([a-z0-9]+)/gi)) assert.ok(x.telas[n - 1] && x.telas[n - 1].c[k] != null, `${id}/${x.id}: legenda cita {${n}.${k}}`);
+      if (x.nivel === 3) assert.notEqual(estiloOriginal(id, x).fundo, col.base.fundo, `${id}/${x.id}: Réveillon com variação própria`);
     }
-    capas.add(m.telas[0].layout); legendas.add(m.legenda);
-    assert.ok(m.legenda.length > 120 && /WhatsApp|direct/.test(m.legenda), `${m.id}: legenda com chamada`);
   }
-  assert.equal(capas.size, 5, "as 5 capas têm composições diferentes");
-  assert.equal(legendas.size, 5, "legenda própria em cada carrossel");
-  assert.ok(lista.find(m => m.id === "duplas").telas.every(t => LAYOUT_INFO[t.layout].fotos === 2), "duplas: duas fotos em todas as telas");
-  const fav = lista.find(m => m.id === "favorito-da-loja").telas.map(t => t.ajuste.zoom);
-  assert.ok(fav.every((z, i) => i === 0 || z < fav[i - 1]), "favorito: começa em close e abre a cada tela");
-  // piloto em outra coleção
-  const pl = PILOTOS["por-tras-do-resultado"];
-  assert.equal(LAYOUT_INFO[pl.tela.layout].colecao, "bastidores");
-  assert.notEqual(COLECOES.bastidores.paleta.fundo, COLECOES.presentes.paleta.papel);
-  // o kit pago usa as mesmas composições, com os marcadores
-  for (const t of campanha.temas) {
-    const m = aplicarLayout(L.modeloDoTema(t), t.id);
-    assert.deepEqual(m.telas.map(x => x.layout), MODELOS[t.id].telas.map(x => x.layout), t.id);
-    assert.ok(m.telas.some(x => /\[/.test(x.texto + x.preco + x.apoio)), `${t.id}: mantém os marcadores do kit`);
+  assert.equal(carrosseis, 110); assert.equal(telas, 440); assert.equal(legendas.size, 110, "110 legendas diferentes");
+  assert.equal(identidades.size, 10, "10 identidades visuais diferentes");
+  // legenda acompanha a edição
+  const x = CATALOGO["presentes-por-orcamento"].carrosseis[0], ed = x.telas.map(t => ({ c: { ...t.c } })); ed[0].c.valor = "R$ 150";
+  const leg = legendaPreenchida(x, ed, "Loja da Bia", "Ateliê Aurora");
+  assert.ok(leg.includes("5 presentes até R$ 150") && leg.includes("Loja da Bia") && !leg.includes("Ateliê Aurora"));
+  // Presentes por orçamento segue as decisões combinadas
+  const [p1, p2, p3, p4, p5] = CATALOGO["presentes-por-orcamento"].carrosseis;
+  assert.deepEqual([p1.telas[0].c.titulo, p1.telas[0].c.valor, p1.telas[0].c.rodape], ["5 presentes até", "R$ 100", "Seleção de Natal"]);
+  assert.ok(p1.telas[0].f[0].includes("elementos/caixa-presente"), "caixa de presente como elemento separado");
+  assert.deepEqual(p1.telas.slice(1).map(t => t.l), ["int-dois", "int-dois", "int-um"], "5 produtos em 2 + 2 + 1");
+  assert.equal(p2.telas[0].c.titulo, "É a cara *dela.*"); assert.ok(p2.telas[0].inv && p2.telas[0].l === "capa-tipo");
+  assert.ok(p3.telas[0].l === "capa-foto" && p3.telas[0].c.titulo.includes("{marca}"));
+  assert.ok(p4.telas.every(t => (t.f || []).length === 2), "duplas: duas fotos independentes em todas as telas");
+  assert.ok(p5.telas[0].l === "capa-calendario" && p5.telas.some(t => t.l === "int-prazo"));
+  // prévia da campanha: telas 2 a 4 = os 3 produtos da demonstração
+  for (const [cid, d] of [["presentes-por-orcamento", demo], ["seu-toque-nas-festas", demoServico]]) {
+    const c = CATALOGO[cid], pv = c.carrosseis.find(y => y.id === c.previa);
+    assert.deepEqual(pv.telas.slice(1).map(t => t.c.nome), d.produtos.map(p => p.nome), `${cid}: prévia alinhada aos produtos`);
+    assert.deepEqual(carrosseisDoNivel(cid, 2).slice(5).map(y => y.nome), d.extras, `${cid}: temas extras com os mesmos nomes do kit`);
+    assert.deepEqual(carrosseisDoNivel(cid, 3).slice(8).map(y => y.nome), d.reveillon, `${cid}: Réveillon com os mesmos nomes do kit`);
   }
-  const urg = aplicarLayout(L.modeloDoTema(campanha.temas[4]), "ultimas-compras");
-  assert.deepEqual([urg.telas[1].texto, urg.telas[1].preco], ["Entrega até", "[data]"], "data vai para a página do calendário");
-  assert.equal(aplicarLayout({ telas: [{ texto: "x" }] }, "nao-existe").telas[0].layout, undefined, "sem modelo, fica como está");
 });
 
 test("cartões dos planos: quantidades e frases exatas, sem contagem de peças", () => {

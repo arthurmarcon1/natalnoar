@@ -228,6 +228,7 @@ Ao final, entregue:
 - [x] Publicado em produção (Arthur pediu em 20/11/2026): https://natal-no-ar.vercel.app
 
 - [x] Redesenho aprovado e publicado (menos texto, animação da capa, carrossel em destaque, vitrine do kit) (21/11/2026)
+- [x] Catálogo completo: 110 carrosséis editáveis em 10 coleções, editor em camadas com estilo em lote e edições salvas (24/11/2026)
 - [x] Demonstração interativa (3 produtos × Carrossel/Reel/Stories), "Testar com a minha foto" com marca-d'água AMOSTRA, trechos públicos e área da cliente protegida (20/11/2026)
 
 ### Pendências do Arthur para abrir as vendas
@@ -236,7 +237,8 @@ Ao final, entregue:
 - Trocar as fotos provisórias de `public/assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
 - Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
 - Revisar os textos da campanha em `private/campanhas/presentes-por-orcamento.js`.
-- Material dos outros 9 temas (status `em-preparacao` até lá).
+- Reels, Stories, mensagens e calendários dos outros 8 temas (os carrosséis já estão prontos; status `em-preparacao` até lá).
+- Trocar as ilustrações de `public/assets/exemplo/` por fotos reais (os nomes dos arquivos são usados pelo catálogo).
 
 ## Deploy
 - **Produção:** https://natal-no-ar.vercel.app (branch `main`). Só publicar em produção quando o Arthur pedir.
@@ -253,7 +255,8 @@ Ao final, entregue:
   - `config.js`: **configuração única** (seção 8): preço, compras abertas, contato da gestão, públicos e temas (status e link de pagamento).
   - `amostra/presentes-por-orcamento.js`: demonstração pública: 3 produtos de exemplo, cenas do Reel, enquete e **só trechos** de legenda, roteiro e calendário.
   - `assets/exemplo/`: fotos provisórias (trocar pelas reais mantendo os nomes, ou mudar o campo `foto` na amostra).
-  - `js/logic.js`: regras puras (compra, contato, enquadramento, legendas, zip). `js/render.js`: desenho das telas em canvas 1080 × 1350, com marca-d'água "AMOSTRA" quando pedido. `js/demo.js`: demonstração Carrossel/Reel/Stories. `js/editor.js`: amostra (1 tela, com marca) e editor completo (área paga, sem marca). `js/app.js`: rotas.
+  - `js/logic.js`: regras puras (compra, contato, enquadramento, zip). `js/render.js`: fotos (EXIF), cache e miniaturas. `js/estudio.js` + `js/estudio-editor.js`: motor de camadas e editor (ver "Catálogo"). `js/demo.js`: demonstração Carrossel/Reel/Stories. `js/app.js`: rotas.
+  - `catalogo/`: as 10 coleções e os 110 carrosséis.
 - `private/`: **conteúdo pago**, nunca servido como arquivo.
   - `campanhas/presentes-por-orcamento.js`: 5 carrosséis, 5 Reels, 5 Stories, 3 mensagens, calendário, tutorial. `campanhas/index.js`: lista de campanhas.
   - `acesso.js`: link de acesso assinado (HMAC-SHA256, com validade).
@@ -261,33 +264,33 @@ Ao final, entregue:
   - `campanha.js`: `GET` com `Authorization: Bearer <token>` → conteúdo pago da campanha do token (401 sem acesso válido).
   - `liberar.js`: `POST` com `x-admin-token` → gera link de acesso (revisão, cortesia ou venda manual).
   - `pagamento.js`: webhook da plataforma de pagamento. **Ainda não ligado** (responde 503); ver comentário no arquivo.
-- Rotas: `#inicio` (âncoras `#campanhas`, `#gestao`), `#campanha/presentes-por-orcamento` (carrossel em destaque, Reel e Stories), `#testar` (teste grátis com a minha foto), `#pedido/<tema>` (revisão do pedido), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
+- Rotas: `#inicio` (âncoras `#campanhas`, `#gestao`), `#campanha/<id>` (carrossel em destaque, Reel e Stories), `#galeria[/<campanha>]`, `#editar/<campanha>/<carrossel>` (teste grátis; `#testar/<campanha>` abre a prévia), `#pedido/<tema>/<plano>` (revisão do pedido), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
 
 ## Identidade "vitrine pop" (23/11/2026)
 - **Paleta:** cereja `--cereja` (ação), rosa-claro `--fundo-2`/`--rosa`, branco e texto escuro `--tinta`. Gestão mensal em cereja escuro.
 - **Tipografia:** Fraunces variável (eixos SOFT e WONK) em peso 800 nos títulos; "vem pronto." em itálico expressivo (SOFT 100, WONK 1), 1,42× maior, com traço de fita rosa embaixo. Plus Jakarta Sans no texto.
-- **Abertura:** chamada em 3 linhas (Fim de ano corrido? / Seu conteúdo / *vem pronto.*), logo abaixo a foto de produto que vira post (moldura → título e preço → duas telas atrás em leque) uma vez por visita; termina numa pilha que desliza com o dedo (pontos e setas do teclado também). Botão "Escolher minha campanha" visível desde o início (base a 616 px em 390 × 664). Fotos da abertura: `public/amostra/presentes-por-orcamento.js` e capas dos modelos.
+- **Abertura:** chamada em 3 linhas (Fim de ano corrido? / Seu conteúdo / *vem pronto.*), logo abaixo a foto de produto que vira post (moldura → título e preço → duas telas atrás em leque) uma vez por visita; termina numa pilha que desliza com o dedo (pontos e setas do teclado também). Botão "Escolher minha campanha" visível desde o início (base a 616 px em 390 × 664). Fotos da abertura: `public/amostra/presentes-por-orcamento.js` e capas do catálogo (`ate-100`, `cara-dela`).
 - **Assinatura:** etiqueta cereja com recorte ondulado "pronto pra postar" (`.selo-pronto`). Estrelas desenhadas (giram ao toque) e traços de fita entre seções (se desenham ao entrar na tela).
-- **Vitrine de campanhas:** capa real de cada campanha na identidade da coleção (`CAPA_CAMPANHA` em `public/amostra/modelos.js`).
+- **Vitrine de campanhas:** capa real de cada campanha: o 1º carrossel do catálogo, desenhado pelo motor do editor.
 - **Campanha:** 3 miniaturas de produto comandam a prévia (abas Carrossel / Stories / Reel). Tocar troca a tela do carrossel (imagem, nome e preço juntos); deslizar acompanha o dedo; Stories usam a mesma foto na enquete.
-- **Planos:** cada nível mostra as capas que acrescenta (`CAPAS_NIVEIS`): Pronto = 5 capas; Completo = "Tudo do Pronto +" 3 temas novos; Virada = "Tudo do Completo +" 3 de Réveillon.
+- **Planos:** cada nível mostra as capas reais do catálogo que acrescenta (tocar abre no editor): Pronto = 5 capas; Completo = "Tudo do Pronto +" 3 temas novos; Virada = "Tudo do Completo +" 3 de Réveillon.
 - **Movimento reduzido:** nada anima; o leque já aparece pronto.
 - Verificação no navegador: `tests/navegador/vitrine.mjs`. Capturas: `docs/capturas/`.
 
-## Modelos de carrossel: identidade por coleção (23/11/2026, etapa 1 aguardando aprovação)
-- **Galeria para revisão:** https://natal-no-ar.vercel.app/#galeria (sequência de cada um em `#galeria/<id>`; editar em `#testar/<id>`).
-- **Código:** `public/js/modelos.js` = coleções (paleta, tipografia, fotos, elementos) + composições (`LAYOUTS`) + rótulos dos campos (`LAYOUT_INFO`). `public/amostra/modelos.js` = carrosséis de exemplo preenchidos (`MODELOS`), capa-piloto (`PILOTOS`) e `aplicarLayout` (aplica a composição aos textos do kit pago, que ficam em `private/`).
-- **Coleção Presentes por orçamento** (lojistas): papel creme, cereja/pinho/dourado/ameixa como cor de destaque (a cliente escolhe), Fraunces + Plus Jakarta Sans, foto com moldura de papel, etiqueta de presente com o preço, estrela ✦ e fita dupla. Os 5 carrosséis-base (ids iguais aos temas do kit):
-  1. `faixa-de-preco`: capa com o valor gigante; uma foto grande por tela com etiqueta de preço.
-  2. `cada-estilo`: capa com os estilos em etiquetas; produtos em polaroide com o estilo de quem ganha.
-  3. `favorito-da-loja`: capa em close com selo "Favorito"; o zoom abre a cada tela até a peça inteira.
-  4. `duplas`: duas fotos lado a lado com "+" em todas as telas (editor tem Foto 1 / Foto 2).
-  5. `ultimas-compras`: fundo pinho com página de calendário e a data.
-- **Coleção Por trás do resultado** (prestadoras): só a capa-piloto (`bastidores-capa`): fundo escuro, quadro de filme, ponto REC, títulos em Fraunces itálico.
-- **Legibilidade:** título e preço sempre em papel, cartão ou etiqueta; o texto diminui para caber (e, em último caso, termina em "…", nunca some). Testado com título de 67 caracteres e preço "R$ 1.289,90" em todas as composições.
-- **Editor:** abre o layout da vitrine; troca foto (e Foto 2), enquadramento, marca, texto, cor e preço quando a composição tem preço; copiar legenda; 4 PNGs 1080 × 1350 numerados. Teste grátis: só as telas com foto própria levam AMOSTRA (inclusive no PNG); voltar à foto de exemplo tira a marca. Kit pago: limpo.
-- **Etapa 2 (depois da aprovação):** criar as composições dos temas extras e do Réveillon de lojistas, da coleção completa das prestadoras e dos outros temas. Enquanto isso, eles abrem no editor com o desenho anterior.
-- **Testes no navegador:** `tests/navegador/galeria.mjs` e `tests/navegador/regressao.mjs` (precisam de Playwright instalado fora do projeto).
+## Catálogo de carrosséis editáveis (24/11/2026)
+- **Galeria:** https://natal-no-ar.vercel.app/#galeria (uma campanha: `#galeria/<campanha>`). Tocar numa capa abre aquela composição no editor: `#editar/<campanha>/<carrossel>` (teste grátis).
+- **Quantidades:** 10 campanhas × 11 carrosséis = 110 carrosséis, 440 telas, 110 legendas. Por campanha: nível 1 = 5 (Natal Pronto), nível 2 = +3 (Natal Completo), nível 3 = +3 de Réveillon (Natal + Virada).
+- **Código:**
+  - `public/js/estudio.js`: motor de camadas (fundo e textura → fotos e elementos → ícones → textos → marca/logo → AMOSTRA). 30 composições (`LAYOUTS`: 14 capas `capa-*`, 16 telas internas `int-*`), cada uma declara seus campos e quantas fotos usa. 6 pares de fontes testados (`PARES`), 9 ícones natalinos + "sem ícone" (`ICONES`). Texto diminui para caber e, em último caso, termina em "…". Contraste automático (texto sobre fundo, papel e destaque). Logo em fundo escuro ganha plaquinha clara.
+  - `public/catalogo/colecoes.js`: identidade de cada coleção (fundo, texto, destaque, papel, par de fontes, ícone, moldura da foto, textura, variação de Réveillon, cores sugeridas).
+  - `public/catalogo/<campanha>.js`: os 11 carrosséis (telas, fotos de exemplo, legenda). Legendas usam `{marca}` e `{2.preco1}` (campo da tela 2), que seguem a edição da cliente. `public/catalogo/index.js`: `CATALOGO`, `carrosseisDoNivel`, `legendaPreenchida`.
+  - `public/js/estudio-editor.js`: editor (abas Textos, Fotos, Estilo, Marca). Estilo: "Aplicar a este carrossel", "Aplicar à coleção inteira" (muda só cores, fontes e ícone; mantém fotos, textos, preços e composições; Réveillon mantém o próprio fundo se o fundo não foi trocado), "Desfazer", "Restaurar estilo original". Salva no aparelho: textos e estilo no `localStorage` (`nna-estudio:<modo>:<campanha>`), fotos e logo no IndexedDB (`nna-estudio`). Modo `teste` (AMOSTRA só na tela com foto própria) e `kit` (área paga, limpo). PNGs `01-<carrossel>-capa.png` a `04-…`, zip e compartilhar.
+  - Elementos fotográficos separados: `public/assets/elementos/` (ex.: `caixa-presente.jpg`, recortada da referência, sem texto). Fotos de exemplo: `public/assets/exemplo/01` a `29` (ilustrações provisórias).
+- **Presentes por orçamento:** 1 "5 presentes até R$ 100" (caixa como elemento, "Seleção de Natal" sem risco, produtos 2 + 2 + 1); 2 "É a cara dela." (tipográfica vinho/marfim, "dela." com traço); 3 "A escolha da loja" (foto com o fundo original + detalhe, uso, compra); 4 "Duplas que funcionam" (duas fotos independentes + "+"); 5 "Ainda dá tempo?" (calendário com data editável + prazos reais).
+- **Prévia da página da campanha:** carrossel `previa` do catálogo (telas 2 a 4 = os 3 produtos da demonstração em `public/amostra/`).
+- **Área da cliente:** o editor mostra os carrosséis do nível do plano; ao lado, o Reel e os Stories do tema na mesma posição em `private/campanhas/<id>.js` (temas → nível 1, extras → nível 2, reveillon → nível 3).
+- **À venda:** só Presentes por orçamento e Seu toque nas festas (têm Reels, Stories, mensagens e calendário). As outras 8 têm os 11 carrosséis prontos e testáveis na galeria, mas seguem `em-preparacao` até o resto do kit existir.
+- **Testes no navegador:** `tests/navegador/estudio.mjs` (cliente: R$ 100 → R$ 150, logo, JPEG com fundo, título longo, cor na coleção inteira, desfazer/restaurar, reabrir, zip igual à prévia, área paga) e `tests/navegador/vitrine.mjs`. Precisam de Playwright fora do projeto e do servidor local com `ACESSO_SECRET` de 32+ caracteres.
 
 ## Planos de compra única (22/11/2026)
 A cliente escolhe o perfil (**Sou lojista** / **Sou prestadora de serviço**), vê a campanha do perfil e compara três planos. Os preços são FINAIS por plano (definidos em `public/config.js`, `SITE.planos`):
