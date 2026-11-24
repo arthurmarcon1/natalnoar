@@ -1,12 +1,13 @@
-/* Presentes por orçamento (lojistas). Exemplo preenchido com a loja fictícia Ateliê Aurora. */
-import { T, CAIXA, FOTOS as P, close } from "./_base.js";
+/* Presentes por orçamento (lojistas). Exemplo preenchido com "Nome da loja aqui", que a cliente troca pela marca dela. */
+import { T, FOTOS as P, close } from "./_base.js";
+const EMBRULHO = "assets/elementos/embrulho-capa.jpg";
 
 export default {
-  id: "presentes-por-orcamento", marca: "Ateliê Aurora", previa: "cara-dela",
+  id: "presentes-por-orcamento", marca: "Nome da loja aqui", previa: "cara-dela",
   carrosseis: [
-    { id: "ate-100", nivel: 1, nome: "5 presentes até R$ 100", ideia: "Valor gigante na capa, a embalagem como elemento e cinco produtos distribuídos em 2 + 2 + 1.",
+    { id: "ate-100", nivel: 1, nome: "5 presentes até R$ 100", ideia: "A foto da embalagem ocupa a capa inteira, com o valor em destaque na área clara de cima. Depois, cinco produtos em 2 + 2 + 1.",
       telas: [
-        T("capa-numero", { titulo: "5 presentes até", valor: "R$ 100", rodape: "Seleção de Natal" }, [CAIXA]),
+        T("capa-embrulho", { titulo: "5 presentes *até*", valor: "R$ 100", rodape: "Seleção de Natal" }, [EMBRULHO]),
         T("int-dois", { titulo: "Presentes 1 e 2", nome1: "Clutch Noite", preco1: "R$ 89", nome2: "Lenço de seda", preco2: "R$ 59" }, [P.clutch, P.lenco]),
         T("int-dois", { titulo: "Presentes 3 e 4", nome1: "Brincos dourados", preco1: "R$ 79", nome2: "Colar Lua", preco2: "R$ 99" }, [P.brincos, P.colar]),
         T("int-um", { nome: "Perfume Flor de Laranjeira", preco: "R$ 95", apoio: "Para quem merece um mimo perfumado", cta: "Chama no WhatsApp que a gente embrulha" }, [P.perfume])
@@ -20,17 +21,17 @@ export default {
         T("int-estilo", { estilo: "Pra quem vive de *brilho*", nome: "Brincos dourados", preco: "R$ 79" }, [P.brincos])
       ],
       legenda: "Presente bom é aquele que parece ter sido escolhido só para ela ✨\n\nA que não perde uma festa: {2.nome} ({2.preco}).\nA que ama um clássico: {3.nome} ({3.preco}).\nA que vive de brilho: {4.nome} ({4.preco}).\n\nMarca aqui quem é cada uma 👇 e chama a {marca} no direct para reservar o presente.\n\n#presentedenatal #éacaradela" },
-    { id: "escolha", nivel: 1, nome: "A escolha da loja", ideia: "Abre com uma foto comum de celular, com o fundo original. Depois: o detalhe, um jeito de usar e as informações de compra.",
+    { id: "escolha", nivel: 1, nome: "A escolha da loja", ideia: "Capa tipográfica: a frase “Se eu fosse presentear…” assinada pela loja. Depois: o detalhe da peça escolhida, jeitos de usar e as informações de compra.",
       telas: [
-        T("capa-foto", { titulo: "A escolha da {marca}", apoio: "O presente que a gente daria" }, [P.relogio]),
+        T("capa-assinatura", { tema: "A escolha da loja", titulo: "Se eu fosse *presentear…*", assina: "Seleção de" }),
         T("int-detalhe", { titulo: "O detalhe", texto: "Caixa com banho dourado e pulseira de couro que *não marca o pulso*." }, [P.relogio], { aj: [close(2.2, 0.5, 0.48)] }),
         T("int-uso", { titulo: "Como usar", passo1: "No dia a dia, com camisa e jeans", passo2: "Na ceia, junto de uma pulseira fina", passo3: "Em viagem: resiste a respingos" }, [P.relogio], { aj: [close(1.3, 0.5, 0.5)] }),
         T("int-info", { titulo: "Relógio Clássico", linha1: "R$ 189 ou 3x de R$ 63", linha2: "Vem na caixa de presente da loja", linha3: "Retirada na loja ou entrega na cidade", cta: "Reserve pelo WhatsApp" })
       ],
       legenda: "Se fosse para escolher um presente só, seria este ⌚\n\nO {4.titulo} tem caixa com banho dourado e pulseira de couro macia. Vai do dia a dia à ceia e já sai na caixa de presente da {marca}.\n\n{4.linha1}. Quer reservar? Me chama no WhatsApp.\n\n#presentedenatal #escolhadaloja" },
-    { id: "duplas", nivel: 1, nome: "Duplas que funcionam", ideia: "Duas fotos independentes e um “+”. As telas explicam por que as peças funcionam juntas.",
+    { id: "duplas", nivel: 1, nome: "Duplas que funcionam", ideia: "Duas fotos grandes lado a lado e um “+” no meio, cada uma trocada separadamente. As telas explicam por que as peças funcionam juntas.",
       telas: [
-        T("capa-dupla", { titulo: "Duplas que *funcionam*", apoio: "Dois presentes que ficam ainda melhores juntos" }, [P.clutch, P.brincos]),
+        T("capa-par", { titulo: "Duplas que *funcionam*", apoio: "Clutch + brincos dourados: o look da ceia resolvido" }, [P.clutch, P.brincos]),
         T("int-dupla", { nome: "Clutch + brincos dourados", porque: "O dourado do fecho conversa com o brilho dos brincos. Look de ceia resolvido.", preco: "R$ 159 a dupla" }, [P.clutch, P.brincos]),
         T("int-dupla", { nome: "Lenço + óculos de sol", porque: "Para a amiga que vai viajar nas férias: protege do sol e do vento na estrada.", preco: "R$ 199 a dupla" }, [P.lenco, P.oculos]),
         T("int-dupla", { nome: "Perfume + colar Lua", porque: "Um para o dia a dia e outro para guardar: presente de quem conhece bem.", preco: "R$ 179 a dupla" }, [P.perfume, P.colar])
@@ -44,14 +45,14 @@ export default {
         T("int-cta", { titulo: "A gente *separa* pra você", texto: "Manda o nome do presente e o horário que você passa aqui. Fica embrulhado esperando.", contato: "Chama no WhatsApp" }, [P.sacola])
       ],
       legenda: "Ainda dá tempo, sim ⏰\n\nEntrega na cidade para pedidos até {3.data1}. Retirada na loja até {3.data2}.\n\nTemos pronta entrega de {2.op1}, {2.op2} e {2.op3}. Me manda o presente e o horário que a {marca} deixa tudo embrulhado esperando você. Chama no WhatsApp!\n\n#ultimascompras #natal" },
-    { id: "amigo-secreto", nivel: 2, nome: "Achados para o amigo secreto", ideia: "Capa com as faixas de preço em etiquetas. Cada tela traz três achados de uma faixa.",
+    { id: "amigo-secreto", nivel: 2, nome: "Achados para o amigo secreto", ideia: "A ideia do sorteio: um bilhete marfim sobre o vinho com “Tirei teu nome. E agora?”. Cada tela traz três achados de uma faixa de preço.",
       telas: [
-        T("capa-lista", { titulo: "Amigo secreto *sem erro*", itens: "até R$ 30 · até R$ 50 · até R$ 70", apoio: "Achados que agradam qualquer pessoa" }, [P.lenco]),
+        T("capa-bilhete", { tema: "Amigo secreto", titulo: "Tirei teu nome. *E agora?*", apoio: "Achados até R$ 30, R$ 50 e R$ 70" }, [], { inv: true }),
         T("int-opcoes", { titulo: "Até *R$ 30*", op1: "Necessaire de cetim", preco1: "R$ 29", op2: "Prendedor de pérola", preco2: "R$ 24", op3: "Vela aromática mini", preco3: "R$ 27" }, [P.sacola, P.brincos, P.vela]),
         T("int-opcoes", { titulo: "Até *R$ 50*", op1: "Lenço estampado", preco1: "R$ 49", op2: "Brinco argola", preco2: "R$ 45", op3: "Porta-joias", preco3: "R$ 48" }, [P.lenco, P.brincos, P.colar]),
         T("int-opcoes", { titulo: "Até *R$ 70*", op1: "Lenço de seda", preco1: "R$ 59", op2: "Perfume de bolsa", preco2: "R$ 65", op3: "Colar delicado", preco3: "R$ 69" }, [P.lenco, P.perfume, P.colar])
       ],
-      legenda: "Tirou alguém que você mal conhece no amigo secreto? Calma 😅\n\nSeparamos achados que agradam qualquer pessoa, em três faixas: {1.itens}.\n\nTodos saem embrulhados da {marca}. Me fala o valor combinado no seu amigo secreto e eu te mando as opções no WhatsApp.\n\n#amigosecreto #presentedenatal" },
+      legenda: "Tirou alguém que você mal conhece no amigo secreto? Calma 😅\n\nSeparamos achados que agradam qualquer pessoa, em três faixas: {2.titulo.lower}, {3.titulo.lower} e {4.titulo.lower}.\n\nTodos saem embrulhados da {marca}. Me fala o valor combinado no seu amigo secreto e eu te mando as opções no WhatsApp.\n\n#amigosecreto #presentedenatal" },
     { id: "tres-jeitos", nivel: 2, nome: "Uma peça, três jeitos de usar", ideia: "Foto com etiqueta de preço na capa. Cada tela é um jeito de usar, numerado.",
       telas: [
         T("capa-etiqueta", { titulo: "Uma peça, *três jeitos*", preco: "R$ 59", apoio: "O lenço de seda que vira presente coringa" }, [P.lenco]),

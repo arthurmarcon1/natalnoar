@@ -337,12 +337,15 @@ test("catálogo: 10 campanhas × 11 carrosséis (5 + 3 + 3), 4 telas e legenda p
   assert.ok(leg.includes("5 presentes até R$ 150") && leg.includes("Loja da Bia") && !leg.includes("Ateliê Aurora"));
   // Presentes por orçamento segue as decisões combinadas
   const [p1, p2, p3, p4, p5] = CATALOGO["presentes-por-orcamento"].carrosseis;
-  assert.deepEqual([p1.telas[0].c.titulo, p1.telas[0].c.valor, p1.telas[0].c.rodape], ["5 presentes até", "R$ 100", "Seleção de Natal"]);
-  assert.ok(p1.telas[0].f[0].includes("elementos/caixa-presente"), "caixa de presente como elemento separado");
+  assert.deepEqual([p1.telas[0].c.titulo, p1.telas[0].c.valor, p1.telas[0].c.rodape], ["5 presentes *até*", "R$ 100", "Seleção de Natal"]);
+  assert.ok(p1.telas[0].l === "capa-embrulho" && p1.telas[0].f[0].includes("elementos/embrulho-capa"), "embalagem fotografada ocupando a capa inteira");
+  assert.equal(CATALOGO["presentes-por-orcamento"].marca, "Nome da loja aqui");
   assert.deepEqual(p1.telas.slice(1).map(t => t.l), ["int-dois", "int-dois", "int-um"], "5 produtos em 2 + 2 + 1");
   assert.equal(p2.telas[0].c.titulo, "É a cara *dela.*"); assert.ok(p2.telas[0].inv && p2.telas[0].l === "capa-tipo");
-  assert.ok(p3.telas[0].l === "capa-foto" && p3.telas[0].c.titulo.includes("{marca}"));
-  assert.ok(p4.telas.every(t => (t.f || []).length === 2), "duplas: duas fotos independentes em todas as telas");
+  assert.ok(p3.telas[0].l === "capa-assinatura" && p3.telas[0].c.titulo === "Se eu fosse *presentear…*" && !(p3.telas[0].f || []).length, "escolha: capa tipográfica assinada pela loja");
+  assert.ok(p4.telas[0].l === "capa-par" && p4.telas.every(t => (t.f || []).length === 2), "duplas: duas fotos lado a lado e independentes em todas as telas");
+  const amigo = CATALOGO["presentes-por-orcamento"].carrosseis.find(y => y.id === "amigo-secreto").telas[0];
+  assert.ok(amigo.l === "capa-bilhete" && amigo.inv && amigo.c.titulo.startsWith("Tirei teu nome.") && amigo.c.tema === "Amigo secreto", "amigo secreto: bilhete do sorteio sobre o vinho");
   assert.ok(p5.telas[0].l === "capa-calendario" && p5.telas.some(t => t.l === "int-prazo"));
   // prévia da campanha: telas 2 a 4 = os 3 produtos da demonstração
   for (const [cid, d] of [["presentes-por-orcamento", demo], ["seu-toque-nas-festas", demoServico]]) {

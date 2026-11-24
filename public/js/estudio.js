@@ -240,12 +240,33 @@ function foto(ctx, s, o, i, x, y, w, h, { forma = "ret", r = 0, fade = false } =
       const t = document.createElement("canvas"); t.width = Math.round(w); t.height = Math.round(h);
       const tc = t.getContext("2d"); tc.drawImage(f.img, c.sx, c.sy, c.sw, c.sh, 0, 0, t.width, t.height);
       tc.globalCompositeOperation = "destination-in";
-      const g = tc.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.56);
-      g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(0.72, "rgba(0,0,0,.9)"); g.addColorStop(1, "rgba(0,0,0,0)");
-      tc.fillStyle = g; tc.fillRect(0, 0, w, h); ctx.drawImage(t, x, y);
+      // máscara elíptica que chega a zero nas bordas: nenhuma aresta do retângulo da foto aparece
+      tc.translate(w / 2, h / 2); tc.scale(w / 2, h / 2);
+      const g = tc.createRadialGradient(0, 0, 0.45, 0, 0, 1);
+      g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(0.55, "rgba(0,0,0,.85)"); g.addColorStop(1, "rgba(0,0,0,0)");
+      tc.fillStyle = g; tc.fillRect(-1, -1, 2, 2); ctx.drawImage(t, x, y);
     } else ctx.drawImage(f.img, c.sx, c.sy, c.sw, c.sh, x, y, w, h);
   } else vazio(ctx, s, x, y, w, h);
   ctx.restore();
+}
+/* cores de uma faixa (0–1 da altura) da foto i como aparece na tela, em células de 6 × 4; guardadas no objeto da foto */
+function coresFoto(o, i, y0, y1) {
+  const f = o.imgs && o.imgs[i]; if (!f || !f.img) return null;
+  const a = { zoom: 1, fx: 0.5, fy: 0.5, ...((o.ajustes && o.ajustes[i]) || {}) }, k = `${y0}:${y1}:${a.zoom}:${a.fx}:${a.fy}`;
+  f._cores = f._cores || {}; if (f._cores[k]) return f._cores[k];
+  const t = document.createElement("canvas"); t.width = 6; t.height = 4; const tc = t.getContext("2d", { willReadFrequently: true });
+  const c = coverRect(f.w, f.h, W, H, a.zoom, a.fx, a.fy), sy = c.sy + c.sh * y0, sh = c.sh * (y1 - y0);
+  tc.imageSmoothingQuality = "high"; tc.drawImage(f.img, c.sx, sy, c.sw, sh, 0, 0, 6, 4);
+  const d = tc.getImageData(0, 0, 6, 4).data, out = [];
+  for (let q = 0; q < d.length; q += 4) out.push("#" + [d[q], d[q + 1], d[q + 2]].map(v => v.toString(16).padStart(2, "0")).join(""));
+  return (f._cores[k] = out);
+}
+/* véu na cor do fundo atrás do texto sobre foto: quase nada se toda a faixa já é legível, forte se alguma parte não for */
+function veu(ctx, s, o, i, y0, y1, cor, deCima = true, minimo = 0.18) {
+  const m = coresFoto(o, i, Math.min(y0, y1) / H, Math.max(y0, y1) / H), forte = !m || m.some(x => contraste(cor, x) < 4.5), [r, g, b] = rgb(s.fundo);
+  const lo = Math.min(y0, y1), hi = Math.max(y0, y1), gr = ctx.createLinearGradient(0, deCima ? lo : hi, 0, deCima ? hi : lo); // opaco na borda da tela, some em direção ao meio
+  gr.addColorStop(0, `rgba(${r},${g},${b},${forte ? 0.9 : minimo})`); gr.addColorStop(0.62, `rgba(${r},${g},${b},${forte ? 0.72 : minimo * 0.45})`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  ctx.fillStyle = gr; ctx.fillRect(0, Math.min(y0, y1), W, Math.abs(y1 - y0));
 }
 const sombra = (ctx, on, k = 1) => { ctx.shadowColor = on ? `rgba(20,10,5,${0.28 * k})` : "transparent"; ctx.shadowBlur = on ? 34 * k : 0; ctx.shadowOffsetY = on ? 14 * k : 0; };
 /* foto com o tratamento da coleção (moldura) */
@@ -509,6 +530,78 @@ export const LAYOUTS = {
       marca(ctx, s, o, { x: M, y: 1000, cor: s.tinta });
       const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 1056, maxW: W - 2 * M - 40, linhas: 2, tam: [92, 82, 72, 64, 56], cor: s.tinta, realce: s.realce, campo: "titulo" });
       corpo(ctx, s, o, t.c.apoio, { x: M, y: 1056 + ht + 12, maxW: W - 2 * M - 80, linhas: 1, tam: [32, 28, 25, 22], cor: s.suave, campo: "apoio" });
+    } },
+
+  /* capa da embalagem: a foto ocupa a capa inteira; título e valor na área clara de cima */
+  "capa-embrulho": { nome: "Capa com foto inteira e valor", fotos: 1, rotFotos: ["Foto da embalagem ou do produto (ocupa a capa inteira; deixe espaço livre em cima)"], campos: [TIT, C("valor", "Valor"), C("rodape", "Rodapé")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      foto(ctx, s, o, 0, 0, 0, W, H);
+      veu(ctx, s, o, 0, 0, 600, s.tinta, true);
+      veu(ctx, s, o, 0, H, H - 330, s.tinta, false, 0.78);
+      marca(ctx, s, o, { x: W / 2, y: 74, alinhar: "center", estilo: "assinatura", cor: s.tinta, maxW: 760, placa: false });
+      const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 168, maxW: W - 2 * M, linhas: 2, tam: [124, 112, 100, 88, 76, 66], cor: s.tinta, realce: s.realce, alinhar: "center", entre: 1, campo: "titulo" });
+      texto(ctx, s, o, t.c.valor, { x: M, y: 168 + ht - 4, maxW: W - 2 * M, linhas: 1, tam: [250, 224, 196, 170, 146, 124], cor: s.tinta, alinhar: "center", campo: "valor" });
+      rotulo(ctx, s, o, t.c.rodape, { x: 160, y: H - 104, maxW: W - 320, tam: [34, 30, 26, 22], peso: 600, cor: s.tinta, alinhar: "center", espaco: 10, campo: "rodape" });
+    } },
+  /* bilhete do sorteio: papel marfim inclinado sobre o fundo, chamada grande escrita nele */
+  "capa-bilhete": { nome: "Capa com bilhete", fotos: 0, campos: [C("tema", "Tema (letra pequena)"), C("titulo", "Chamada do bilhete (use *destaque*)"), APO],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      const papelN = escuro(s.fundo) ? (escuro(s.texto) ? "#F6EDE0" : s.texto) : s.papel, tintaN = legivel(papelN, s.fundo, s.texto, "#1A1416");
+      const realceN = contraste(s.destaque, papelN) >= 3 ? s.destaque : tintaN;
+      const papelzinho = (cx, cy, w, h, rot, alfa) => { ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.globalAlpha = alfa; sombra(ctx, true, 0.5); ctx.fillStyle = papelN; ctx.fillRect(-w / 2, -h / 2, w, h); sombra(ctx, false);
+        ctx.strokeStyle = "rgba(0,0,0,.12)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-w / 2, 0); ctx.lineTo(w / 2, 0); ctx.stroke(); ctx.restore(); };
+      // outros papeizinhos do sorteio, dobrados, nas bordas
+      papelzinho(110, 270, 200, 120, -0.5, 0.5); papelzinho(1000, 1130, 220, 130, 0.42, 0.45); papelzinho(60, 1200, 190, 110, 0.25, 0.35); papelzinho(1020, 250, 170, 100, 0.8, 0.35);
+      marca(ctx, s, o, { x: W / 2, y: M - 6, alinhar: "center", cor: s.tinta });
+      // o bilhete
+      const bw = 880, bh = 760, cx = W / 2, cy = 640, rot = -0.055;
+      const antes = o.caixas ? o.caixas.length : 0;
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
+      sombra(ctx, true, 1.1); ctx.fillStyle = papelN; ctx.beginPath(); ctx.moveTo(-bw / 2, -bh / 2);
+      const r = rnd(4); for (let k = -bw / 2; k < bw / 2; k += 22) ctx.lineTo(k + 11, -bh / 2 + 4 + r() * 9); // borda de cima rasgada
+      ctx.lineTo(bw / 2, -bh / 2); ctx.lineTo(bw / 2, bh / 2); ctx.lineTo(-bw / 2, bh / 2); ctx.closePath(); ctx.fill(); sombra(ctx, false);
+      // vinco da dobra e a metade de baixo levemente sombreada
+      const g = ctx.createLinearGradient(0, 0, 0, bh / 2); g.addColorStop(0, "rgba(60,30,20,.10)"); g.addColorStop(0.25, "rgba(60,30,20,.03)"); g.addColorStop(1, "rgba(60,30,20,0)");
+      ctx.fillStyle = g; ctx.fillRect(-bw / 2, 0, bw, bh / 2);
+      ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-bw / 2, -2); ctx.lineTo(bw / 2, -2); ctx.stroke();
+      ctx.strokeStyle = "rgba(60,30,20,.16)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-bw / 2, 1); ctx.lineTo(bw / 2, 1); ctx.stroke();
+      rotulo(ctx, s, o, t.c.tema, { x: -bw / 2 + 70, y: -bh / 2 + 70, maxW: bw - 140, tam: [30, 27, 24, 21], cor: realceN, espaco: 7, campo: "tema" });
+      linhaFina(ctx, -bw / 2 + 70, -bh / 2 + 128, -bw / 2 + 190, realceN, 3);
+      texto(ctx, s, o, t.c.titulo, { x: -bw / 2 + 70, y: 40, maxW: bw - 140, linhas: 3, tam: [168, 150, 134, 118, 104, 92], cor: tintaN, realce: realceN, base: "meio", entre: 1.0, campo: "titulo" });
+      icone(ctx, s.icone, bw / 2 - 80, bh / 2 - 80, 30, realceN, 0.2);
+      ctx.restore();
+      if (o.caixas) o.caixas.slice(antes).forEach(b => { b.x += cx; b.y += cy; }); // caixas em coordenadas da tela
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: H - 118, maxW: W - 2 * M - 80, linhas: 2, tam: [38, 34, 30, 27], peso: 600, cor: s.tinta, alinhar: "center", base: "meio", campo: "apoio" });
+    } },
+  /* frase em destaque assinada pela loja: a loja é quem fez a seleção */
+  "capa-assinatura": { nome: "Capa tipográfica assinada", fotos: 0, campos: [C("tema", "Tema (letra pequena)"), C("titulo", "Frase (use *destaque*)"), C("assina", "Antes da assinatura")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      rotulo(ctx, s, o, t.c.tema, { x: M, y: M + 10, maxW: W - 2 * M - 100, tam: [28, 25, 22], cor: s.realce, espaco: 8, campo: "tema" });
+      icone(ctx, s.icone, W - M - 30, M + 26, 32, s.destaque, 0.2);
+      ctx.fillStyle = s.realce; ctx.font = `${s.P.tp} 440px ${s.P.t}`; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillText("“", M - 26, 560);
+      texto(ctx, s, o, t.c.titulo, { x: M, y: 700, maxW: W - 2 * M, linhas: 4, tam: [196, 176, 158, 140, 124, 108, 94], cor: s.tinta, realce: s.realce, base: "meio", entre: 1.0, campo: "titulo" });
+      // assinatura de quem escolheu
+      const ay = H - 250;
+      linhaFina(ctx, W - M - 420, ay, W - M, s.destaque, 3);
+      corpo(ctx, s, o, t.c.assina, { x: W - M - 520, y: ay + 26, maxW: 520, linhas: 1, tam: [32, 29, 26], cor: s.suave, alinhar: "right", campo: "assina" });
+      marca(ctx, s, o, { x: W - M, y: ay + 82, alinhar: "right", estilo: "assinatura", cor: s.tinta, maxW: 720, h: 90 });
+    } },
+  /* duas fotos grandes lado a lado com um "+" no meio; cada foto troca sozinha */
+  "capa-par": { nome: "Capa com duas fotos lado a lado", fotos: 2, rotFotos: ["Peça 1 (esquerda)", "Peça 2 (direita)"], campos: [TIT, APO],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: M - 8, alinhar: "center", cor: s.tinta });
+      texto(ctx, s, o, t.c.titulo, { x: M, y: 150, maxW: W - 2 * M, linhas: 2, tam: [124, 110, 98, 86, 74], cor: s.tinta, realce: s.realce, alinhar: "center", entre: 1.0, campo: "titulo" });
+      const gap = 84, fw = (W - 2 * 62 - gap) / 2, fh = 680, fy = 440, mold = ["polaroide", "filme", "arco", "oval"].includes(s.moldura) ? "papel" : s.moldura;
+      quadro(ctx, s, o, 0, 62, fy, fw, fh, { moldura: mold });
+      quadro(ctx, s, o, 1, 62 + fw + gap, fy, fw, fh, { moldura: mold });
+      const px = W / 2, py = fy + fh / 2;
+      ctx.save(); sombra(ctx, true, 0.6); ctx.fillStyle = s.destaque; ctx.beginPath(); ctx.arc(px, py, 54, 0, 7); ctx.fill(); sombra(ctx, false);
+      ctx.strokeStyle = s.sobreDestaque; ctx.lineWidth = 10; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(px, py - 24); ctx.lineTo(px, py + 24); ctx.moveTo(px - 24, py); ctx.lineTo(px + 24, py); ctx.stroke(); ctx.restore();
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: H - 108, maxW: W - 2 * M - 80, linhas: 2, tam: [34, 31, 28, 25], cor: s.tinta, alinhar: "center", base: "meio", campo: "apoio" });
     } },
 
   /* ===== telas internas ===== */
