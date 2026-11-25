@@ -57,6 +57,10 @@ export const SITE = {
   whatsappVendas: "555599408766",
   mensagemCompra: "Olá, Arthur! Quero comprar a campanha {campanha} no plano {plano}, por {preco}. Como faço o pagamento?",
   contatoGestao: "555599408766",
+  // Vídeo "Veja como editar sua campanha" na página inicial (gravação do editor com narração).
+  // Vazio = mostra uma prévia do editor e o botão "Testar o editor". Preenchido = aparece o play.
+  // src: arquivo em public/ (ex.: "video/como-editar.mp4") ou link https direto para o .mp4; poster: imagem de capa (opcional).
+  videoTutorial: { src: "", poster: "" },
   mensagemGestao: "Olá, Arthur! Vi o Natal no Ar e quero conversar sobre gestão mensal de conteúdo.",
 
   publicos: [

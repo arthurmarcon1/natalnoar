@@ -21,7 +21,7 @@ export default {
   reveillon: ["Cores da virada", "Looks para a virada", "Últimos dias do ano"],
   /* Abertura da página inicial. carrossel: o modelo em destaque na prévia (pode ser qualquer um do Natal Pronto).
      primeiroDia: a peça do dia 1 do calendário real do kit e a instrução igual ao "Preparar" dele (teste confere). */
-  abertura: { carrossel: "ate-100", convite: "Quer ver com o nome da sua loja?", marcaVazia: "Nome da loja aqui",
+  abertura: { carrossel: "ate-100", capas: ["ate-100", "cara-dela", "ainda-da-tempo"], convite: "Quer ver com o nome da sua loja?", marcaVazia: "Nome da loja aqui",
     publico: "Para lojas de roupas, acessórios e presentes",
     primeiroDia: { carrossel: "ate-100", instrucao: "Separe cinco produtos da loja e troque as fotos no carrossel." } },
   produtos: [

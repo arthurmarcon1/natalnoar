@@ -171,31 +171,33 @@ function viewInicio() {
   const vendas = SITE.publicos.map(p => campanhaDoPublico(p.id)).filter(Boolean);
   const outras = Object.keys(CATALOGO).filter(id => !vendas.some(t => t.id === id));
   return `
-  <section class="hero h2" data-seg="${seg}">
-    <div class="wrap h2-in">
-      <div class="h2-txt">
-        <h1><span class="l">Fim de ano corrido?</span><span class="l l2">Seu conteúdo <em>vem pronto.</em></span></h1>
+  <section class="ab" data-seg="${seg}">
+    <div class="wrap ab-in">
+      <div class="ab-txt">
+        <h1 class="ab-h1"><span class="ab-pre">Fim de ano corrido?</span><span class="ab-big">Seu conteúdo <span class="ab-vp"><em>vem pronto.</em><svg class="ab-volta" aria-hidden="true"><path class="ab-traco"/><circle class="ab-ponto" r="6"/></svg></span></span></h1>
         <div class="seg" role="radiogroup" aria-label="Seu negócio">
           ${SITE.publicos.map(p => `<button type="button" role="radio" data-seg="${p.id}" aria-checked="${p.id === seg}">${p.id === "loja" ? "Tenho uma loja" : "Presto serviços"}</button>`).join("")}
         </div>
       </div>
-      <div class="h2-cel" aria-label="Prévia da campanha">
-        <div class="ed" id="ed-prev">
-          <canvas class="ed-atras" width="1080" height="1350" aria-hidden="true"></canvas>
-          <div class="ed-trilho" id="ig-post" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Carrossel de exemplo. Deslize para folhear.">
-            ${[0, 1, 2, 3].map(i => `<canvas width="1080" height="1350" data-ig-tela="${i}" role="img" aria-label="Tela ${i + 1} de 4"></canvas>`).join("")}
-          </div>
-          <button type="button" class="ed-seta ant" data-ig-ir="-1" aria-label="Tela anterior">‹</button><button type="button" class="ed-seta prox" data-ig-ir="1" aria-label="Próxima tela">›</button>
+      <div class="ab-deck">
+        <div class="ab-pilha" id="ab-pilha" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Capas da coleção. Deslize para folhear.">
+          ${[0, 1, 2].map(i => `<figure class="ab-capa" data-i="${i}" data-pos="${i}"><canvas width="1080" height="1350" role="img"></canvas></figure>`).join("")}
         </div>
-        <div class="ed-pe"><span class="ig-pontos" aria-hidden="true">${[0, 1, 2, 3].map(i => `<i data-ig-p="${i}"></i>`).join("")}</span><span class="ig-cont" data-ig-cont>1 / 4</span></div>
+        <div class="ab-pe">
+          <button type="button" class="ab-seta" data-ab-ir="-1" aria-label="Capa anterior">‹</button>
+          <span class="ab-pontos" aria-hidden="true">${[0, 1, 2].map(i => `<i data-ab-p="${i}"></i>`).join("")}</span>
+          <button type="button" class="ab-seta" data-ab-ir="1" aria-label="Próxima capa">›</button>
+        </div>
       </div>
-      <div class="h2-nome">
-        <label for="nome-marca" data-convite>${esc(a.convite)}</label>
-        <input id="nome-marca" data-nome-marca maxlength="40" autocomplete="organization" placeholder="Digite aqui" value="${esc(nome)}">
-        <p class="hint">Sem cadastro e sem enviar foto. Folheie a arte para ver as outras telas.</p>
+      <div class="ab-acoes">
+        <label for="nome-marca">Nome da sua marca</label>
+        <input id="nome-marca" data-nome-marca maxlength="40" autocomplete="organization" placeholder="Opcional" value="${esc(nome)}">
+        <a class="btn grande ab-escolher" href="#campanha/${segCampanha(seg).id}" data-escolher><span>Escolher minha campanha</span></a>
       </div>
     </div>
   </section>
+
+  <section class="wrap bloco ab-video" id="como-editar" aria-labelledby="video-t">${videoHTML(seg)}</section>
 
   <section class="wrap dia1" id="dia1" aria-labelledby="dia1-t">${dia1HTML(seg)}</section>
 
@@ -219,6 +221,19 @@ function viewInicio() {
                : `<p class="aviso" id="btn-gestao">O contato para a gestão mensal ainda não foi configurado.</p>`; })()}
   </section>`;
 }
+/* "Veja como editar sua campanha": vídeo do editor (config videoTutorial) ou, até ele existir, uma prévia do editor */
+function videoHTML(seg) {
+  const t = segCampanha(seg), carr = ab(seg).carrossel, v = SITE.videoTutorial || {};
+  const tela = v.src
+    ? `<div class="abv-tela tem-video"><video data-video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} preload="metadata" playsinline></video><button type="button" class="abv-play" data-play aria-label="Assistir ao vídeo">▶</button></div>`
+    : `<div class="abv-tela"><div class="abv-mock" aria-hidden="true">
+        <div class="abv-abas"><span class="on">Textos</span><span>Fotos</span><span>Estilo</span><span>Marca</span></div>
+        <canvas width="1080" height="1350" data-abv-arte></canvas>
+        <div class="abv-campo"><small>Produto 1</small><b data-abv-campo>Clutch Noite</b></div>
+      </div><p class="abv-aviso">O vídeo com narração vai aparecer aqui</p></div>`;
+  return `<div class="abv-txt"><h2 id="video-t" class="h2-sec">Veja como editar sua campanha</h2><p>Troque a foto, o nome e o preço direto no celular. Baixe e publique.</p>
+    <a class="btn grande" href="#editar/${t.id}/${carr}" data-testar>Testar o editor</a></div>${tela}`;
+}
 function dia1HTML(seg) {
   const t = segCampanha(seg), d = DEMOS[t.id].abertura.primeiroDia, x = carrDoCat(t.id, d.carrossel);
   return `<div class="dia1-card">
@@ -234,11 +249,12 @@ function dia1HTML(seg) {
 function montarCapasCampanhas() {
   document.querySelectorAll("[data-capa-camp]").forEach(img => capaCat(img.dataset.capaCamp, null, 540).then(u => { img.src = u; }));
 }
-/* a prévia editorial da abertura: desenha, folheia, troca de segmento e aplica o nome digitado */
+/* abertura: a volta à mão em "vem pronto.", o leque de 3 capas da coleção, o nome da marca nas capas */
 function montarAbertura() {
-  const raiz = $(".h2"); if (!raiz) return null;
-  const post = $("#ig-post"), telas = [...post.querySelectorAll("canvas")], atras = $(".ed-atras"), input = $("[data-nome-marca]");
-  let seg = estado.publico, dados = null, versao = 0, atual = 0, raf = 0, vivo = true;
+  const raiz = $(".ab"); if (!raiz) return null;
+  const pilha = $("#ab-pilha"), cartoes = [...pilha.querySelectorAll(".ab-capa")], input = $("[data-nome-marca]");
+  let seg = estado.publico, dados = null, versao = 0, ordem = [0, 1, 2], raf = 0, vivo = true;
+  const ac = new AbortController();
   const marcaAgora = () => (input.value || "").trim() || ab(seg).marcaVazia;
   async function pecas(campId, carrId) {
     const x = carrDoCat(campId, carrId), estilo = estiloOriginal(campId, x);
@@ -247,52 +263,99 @@ function montarAbertura() {
   }
   async function carregar(s) {
     const t = segCampanha(s), a = ab(s);
-    const [prev, dia1] = await Promise.all([pecas(t.id, a.carrossel), pecas(t.id, a.primeiroDia.carrossel), carregarFontes()]);
-    return { t, a, prev, dia1 };
+    const [capas, dia1] = await Promise.all([Promise.all(a.capas.map(id => pecas(t.id, id))), pecas(t.id, a.primeiroDia.carrossel), carregarFontes()]);
+    return { t, a, capas, dia1 };
   }
   const desenhar = (ctx, p, i, marca) => desenharEstudio(ctx, p.x.telas[i], p.estilo, { marca, imgs: p.imgs[i], ajustes: p.x.telas[i].aj || [] });
-  function atrasDe(i) { // só a borda da próxima tela aparece atrás da atual
-    const n = i + 1; atras.hidden = n > 3; if (n <= 3) atras.getContext("2d").drawImage(telas[n], 0, 0);
-  }
   function pintar() {
     raf = 0; if (!dados || !vivo) return;
     const marca = marcaAgora();
-    telas.forEach((c, i) => desenhar(c.getContext("2d"), dados.prev, i, marca));
-    atrasDe(atual);
+    cartoes.forEach((c, i) => { desenhar(c.querySelector("canvas").getContext("2d"), dados.capas[i], 0, marca); c.querySelector("canvas").setAttribute("aria-label", `Capa: ${dados.capas[i].x.nome}`); });
     const d1 = $("[data-dia1-arte]"); if (d1) desenhar(d1.getContext("2d"), dados.dia1, 0, marca);
-    raiz.dataset.marca = marca; raiz.dataset.carrossel = dados.prev.x.id; raiz.dataset.pronto = "1";
+    const mv = $("[data-abv-arte]"); if (mv) desenhar(mv.getContext("2d"), dados.capas[0], 1, marca);
+    const cv = $("[data-abv-campo]"); if (cv) { const c = dados.capas[0].x.telas[1].c; cv.textContent = c.nome1 || c.nome || c.estilo?.replace(/\*/g, "") || ""; }
+    raiz.dataset.marca = marca; raiz.dataset.carrossel = dados.capas[ordem[0]].x.id; raiz.dataset.pronto = "1";
   }
   const agendar = () => { if (!raf) raf = requestAnimationFrame(pintar); };
-  const marcar = i => { atual = i; raiz.querySelectorAll("[data-ig-p]").forEach((p, k) => p.classList.toggle("on", k === i)); $("[data-ig-cont]").textContent = `${i + 1} / 4`;
-    raiz.querySelector('[data-ig-ir="-1"]').disabled = i === 0; raiz.querySelector('[data-ig-ir="1"]').disabled = i === 3; raiz.dataset.tela = String(i); atrasDe(i); };
-  const ir = i => { i = Math.max(0, Math.min(3, i)); post.scrollTo({ left: i * post.clientWidth, behavior: calmo() ? "auto" : "smooth" }); marcar(i); };
-  post.addEventListener("scroll", () => { const i = Math.round(post.scrollLeft / Math.max(1, post.clientWidth)); if (i !== atual) marcar(i); }, { passive: true });
-  post.addEventListener("keydown", e => { if (e.key === "ArrowRight") { e.preventDefault(); ir(atual + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); ir(atual - 1); } });
-  // arrastar com o mouse no computador (no celular o próprio deslizar nativo resolve)
-  let x0 = null, s0 = 0, arrastou = false; const ac = new AbortController();
-  post.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; x0 = e.clientX; s0 = post.scrollLeft; arrastou = false; post.classList.add("arrasta"); });
-  addEventListener("pointermove", e => { if (x0 == null) return; const dx = e.clientX - x0; if (Math.abs(dx) > 4) arrastou = true; post.scrollLeft = s0 - dx; }, { signal: ac.signal });
-  addEventListener("pointerup", e => { if (x0 == null) return; post.classList.remove("arrasta"); const dx = e.clientX - x0; x0 = null; ir(arrastou ? atual + (dx < -40 ? 1 : dx > 40 ? -1 : 0) : atual); }, { signal: ac.signal });
-  raiz.addEventListener("click", e => { const b = e.target.closest("[data-ig-ir]"); if (b) ir(atual + +b.dataset.igIr); });
+  // leque: pos 0 na frente (inteira), 1 e 2 atrás, abertas para os lados
+  const aplicar = () => { ordem.forEach((c, pos) => { cartoes[c].dataset.pos = pos; });
+    raiz.querySelectorAll("[data-ab-p]").forEach((p, k) => p.classList.toggle("on", k === ordem[0]));
+    if (dados) raiz.dataset.carrossel = dados.capas[ordem[0]].x.id; };
+  const girar = d => { ordem = d > 0 ? [ordem[1], ordem[2], ordem[0]] : [ordem[2], ordem[0], ordem[1]]; aplicar(); };
+  const ir = i => { let n = 0; while (ordem[0] !== i && n++ < 3) girar(1); };
+  // folhear com o dedo (ou o mouse): a capa da frente acompanha
+  let x0 = null, dx = 0, frente = null;
+  pilha.addEventListener("pointerdown", e => { frente = cartoes[ordem[0]]; x0 = e.clientX; dx = 0; frente.classList.add("arrasta"); pilha.setPointerCapture(e.pointerId); });
+  pilha.addEventListener("pointermove", e => { if (x0 == null) return; dx = e.clientX - x0; frente.style.transform = `translateX(${dx}px) rotate(${dx / 24}deg)`; });
+  let alvo = null;
+  pilha.addEventListener("pointerdown", e => { alvo = e.target.closest(".ab-capa"); }, { capture: true });
+  const soltar = () => { if (x0 == null) return; frente.classList.remove("arrasta"); frente.style.transform = "";
+    if (Math.abs(dx) > 45) girar(dx < 0 ? 1 : -1);
+    else if (alvo && alvo.dataset.pos !== "0") ir(+alvo.dataset.i); // tocar numa capa de trás traz ela para a frente
+    x0 = null; };
+  pilha.addEventListener("pointerup", soltar); pilha.addEventListener("pointercancel", soltar);
+  pilha.addEventListener("keydown", e => { if (e.key === "ArrowRight") { e.preventDefault(); girar(1); } if (e.key === "ArrowLeft") { e.preventDefault(); girar(-1); } });
+  raiz.addEventListener("click", e => { const b = e.target.closest("[data-ab-ir]"); if (b) girar(+b.dataset.abIr); });
   input.addEventListener("input", () => { if (ses) guardado.set(NOME_K, input.value, ses); agendar(); });
-  // troca de segmento: a prévia sai e entra de lado, num movimento curto
+  // entrada das capas: chegam pela lateral e se abrem em leque
+  const entrar = (lado = 1) => { if (calmo()) return Promise.resolve();
+    return Promise.all(cartoes.map((c, k) => c.animate([{ transform: `translateX(${lado * 115}%) rotate(${lado * 10}deg)`, opacity: 0 }, { opacity: 1, offset: .35 }, { transform: getComputedStyle(c).transform, opacity: 1 }],
+      { duration: 620, delay: (2 - +c.dataset.pos) * 70, easing: "cubic-bezier(.2,.8,.25,1)", fill: "backwards" }).finished.catch(() => {}))); };
+  const sair = (lado = -1) => calmo() ? Promise.resolve() : Promise.all(cartoes.map((c, k) => c.animate([{ opacity: 1 }, { transform: `translateX(${lado * 115}%) rotate(${lado * 10}deg)`, opacity: 0 }],
+      { duration: 240, delay: +c.dataset.pos * 40, easing: "ease-in", fill: "forwards" }).finished.catch(() => {})));
   async function trocar(novo) {
     if (novo === seg) return;
-    const ida = SITE.publicos.findIndex(p => p.id === novo) > SITE.publicos.findIndex(p => p.id === seg) ? -1 : 1;
+    const lado = SITE.publicos.findIndex(p => p.id === novo) > SITE.publicos.findIndex(p => p.id === seg) ? -1 : 1;
     seg = novo; estado.publico = novo; guardado.set("nna-publico", novo);
     raiz.dataset.seg = novo; raiz.querySelectorAll(".seg [data-seg]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.seg === novo)));
-    $("[data-convite]").textContent = ab(novo).convite;
-    const v = ++versao, prox = carregar(novo), ed = $("#ed-prev"), anima = !calmo() && ed.animate;
-    if (anima) await ed.animate([{ transform: "none", opacity: 1 }, { transform: `translateX(${ida * 36}px)`, opacity: 0 }], { duration: 160, easing: "ease-in", fill: "forwards" }).finished;
+    const t = segCampanha(novo); $("[data-escolher]").setAttribute("href", `#campanha/${t.id}`);
+    const v = ++versao, prox = carregar(novo);
+    await sair(lado);
     const d = await prox; if (v !== versao) return;
-    dados = d; $("#dia1").innerHTML = dia1HTML(novo); post.scrollLeft = 0; marcar(0); pintar();
-    if (anima) await ed.animate([{ transform: `translateX(${-ida * 36}px)`, opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 220, easing: "ease-out", fill: "forwards" }).finished;
+    dados = d; ordem = [0, 1, 2]; aplicar(); cartoes.forEach(c => c.getAnimations().forEach(a => a.cancel()));
+    $("#como-editar").innerHTML = videoHTML(novo); $("#dia1").innerHTML = dia1HTML(novo); pintar();
+    await entrar(-lado);
   }
   raiz.addEventListener("click", e => { const b = e.target.closest(".seg [data-seg]"); if (b) trocar(b.dataset.seg); });
   raiz.addEventListener("keydown", e => { const b = e.target.closest(".seg [data-seg]"); if (!b || !/Arrow(Left|Right|Up|Down)/.test(e.key)) return; e.preventDefault();
     const ids = SITE.publicos.map(p => p.id), n = ids[(ids.indexOf(seg) + 1) % ids.length]; trocar(n); raiz.querySelector(`.seg [data-seg="${n}"]`).focus(); });
-  (async () => { const v = ++versao; const d = await carregar(seg); if (v !== versao) return; dados = d; marcar(0); pintar(); })();
-  return { destruir: () => { vivo = false; ac.abort(); } };
+  // a volta à mão ao redor de "vem pronto." (uma vez; com movimento reduzido, já aparece pronta)
+  const volta = montarVolta(raiz.querySelector(".ab-vp"), ac.signal);
+  (async () => { const v = ++versao; const d = await carregar(seg); if (v !== versao) return; dados = d; aplicar(); pintar(); entrar(1); })();
+  // play do vídeo, quando houver
+  document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (!b) return; const vd = b.parentElement.querySelector("video"); vd.controls = true; vd.play(); b.hidden = true; }, { signal: ac.signal });
+  return { destruir: () => { vivo = false; ac.abort(); volta.parar(); } };
+}
+/* desenha um laço à mão por fora da palavra, com um ponto cereja na ponta do traço */
+function montarVolta(caixa, sinal) {
+  const svg = caixa.querySelector("svg"), traco = svg.querySelector(".ab-traco"), ponto = svg.querySelector(".ab-ponto"), em = caixa.querySelector("em");
+  let raf = 0, feito = false;
+  function caminho() {
+    // laço mais largo que alto: passa por fora do "v", do "p" e do "t", e cruza só os cantos vazios
+    const r = em.getBoundingClientRect(), c = caixa.getBoundingClientRect(), vw = document.documentElement.clientWidth;
+    const folga = Math.max(4, Math.min(r.height * .5, r.left - 3, vw - r.right - 3));
+    const rx = r.width / 2 + folga, ry = r.height * .8, m = 12;
+    svg.setAttribute("width", 2 * rx + 2 * m); svg.setAttribute("height", 2 * ry + 2 * m);
+    svg.style.left = `${r.left - c.left + r.width / 2 - rx - m}px`; svg.style.top = `${r.top - c.top + r.height / 2 - ry - m}px`;
+    const cx = rx + m, cy = ry + m, a0 = Math.PI * 1.1, volta = Math.PI * 2 * 1.06, pts = [];
+    for (let k = 0; k <= 96; k++) { const f = k / 96, a = a0 + volta * f, w = 1 + .02 * Math.sin(3 * a + .6), sobe = 1 + .05 * f;
+      pts.push([cx + rx * w * Math.cos(a) * (1 + .015 * f), cy + ry * w * sobe * Math.sin(a) - 3 * f]); }
+    traco.setAttribute("d", "M" + pts.map(p => p.map(v => v.toFixed(1)).join(" ")).join(" L"));
+    return traco.getTotalLength();
+  }
+  function desenhar(anim) {
+    cancelAnimationFrame(raf);
+    const L = caminho(); traco.style.strokeDasharray = `${L}`;
+    const pos = k => { const q = traco.getPointAtLength(L * k); ponto.setAttribute("cx", q.x); ponto.setAttribute("cy", q.y); traco.style.strokeDashoffset = `${L * (1 - k)}`; };
+    if (!anim) { pos(1); return; }
+    const t0 = performance.now(), dur = 1000, io = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+    const passo = agora => { const k = Math.min(1, (agora - t0) / dur); pos(io(k)); if (k < 1) raf = requestAnimationFrame(passo); else { feito = true; caixa.dataset.volta = "1"; } };
+    raf = requestAnimationFrame(passo);
+  }
+  const iniciar = () => { if (calmo()) { desenhar(false); feito = true; caixa.dataset.volta = "1"; } else desenhar(true); };
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(iniciar, 250));
+  addEventListener("resize", () => { if (feito || calmo()) desenhar(false); }, { signal: sinal });
+  return { parar: () => cancelAnimationFrame(raf) };
 }
 
 /* ---------- campanha ---------- */
@@ -558,6 +621,7 @@ function render(rolar = true) {
     app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "editar" ? viewEditar(r.id, r.carr) : r.tela === "area" ? viewArea(r.id, r.carr) : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
     if (r.tela === "galeria") montarGaleria(r.id);
     if (r.tela === "inicio") { montados.push(montarAbertura()); montarCapasCampanhas(); }
+    document.body.dataset.tela = r.tela;
     vidaNosDetalhes();
     if (r.tela === "campanha" && $("#carrossel")) {
       const demo = DEMOS[r.id], cat = CATALOGO[r.id], pv = cat && (cat.carrosseis.find(x => x.id === cat.previa) || cat.carrosseis[0]); let fmts = null;
