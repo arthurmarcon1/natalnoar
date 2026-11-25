@@ -17,7 +17,7 @@ export default {
   capa: { texto: "3 estilos para", preco: "as festas", apoio: "Qual é o seu? →" },
   /* Abertura da página inicial (ver presentes-por-orcamento.js). */
   abertura: { carrossel: "tres-estilos", capas: ["tres-estilos", "pronta-ceia", "unhas"], convite: "Quer ver com o nome da sua marca?", marcaVazia: "Nome da sua marca",
-    publico: "Para maquiadoras, cabeleireiras, manicures, confeiteiras e decoradoras",
+    publico: "Para beleza, confeitaria, decoração, fotografia e outros serviços",
     primeiroDia: { carrossel: "pronta-ceia", instrucao: "Separe a foto de uma make de festa pronta e uma da pele de perto, e troque no carrossel." } },
   produtos: [
     { id: "make-leve", nome: "Make leve", preco: "R$ 120", paraQuem: "Para o almoço da firma", estilo: "Almoço da firma:",

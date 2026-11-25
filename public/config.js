@@ -67,7 +67,7 @@ export const SITE = {
     {
       id: "loja",
       nome: "Tenho uma loja",
-      chamada: "Para lojas de roupas, calçados, acessórios e presentes.",
+      chamada: "Para lojas de roupas, calçados, acessórios, presentes, decoração e muito mais.",
       temas: [
         { id: "presentes-por-orcamento", nome: "Presentes por orçamento", publico: "loja",
           descricao: "Presentes organizados por preço, estilo e prazo, para a cliente decidir rápido e chamar a loja.",
@@ -91,7 +91,7 @@ export const SITE = {
     {
       id: "servico",
       nome: "Presto um serviço",
-      chamada: "Para quem vive do próprio trabalho: beleza, fotografia, bem-estar, festas e feitos à mão.",
+      chamada: "Para quem vive do próprio trabalho: beleza, fotografia, bem-estar, festas, feitos à mão e muito mais.",
       temas: [
         { id: "por-tras-do-resultado", nome: "Por trás do resultado", publico: "servico",
           descricao: "Bastidores, escolhas do profissional e trabalhos reais, para mostrar o valor do que você faz.",

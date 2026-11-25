@@ -47,6 +47,7 @@ for (const [nome, opts] of [["celular", { viewport: { width: 390, height: 844 } 
   const segs = await page.locator(".seg [data-seg]").allInnerTexts();
   ok(segs.join("|") === "Tenho uma loja|Presto serviços", `${nome}: "Tenho uma loja" e "Presto serviços" logo abaixo da chamada`);
   ok(await page.locator(".ab-capa canvas").count() === 3 && await frente(page) === "ate-100", `${nome}: loja abre com 3 capas reais e "5 presentes até R$ 100" na frente`);
+  await page.waitForFunction(() => [...document.querySelectorAll(".ab-capa")].every(c => !c.getAnimations().some(a => a.playState === "running")), null, { timeout: 5000 }); await w(page, 500);
   const capa = await page.locator('.ab-capa[data-pos="0"]').boundingBox();
   ok(capa.width >= 250 && capa.x >= 0 && capa.x + capa.width <= opts.viewport.width && capa.y + capa.height <= opts.viewport.height + (nome === "celular" ? 160 : 0), `${nome}: a primeira capa inteira e legível (${Math.round(capa.width)} px de largura)`);
   if (nome === "celular") await page.screenshot({ path: `${out}/home-celular-loja.png` });

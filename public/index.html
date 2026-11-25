@@ -83,6 +83,13 @@ mark{background:var(--marca-bg);color:inherit;border-radius:4px;padding:0 3px}
 /* ---------- abertura: segmento + celular com o carrossel do dia 1 ---------- */
 /* ---------- página inicial: fundo quente, chamada sem serifa, volta à mão, leque de capas ---------- */
 body[data-tela="inicio"]{background:#FFFBF6}
+/* vida no fundo, sem poluir: grão de papel + luz quente atrás das capas + estrelinhas paradas */
+body[data-tela="inicio"]::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .2 0 0 0 0 .15 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");background-size:180px 180px}
+.ab::before{content:"";position:absolute;inset:-10% -10% 0 -10%;z-index:0;pointer-events:none;-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent);
+  background:radial-gradient(38% 44% at 76% 46%,rgba(179,18,46,.075),transparent 70%),radial-gradient(34% 40% at 10% 62%,rgba(214,150,80,.11),transparent 72%),radial-gradient(26% 30% at 30% 8%,rgba(245,184,195,.16),transparent 70%)}
+.ab-in{position:relative;z-index:1}
+.ab-estrela{position:absolute;z-index:0;pointer-events:none;color:var(--cereja);opacity:.22;font-size:var(--e,18px);line-height:1}
+.galeria-home{background:#F4EEE8 radial-gradient(50% 80% at 85% 0%,rgba(179,18,46,.05),transparent 70%)}
 body[data-tela="inicio"] .topo{background:rgba(255,251,246,.94)}
 .ab{--disp:"Bricolage Grotesque","Plus Jakarta Sans",system-ui,sans-serif;position:relative;overflow:hidden}
 .ab-in{display:grid;gap:18px 56px;padding-block:22px 30px;grid-template-areas:"txt" "deck" "acoes";align-items:center}
@@ -153,7 +160,6 @@ body[data-tela="inicio"] .topo{background:rgba(255,251,246,.94)}
 .venda-capa img{display:block;width:100%;aspect-ratio:4/5;border-radius:12px;background:#F4EEE8;object-fit:cover}
 .venda-txt{display:grid;gap:4px}.venda-txt small{color:var(--suave);font-weight:700}.venda-txt b{font-family:var(--serif);font-size:1.3rem;line-height:1.1}
 .venda-preco{font-weight:800;color:var(--cereja)}.venda-ir{font-weight:800;margin-top:4px}
-.galeria-home{background:#F4EEE8}
 .gal-faixa{display:grid;grid-auto-flow:column;grid-auto-columns:min(40vw,190px);gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px max(16px,calc((100vw - 1120px)/2)) 16px;scroll-padding-inline:max(16px,calc((100vw - 1120px)/2));scrollbar-width:none}
 .gal-faixa::-webkit-scrollbar{display:none}
 .gh-capa{scroll-snap-align:start;text-decoration:none;color:var(--tinta);font-weight:700;font-size:.85rem}

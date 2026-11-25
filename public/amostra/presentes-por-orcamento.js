@@ -22,7 +22,7 @@ export default {
   /* Abertura da página inicial. carrossel: o modelo em destaque na prévia (pode ser qualquer um do Natal Pronto).
      primeiroDia: a peça do dia 1 do calendário real do kit e a instrução igual ao "Preparar" dele (teste confere). */
   abertura: { carrossel: "ate-100", capas: ["ate-100", "cara-dela", "ainda-da-tempo"], convite: "Quer ver com o nome da sua loja?", marcaVazia: "Nome da loja aqui",
-    publico: "Para lojas de roupas, acessórios e presentes",
+    publico: "Para lojas de roupas, acessórios, presentes, decoração e muito mais",
     primeiroDia: { carrossel: "ate-100", instrucao: "Separe cinco produtos da loja e troque as fotos no carrossel." } },
   produtos: [
     { id: "clutch", nome: "Clutch Noite", preco: "R$ 89", paraQuem: "Para a mãe que ama sair", estilo: "Não perde uma festa?",

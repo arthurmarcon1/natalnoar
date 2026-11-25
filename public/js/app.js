@@ -172,6 +172,7 @@ function viewInicio() {
   const outras = Object.keys(CATALOGO).filter(id => !vendas.some(t => t.id === id));
   return `
   <section class="ab" data-seg="${seg}">
+    ${[["6%", "14%", "16px"], ["46%", "7%", "11px"], ["93%", "12%", "20px"], ["88%", "78%", "13px"], ["4%", "70%", "12px"], ["52%", "92%", "15px"]].map(([l, t, e]) => `<span class="ab-estrela" aria-hidden="true" style="left:${l};top:${t};--e:${e}">✦</span>`).join("")}
     <div class="wrap ab-in">
       <div class="ab-txt">
         <h1 class="ab-h1"><span class="ab-pre">Fim de ano corrido?</span><span class="ab-big">Seu conteúdo <span class="ab-vp"><em>vem pronto.</em><svg class="ab-volta" aria-hidden="true"><path class="ab-traco"/><circle class="ab-ponto" r="6"/></svg></span></span></h1>
