@@ -233,13 +233,18 @@ Ao final, entregue:
 - [x] Kit completo das duas coleções à venda: 22 roteiros de Reels, 16 sequências de Stories editáveis (1080 × 1920), calendários por plano com atalhos; área da cliente em Calendário / Carrosséis / Reels / Stories (24/11/2026)
 
 ### Pendências do Arthur para abrir as vendas
-- Criar os segredos `ACESSO_SECRET` e `ADMIN_TOKEN` na Vercel (ver "Área da cliente"). Sem eles a área fica fechada.
-- Pagamento: pelo WhatsApp. No lançamento, mudar `modoCompra` para `"checkout"` em `config.js`. Para cada venda confirmada, gerar e enviar o link de acesso ("Área da cliente", passo 2).
+- Pagamento com InfinitePay já implementado (ver "Pagamento com InfinitePay" e `docs/pagamento-infinitepay.md`). Falta: ativar o Checkout Integrado na conta, cadastrar as variáveis em privado (`ACESSO_SECRET`, `ADMIN_TOKEN`, `INFINITEPAY_HANDLE`, `SITE_URL`, `RESEND_API_KEY`, `EMAIL_REMETENTE`; `INFINITEPAY_API_KEY` opcional), ter um domínio próprio verificado no Resend e fazer as duas compras reais de R$ 1,00 (Pix e cartão).
 - Trocar as fotos provisórias de `public/assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
 - Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
 - Revisar os textos do kit em `private/campanhas/presentes-por-orcamento.js` e `private/campanhas/seu-toque-nas-festas.js` (Reels, Stories, calendários).
 - Reels, Stories, mensagens e calendários das outras 8 coleções (os carrosséis já estão prontos; status `em-preparacao` até lá).
-- Trocar as ilustrações de `public/assets/exemplo/` por fotos reais (os nomes dos arquivos são usados pelo catálogo).
+
+## Pagamento com InfinitePay (25/11/2026)
+- **Percurso:** revisão do pedido (`#pedido/<coleção>/<plano>`, com e-mail e confirmação) → `POST /api/pedido` (preço do servidor, link da InfinitePay) → paga na InfinitePay → aviso `POST /api/infinitepay?k=<token>` → conferência `payment_check` → e-mail com o acesso. Volta da cliente: `/retorno.html` → `#retorno` → `POST /api/retorno` (confere de novo; "Abrir minha campanha"; "reenvie o e-mail").
+- **Sem banco de dados:** o pedido viaja no `order_nsu`, assinado com o `ACESSO_SECRET` (coleção, plano, valor, e-mail, data). O acesso é determinístico (mesmo pedido = mesmo link), então avisos repetidos não criam outro acesso. Código em `private/pagamento.js`, `private/email.js`, `private/entrega.js`.
+- **Regras da InfinitePay (documentação oficial):** não há ambiente de testes; o cartão não pode ser desligado (Pix fica em destaque na nossa tela); o webhook não tem assinatura (por isso a conferência e o token `k` na URL); mínimo R$ 1,00.
+- **Configuração:** `SITE.pagamento` em `public/config.js` (`"infinitepay"` ou `"whatsapp"`). Variáveis de ambiente e primeira compra real: `docs/pagamento-infinitepay.md`.
+- **Testes:** `tests/pagamento.test.mjs` (no `npm test`) e `tests/navegador/compra.mjs` com o simulador `tests/infinitepay-falso.mjs`.
 
 ## Deploy
 - **Produção:** https://natal-no-ar.vercel.app (branch `main`). Só publicar em produção quando o Arthur pedir.

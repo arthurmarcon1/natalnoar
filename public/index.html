@@ -363,6 +363,21 @@ body[data-tela="inicio"] .topo{background:rgba(255,251,246,.94)}
 .rc-itens{margin:12px 0;padding-left:18px;color:var(--suave);font-size:.93rem;display:grid;gap:3px}
 .rc-total{border-top:1px solid var(--linha);padding-top:12px;font-size:1.15rem}
 .aviso-pedido{background:var(--fundo-2);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:.95rem}
+.pg-form{display:grid;gap:12px;margin-top:6px}
+.pg-form input{font:inherit;font-size:1.05rem;padding:12px 14px;border:1.5px solid #E4DAD2;border-radius:14px;background:#fff;min-width:0;width:100%;box-sizing:border-box}
+.pg-form input:focus{border-color:var(--cereja);outline:none}
+.pg-erro{background:#FDE8EC;color:#8E0E24;border-radius:12px;padding:10px 12px;margin:0;font-weight:600}
+.pg-erro a{color:inherit}
+.pg-ok{background:#E6F2EB;color:#1F5A3F;border-radius:12px;padding:10px 12px;margin:0;font-weight:600}
+.pg-metodos{margin:0;font-size:.95rem;color:var(--suave)}
+.btn.carregando{opacity:.7;pointer-events:none}
+.retorno .btn{margin:8px 0}
+.pg-email{margin:12px 0 4px}
+.pg-espera{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--suave)}
+.pg-ponto{width:12px;height:12px;border-radius:50%;background:var(--cereja);animation:pg-pulso 1.2s ease-in-out infinite}
+@keyframes pg-pulso{50%{transform:scale(.55);opacity:.45}}
+@media (prefers-reduced-motion:reduce){.pg-ponto{animation:none}}
+.pg-dica{background:#F4EEE8;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:.95rem}
 
 /* editores */
 .am-grade{display:grid;gap:18px}

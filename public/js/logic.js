@@ -69,6 +69,7 @@ export function estadoCompra(tema, plano, site) {
   plano = plano || planoPadrao(site);
   const rotulo = `Comprar ${plano.nome} · ${fmtBRL(plano.preco)}`;
   const checkout = checkoutDoTema(tema, plano, site);
+  if (site.pagamento === "infinitepay") return { tipo: "revisao", rotulo, href: `#pedido/${tema.id}/${plano.id}`, checkout: null, plano }; // o e-mail é pedido na revisão
   if (site.modoCompra === "checkout" && checkout) return { tipo: "checkout", rotulo, href: checkout, plano };
   return { tipo: "revisao", rotulo, href: `#pedido/${tema.id}/${plano.id}`, checkout, plano };
 }

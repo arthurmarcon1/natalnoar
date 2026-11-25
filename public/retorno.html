@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Natal no Ar · confirmando o pagamento</title>
+<!-- A InfinitePay devolve a cliente para cá com ?order_nsu=&slug=&transaction_nsu=&capture_method=&receipt_url=.
+     Esta página só repassa os dados para a página de retorno do site (#retorno), que confere o pagamento no servidor. -->
+<script>location.replace("/#retorno?" + location.search.slice(1));</script>
+</head><body style="font-family:system-ui;padding:24px">Confirmando o pagamento… <a href="/#inicio">Voltar ao Natal no Ar</a></body></html>

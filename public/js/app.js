@@ -411,9 +411,89 @@ function viewPedido(id, planoId) {
       <ul class="rc-itens">${[...entregasDoPlano(plano), ...extras, ...virada].map(a => `<li>${esc(a)}</li>`).join("")}</ul>
       <div class="rc-total"><span>Total</span><b class="num">${fmtBRL(plano.preco)}</b></div>
     </div>
+    ${SITE.pagamento === "infinitepay" ? formPagamento(tema, plano) : `
     <p class="aviso-pedido" role="note"><b>Nenhum pagamento foi feito.</b> Esta tela só mostra o pedido. O pagamento acontece no próximo passo e o acesso é liberado depois da confirmação.</p>
-    ${checkout ? `<a class="btn grande block" href="${esc(checkout)}" target="_blank" rel="noopener" data-checkout><span>Continuar para o pagamento · <span class="nw">${fmtBRL(plano.preco)}</span></span></a>` : `<p class="aviso">O checkout ainda não foi configurado.</p>`}
+    ${checkout ? `<a class="btn grande block" href="${esc(checkout)}" target="_blank" rel="noopener" data-checkout><span>Continuar para o pagamento · <span class="nw">${fmtBRL(plano.preco)}</span></span></a>` : `<p class="aviso">O checkout ainda não foi configurado.</p>`}`}
   </section>`;
+}
+
+/* ---------- pagamento (InfinitePay): e-mail do acesso → link de pagamento gerado no servidor ---------- */
+const ajudaWhatsApp = msg => linkContato(SITE.whatsappVendas, msg) || "";
+function formPagamento(tema, plano) {
+  const ajuda = ajudaWhatsApp(`Olá! Tenho uma dúvida sobre a compra de ${tema.nome} (${plano.nome}).`);
+  return `<form class="pg-form" data-pagar data-camp="${tema.id}" data-plano-pedido="${plano.id}" novalidate>
+    <label class="campo"><span>E-mail que vai receber o acesso</span><input type="email" name="email" autocomplete="email" inputmode="email" required maxlength="120" placeholder="voce@email.com"></label>
+    <label class="campo"><span>Confirme o e-mail</span><input type="email" name="confirmacao" autocomplete="off" inputmode="email" required maxlength="120" placeholder="digite de novo"></label>
+    <p class="pg-erro" role="alert" hidden></p>
+    <button class="btn grande block" type="submit"><span>Continuar para o pagamento · <span class="nw">${fmtBRL(plano.preco)}</span></span></button>
+    <p class="pg-metodos"><b>Pix</b> na hora, ou cartão de crédito. Você paga na página segura da InfinitePay e volta para cá.</p>
+    <p class="aviso-pedido" role="note">Compra única, sem mensalidade. Assim que o pagamento for confirmado, o botão <b>Abrir minha campanha</b> aparece na tela e o link de acesso chega no seu e-mail, mesmo se você fechar esta página.</p>
+    ${ajuda ? `<p class="hint">Dúvidas? <a href="${esc(ajuda)}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a>.</p>` : ""}
+  </form>`;
+}
+async function enviarPedido(form) {
+  const erro = form.querySelector(".pg-erro"), btn = form.querySelector("button[type=submit]"), f = new FormData(form);
+  const email = String(f.get("email") || "").trim(), confirmacao = String(f.get("confirmacao") || "").trim();
+  const falha = m => { erro.innerHTML = m; erro.hidden = false; btn.disabled = false; btn.classList.remove("carregando"); };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return falha("Confira o e-mail: é por ele que o acesso chega.");
+  if (email.toLowerCase() !== confirmacao.toLowerCase()) return falha("Os dois e-mails não são iguais.");
+  erro.hidden = true; btn.disabled = true; btn.classList.add("carregando");
+  try {
+    const r = await fetch("/api/pedido", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ campanha: form.dataset.camp, plano: form.dataset.planoPedido, email, confirmacao }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.url) {
+      const tema = temaPorId(SITE, form.dataset.camp), plano = planoPorId(SITE, form.dataset.planoPedido), w = ajudaWhatsApp(`Olá! Quero comprar ${tema.nome} no plano ${plano.nome}, por ${fmtBRL(plano.preco)}.`);
+      return falha(`${esc(d.erro || "Não foi possível iniciar o pagamento.")}${r.status >= 500 && w ? ` <a href="${esc(w)}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a> para comprar agora.` : ""}`);
+    }
+    guardado.set("nna-pedido", JSON.stringify({ pedido: d.pedido, campanha: form.dataset.camp, plano: form.dataset.planoPedido }));
+    location.href = d.url;
+  } catch { falha("Sem conexão. Tente de novo em instantes."); }
+}
+
+/* ---------- volta da InfinitePay: confere no servidor e libera ---------- */
+function viewRetorno() {
+  return `<section class="wrap topo-pag retorno" id="retorno" aria-live="polite">
+    <p class="eyebrow">Pagamento</p><h1 data-rt-titulo>Confirmando seu pagamento…</h1>
+    <div data-rt-corpo><p class="lede">Isso leva só alguns segundos.</p></div></section>`;
+}
+function montarRetorno() {
+  const q = new URLSearchParams((location.hash.split("?")[1]) || ""), guardadoP = (() => { try { return JSON.parse(guardado.get("nna-pedido", "null")); } catch { return null; } })();
+  const dados = { pedido: q.get("order_nsu") || (guardadoP && guardadoP.pedido) || "", transacao: q.get("transaction_nsu") || "", slug: q.get("slug") || "" };
+  const titulo = $("[data-rt-titulo]"), corpo = $("[data-rt-corpo]"); let tentativas = 0, timer = 0, vivo = true;
+  const ajuda = ajudaWhatsApp("Olá! Paguei o Natal no Ar e preciso de ajuda com o acesso.");
+  const ajudaHTML = ajuda ? `<p class="hint">Precisa de ajuda? <a href="${esc(ajuda)}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a>.</p>` : "";
+  const resumoHTML = r => r ? `<div class="recibo"><div class="rc-linha"><span><small>Coleção</small><b>${esc(r.campanha)}</b></span></div><div class="rc-linha rc-plano"><span><small>Plano</small><b>${esc(r.plano)}</b></span><b class="num">${esc(r.valorTexto)}</b></div></div>` : "";
+  async function verificar(reenviar = false) {
+    if (!dados.pedido) { titulo.textContent = "Não encontramos o pedido"; corpo.innerHTML = `<p class="lede">Abra o link do e-mail de acesso ou faça o pedido de novo.</p><a class="btn" href="#campanhas">Ver campanhas</a>${ajudaHTML}`; return; }
+    let d = {};
+    try { const r = await fetch("/api/retorno", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...dados, reenviar }) }); d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.erro || ""); }
+    catch (e) { if (!vivo) return; titulo.textContent = "Não foi possível confirmar agora"; corpo.innerHTML = `<p class="lede">${esc(e.message || "Sem conexão.")} Se o pagamento foi feito, o acesso chega no seu e-mail.</p><button type="button" class="btn" data-rt-verificar>Verificar de novo</button>${ajudaHTML}`; return; }
+    if (!vivo) return;
+    document.body.dataset.retorno = d.status;
+    if (d.status === "pago") {
+      guardado.set("nna-pedido", null);
+      titulo.textContent = "Pagamento confirmado!";
+      corpo.innerHTML = `${resumoHTML(d.resumo)}
+        <a class="btn grande block" href="#acesso=${esc(d.token)}" data-abrir-campanha>Abrir minha campanha</a>
+        <p class="pg-email">O link de acesso também vai para <b>${esc(d.resumo.email)}</b>. Guarde o e-mail: ele é o seu acesso.</p>
+        ${d.email ? `<p class="${d.email === "enviado" ? "pg-ok" : "pg-erro"}" role="status">${d.email === "enviado" ? "E-mail reenviado." : esc(d.email)}</p>` : ""}
+        <p>Não chegou em alguns minutos? Olhe a caixa de spam ou <button type="button" class="link" data-rt-reenviar>reenvie o e-mail</button>. Não há nova cobrança.</p>${ajudaHTML}`;
+      return;
+    }
+    tentativas++;
+    titulo.textContent = "Aguardando a confirmação do pagamento";
+    const esgotou = tentativas >= 36, voltar = d.resumo ? `#pedido/${d.resumo.campanhaId}/${d.resumo.planoId}` : "#campanhas";
+    corpo.innerHTML = `${resumoHTML(d.resumo)}
+      <p class="lede">${esgotou ? "Ainda não recebemos a confirmação." : "Assim que a InfinitePay confirmar, o botão para abrir a sua campanha aparece aqui. Pode deixar esta página aberta."}</p>
+      ${esgotou ? "" : `<p class="pg-espera"><span class="pg-ponto"></span> Verificando…</p>`}
+      <button type="button" class="btn ${esgotou ? "" : "ghost"}" data-rt-verificar>Já paguei, verificar agora</button>
+      <div class="pg-dica"><b>O Pix expirou ou o cartão foi recusado?</b> Nada foi cobrado. <a href="${voltar}">Gere um novo pagamento</a>. Se o Pix foi pago, a confirmação chega por e-mail mesmo que você feche esta página.</div>${ajudaHTML}`;
+    if (!esgotou) timer = setTimeout(() => verificar(), 5000);
+  }
+  const clique = e => { if (e.target.closest("[data-rt-verificar]")) { clearTimeout(timer); tentativas = 0; verificar(); } if (e.target.closest("[data-rt-reenviar]")) { clearTimeout(timer); verificar(true); } };
+  corpo.addEventListener("click", clique);
+  verificar();
+  return { destruir: () => { vivo = false; clearTimeout(timer); } };
 }
 
 /* ---------- editor (teste grátis): abre exatamente a composição escolhida ---------- */
@@ -601,6 +681,7 @@ function rota() {
   const h = decodeURIComponent((location.hash || "#inicio").slice(1));
   if (h.startsWith("acesso=")) return { tela: "acesso", token: h.slice(7) };
   if (h.startsWith("campanha/")) return { tela: "campanha", id: h.slice(9) };
+  if (h === "retorno" || h.startsWith("retorno?")) return { tela: "retorno" };
   if (h.startsWith("pedido/")) { const [id, plano] = h.slice(7).split("/"); return { tela: "pedido", id, plano: plano || planoPadrao(SITE).id }; }
   if (h.startsWith("editar/")) { const [, id, carr] = h.split("/"); return { tela: "editar", id, carr: carr || "" }; }
   if (h.startsWith("testar") || h === "experimentar") { const id = h.split("/")[1] || (campanhaDoPublico(estado.publico) || {}).id || "presentes-por-orcamento"; const c = CATALOGO[id]; return { tela: "editar", id: c ? id : "presentes-por-orcamento", carr: c ? c.previa : "" }; }
@@ -619,9 +700,10 @@ function render(rolar = true) {
   const chave = r.tela + (r.id || "") + (r.plano || "") + (r.carr || ""), mesma = telaAtual === chave;
   if (!mesma || !rolar) {
     montados.forEach(m => m && m.destruir && m.destruir()); montados = [];
-    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "editar" ? viewEditar(r.id, r.carr) : r.tela === "area" ? viewArea(r.id, r.carr) : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
+    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "editar" ? viewEditar(r.id, r.carr) : r.tela === "area" ? viewArea(r.id, r.carr) : r.tela === "galeria" ? viewGaleria(r.id) : r.tela === "retorno" ? viewRetorno() : viewInicio();
     if (r.tela === "galeria") montarGaleria(r.id);
     if (r.tela === "inicio") { montados.push(montarAbertura()); montarCapasCampanhas(); }
+    if (r.tela === "retorno") montados.push(montarRetorno());
     document.body.dataset.tela = r.tela;
     vidaNosDetalhes();
     if (r.tela === "campanha" && $("#carrossel")) {
@@ -701,6 +783,8 @@ document.addEventListener("keydown", e => {
 addEventListener("hashchange", () => render());
 if (document.fonts) document.fonts.ready.then(() => document.documentElement.classList.add("fontes-ok"));
 render();
+/* revisão do pedido: continuar para o pagamento */
+document.addEventListener("submit", e => { const f = e.target.closest("[data-pagar]"); if (!f) return; e.preventDefault(); enviarPedido(f); });
 /* área: escolher outro roteiro de Reel */
 document.addEventListener("change", e => {
   const s = e.target.closest && e.target.closest("[data-ir-reel]");

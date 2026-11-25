@@ -53,6 +53,9 @@ export const SITE = {
       acrescenta: ["+ Minicampanha de Réveillon", "+ 3 carrosséis e 3 roteiros de Reels", "+ 3 sequências de Stories", "Calendário próprio de 5 dias"] }
   ],
 
+  // Pagamento no site: "infinitepay" (Checkout Integrado, liberação automática; credenciais em variáveis de ambiente,
+  // ver private/pagamento.js) ou "whatsapp" (pedido pela conversa e link de acesso gerado à mão).
+  pagamento: "infinitepay",
   modoCompra: "revisao",
   whatsappVendas: "555599408766",
   mensagemCompra: "Olá, Arthur! Quero comprar a campanha {campanha} no plano {plano}, por {preco}. Como faço o pagamento?",

@@ -60,7 +60,10 @@ test("planos: três compras únicas com preço final, totais e o que acrescentam
 });
 
 test("compra: nome e preço exatos do plano na revisão e no checkout, nunca \"em breve\"", () => {
-  const teste = { ...SITE, modoCompra: "revisao" }, lancamento = { ...SITE, modoCompra: "checkout" };
+  const teste = { ...SITE, pagamento: "whatsapp", modoCompra: "revisao" }, lancamento = { ...SITE, pagamento: "whatsapp", modoCompra: "checkout" };
+  // InfinitePay: a compra sempre passa pela revisão do pedido (onde a cliente informa o e-mail do acesso)
+  for (const p of SITE.planos) { const r = L.estadoCompra(L.temaPorId(SITE, "presentes-por-orcamento"), p, { ...SITE, pagamento: "infinitepay", modoCompra: "checkout" });
+    assert.equal(r.tipo, "revisao"); assert.equal(r.href, `#pedido/presentes-por-orcamento/${p.id}`); assert.equal(r.rotulo, `Comprar ${p.nome} · ${L.fmtBRL(p.preco)}`); }
   for (const id of ["presentes-por-orcamento", "seu-toque-nas-festas"]) {
     const tema = clone(L.temaPorId(SITE, id));
     for (const p of SITE.planos) {
