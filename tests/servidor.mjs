@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const raiz = fileURLToPath(new URL("../", import.meta.url));
 const pub = join(raiz, "public");
-const TIPOS = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css", ".jpg": "image/jpeg", ".png": "image/png", ".json": "application/json", ".svg": "image/svg+xml" };
+const TIPOS = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css", ".jpg": "image/jpeg", ".png": "image/png", ".json": "application/json", ".svg": "image/svg+xml", ".mp4": "video/mp4", ".webm": "video/webm" };
 const porta = +process.argv[2] || 8767;
 
 createServer(async (req, res) => {

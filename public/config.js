@@ -62,8 +62,8 @@ export const SITE = {
   contatoGestao: "555599408766",
   // Vídeo "Veja como editar sua campanha" na página inicial (gravação do editor com narração).
   // Vazio = mostra uma prévia do editor e o botão "Testar o editor". Preenchido = aparece o play.
-  // src: arquivo em public/ (ex.: "video/como-editar.mp4") ou link https direto para o .mp4; poster: imagem de capa (opcional).
-  videoTutorial: { src: "", poster: "" },
+  // src: arquivo .mp4 em public/ ou link https direto; webm: versão .webm (opcional, para navegadores sem H.264); poster: capa (opcional).
+  videoTutorial: { src: "assets/video/como-editar.mp4", webm: "assets/video/como-editar.webm", poster: "assets/video/como-editar-capa.jpg" },
   mensagemGestao: "Olá, Arthur! Vi o Natal no Ar e quero conversar sobre gestão mensal de conteúdo.",
 
   publicos: [

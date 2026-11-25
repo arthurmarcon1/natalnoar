@@ -226,7 +226,7 @@ function viewInicio() {
 function videoHTML(seg) {
   const t = segCampanha(seg), carr = ab(seg).carrossel, v = SITE.videoTutorial || {};
   const tela = v.src
-    ? `<div class="abv-tela tem-video"><video data-video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ""} preload="metadata" playsinline></video><button type="button" class="abv-play" data-play aria-label="Assistir ao vídeo">▶</button></div>`
+    ? `<div class="abv-tela tem-video"><video data-video ${v.poster ? `poster="${esc(v.poster)}"` : ""} preload="metadata" playsinline aria-label="Vídeo: como editar sua campanha"><source src="${esc(v.src)}" type="video/mp4">${v.webm ? `<source src="${esc(v.webm)}" type="video/webm">` : ""}</video><button type="button" class="abv-play" data-play aria-label="Assistir ao vídeo">▶</button></div>`
     : `<div class="abv-tela"><div class="abv-mock" aria-hidden="true">
         <div class="abv-abas"><span class="on">Textos</span><span>Fotos</span><span>Estilo</span><span>Marca</span></div>
         <canvas width="1080" height="1350" data-abv-arte></canvas>
@@ -324,7 +324,8 @@ function montarAbertura() {
   const volta = montarVolta(raiz.querySelector(".ab-vp"), ac.signal);
   (async () => { const v = ++versao; const d = await carregar(seg); if (v !== versao) return; dados = d; aplicar(); pintar(); entrar(1); })();
   // play do vídeo, quando houver
-  document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (!b) return; const vd = b.parentElement.querySelector("video"); vd.controls = true; vd.play(); b.hidden = true; }, { signal: ac.signal });
+  document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (!b) return; const vd = b.parentElement.querySelector("video"); vd.controls = true; b.hidden = true;
+    Promise.resolve(vd.play()).catch(() => { b.hidden = false; vd.controls = false; toast("Não foi possível tocar o vídeo neste navegador."); }); }, { signal: ac.signal });
   return { destruir: () => { vivo = false; ac.abort(); volta.parar(); } };
 }
 /* desenha um laço à mão por fora da palavra, com um ponto cereja na ponta do traço */

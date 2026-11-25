@@ -68,7 +68,10 @@ for (const [nome, opts] of [["celular", { viewport: { width: 390, height: 844 } 
   await page.locator('.seg [data-seg="servico"]').click(); await w(page, 1200);
   ok(await frente(page) === "tres-estilos" && await page.evaluate(() => document.querySelector(".ab").dataset.marca).then(m => m.startsWith("Studio Mariana")), `${nome}: "Presto serviços" troca para "3 estilos para as festas", mantendo o nome`);
   ok(await page.locator("[data-escolher]").getAttribute("href") === "#campanha/seu-toque-nas-festas", `${nome}: "Escolher minha campanha" leva a Seu toque nas festas`);
-  ok(await page.locator("[data-testar]").getAttribute("href") === "#editar/seu-toque-nas-festas/tres-estilos" && await page.locator("[data-play]").count() === 0 && /O vídeo com narração vai aparecer aqui/.test(await page.locator("#como-editar").innerText()), `${nome}: "Veja como editar" mostra a prévia do editor, sem play enquanto não há vídeo`);
+  ok(await page.locator("[data-testar]").getAttribute("href") === "#editar/seu-toque-nas-festas/tres-estilos" && await page.locator("#como-editar video source[src$='como-editar.mp4']").count() === 1 && await page.locator("#como-editar video source[src$='como-editar.webm']").count() === 1 && await page.locator("[data-play]").count() === 1, `${nome}: "Veja como editar" com o vídeo e o botão de play`);
+  await page.locator("[data-play]").scrollIntoViewIfNeeded(); await page.locator("[data-play]").click(); await w(page, 1500);
+  ok(await page.locator("#como-editar video").evaluate(v => !v.paused && v.currentTime > 0 && v.videoWidth === 1080 && v.videoHeight === 1920), `${nome}: o play toca o vídeo (1080 × 1920)`);
+  await page.locator("#como-editar video").evaluate(v => v.pause());
   ok(/Pronta para a ceia/.test(await page.locator("#dia1").innerText()), `${nome}: o Dia 1 continua com a peça do calendário`);
   await page.locator("[data-nome-marca]").fill("Bia Make"); await w(page, 300);
   await page.evaluate(() => scrollTo(0, 0)); await page.screenshot({ path: `${out}/home-${nome}-servico.png` });
