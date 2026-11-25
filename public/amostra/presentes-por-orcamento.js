@@ -19,9 +19,9 @@ export default {
   capa: { texto: "5 presentes até", preco: "R$ 100", apoio: "Arrasta pro lado →" },
   extras: ["Achados para o amigo secreto", "Uma peça, três jeitos de usar", "Escolhas da equipe"],
   reveillon: ["Cores da virada", "Looks para a virada", "Últimos dias do ano"],
-  /* Abertura da página inicial: o carrossel do dia 1 no celular, duas capas da coleção nas laterais
-     e o primeiro dia do calendário (instrução igual ao "Preparar" do kit; teste confere). */
-  abertura: { carrossel: "ate-100", laterais: ["cara-dela", "ainda-da-tempo"], convite: "Quer ver com o nome da sua loja?", marcaVazia: "Nome da loja aqui",
+  /* Abertura da página inicial. carrossel: o modelo em destaque na prévia (pode ser qualquer um do Natal Pronto).
+     primeiroDia: a peça do dia 1 do calendário real do kit e a instrução igual ao "Preparar" dele (teste confere). */
+  abertura: { carrossel: "ate-100", convite: "Quer ver com o nome da sua loja?", marcaVazia: "Nome da loja aqui",
     publico: "Para lojas de roupas, acessórios e presentes",
     primeiroDia: { carrossel: "ate-100", instrucao: "Separe cinco produtos da loja e troque as fotos no carrossel." } },
   produtos: [

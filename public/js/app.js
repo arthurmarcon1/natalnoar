@@ -166,7 +166,6 @@ const NOME_K = "nna-nome-teste";
 const segCampanha = seg => campanhaDoPublico(seg) || campanhaDoPublico("loja");
 const ab = seg => DEMOS[segCampanha(seg).id].abertura;
 const carrDoCat = (campId, id) => CATALOGO[campId].carrosseis.find(x => x.id === id);
-const arroba = (nome, seg) => (String(nome || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9._]/g, "").slice(0, 24)) || (seg === "loja" ? "sualoja" : "suamarca");
 function viewInicio() {
   const seg = estado.publico, a = ab(seg), nome = guardado.get(NOME_K, "", ses || undefined);
   const vendas = SITE.publicos.map(p => campanhaDoPublico(p.id)).filter(Boolean);
@@ -181,24 +180,19 @@ function viewInicio() {
         </div>
       </div>
       <div class="h2-cel" aria-label="Prévia da campanha">
-        <div class="h2-lat" aria-hidden="true"><img class="lat l1" alt=""><img class="lat l2" alt=""></div>
-        <div class="cel">
-          <div class="cel-tela" id="cel-tela">
-            <div class="ig-top"><span class="ig-av" data-ig-av></span><b data-ig-arroba></b><span class="ig-mais">•••</span></div>
-            <div class="ig-post" id="ig-post" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Carrossel de exemplo. Deslize para folhear.">
-              ${[0, 1, 2, 3].map(i => `<canvas width="1080" height="1350" data-ig-tela="${i}" role="img" aria-label="Tela ${i + 1} de 4"></canvas>`).join("")}
-            </div>
-            <div class="ig-acoes"><span>♡ ◯ ➤</span><span class="ig-pontos" aria-hidden="true">${[0, 1, 2, 3].map(i => `<i data-ig-p="${i}"></i>`).join("")}</span><span class="ig-cont" data-ig-cont>1/4</span></div>
-            <p class="ig-legenda"><b data-ig-arroba></b> <span data-ig-legenda></span></p>
+        <div class="ed" id="ed-prev">
+          <canvas class="ed-atras" width="1080" height="1350" aria-hidden="true"></canvas>
+          <div class="ed-trilho" id="ig-post" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Carrossel de exemplo. Deslize para folhear.">
+            ${[0, 1, 2, 3].map(i => `<canvas width="1080" height="1350" data-ig-tela="${i}" role="img" aria-label="Tela ${i + 1} de 4"></canvas>`).join("")}
           </div>
-          <button type="button" class="ig-seta ant" data-ig-ir="-1" aria-label="Tela anterior">‹</button><button type="button" class="ig-seta prox" data-ig-ir="1" aria-label="Próxima tela">›</button>
+          <button type="button" class="ed-seta ant" data-ig-ir="-1" aria-label="Tela anterior">‹</button><button type="button" class="ed-seta prox" data-ig-ir="1" aria-label="Próxima tela">›</button>
         </div>
-        <span class="selo-pronto">pronto pra postar</span>
+        <div class="ed-pe"><span class="ig-pontos" aria-hidden="true">${[0, 1, 2, 3].map(i => `<i data-ig-p="${i}"></i>`).join("")}</span><span class="ig-cont" data-ig-cont>1 / 4</span></div>
       </div>
       <div class="h2-nome">
         <label for="nome-marca" data-convite>${esc(a.convite)}</label>
         <input id="nome-marca" data-nome-marca maxlength="40" autocomplete="organization" placeholder="Digite aqui" value="${esc(nome)}">
-        <p class="hint">Sem cadastro e sem enviar foto. Deslize a arte para ver as outras telas.</p>
+        <p class="hint">Sem cadastro e sem enviar foto. Folheie a arte para ver as outras telas.</p>
       </div>
     </div>
   </section>
@@ -240,38 +234,37 @@ function dia1HTML(seg) {
 function montarCapasCampanhas() {
   document.querySelectorAll("[data-capa-camp]").forEach(img => capaCat(img.dataset.capaCamp, null, 540).then(u => { img.src = u; }));
 }
-/* o celular da abertura: desenha, folheia, troca de segmento e aplica o nome digitado */
+/* a prévia editorial da abertura: desenha, folheia, troca de segmento e aplica o nome digitado */
 function montarAbertura() {
   const raiz = $(".h2"); if (!raiz) return null;
-  const post = $("#ig-post"), telas = [...post.querySelectorAll("canvas")], input = $("[data-nome-marca]");
-  let seg = estado.publico, dados = null, versao = 0, atual = 0, raf = 0, tLat = 0, vivo = true;
+  const post = $("#ig-post"), telas = [...post.querySelectorAll("canvas")], atras = $(".ed-atras"), input = $("[data-nome-marca]");
+  let seg = estado.publico, dados = null, versao = 0, atual = 0, raf = 0, vivo = true;
   const marcaAgora = () => (input.value || "").trim() || ab(seg).marcaVazia;
+  async function pecas(campId, carrId) {
+    const x = carrDoCat(campId, carrId), estilo = estiloOriginal(campId, x);
+    const [imgs] = await Promise.all([Promise.all(x.telas.map(tl => Promise.all((tl.f || []).map(fotoDeArquivo)))), carregarPar(estilo.par)]);
+    return { x, estilo, imgs };
+  }
   async function carregar(s) {
-    const t = segCampanha(s), a = ab(s), x = carrDoCat(t.id, a.carrossel), estilo = estiloOriginal(t.id, x);
-    const [imgs] = await Promise.all([Promise.all(x.telas.map(tl => Promise.all((tl.f || []).map(fotoDeArquivo)))), carregarPar(estilo.par), carregarFontes()]);
-    return { t, a, x, estilo, imgs };
+    const t = segCampanha(s), a = ab(s);
+    const [prev, dia1] = await Promise.all([pecas(t.id, a.carrossel), pecas(t.id, a.primeiroDia.carrossel), carregarFontes()]);
+    return { t, a, prev, dia1 };
+  }
+  const desenhar = (ctx, p, i, marca) => desenharEstudio(ctx, p.x.telas[i], p.estilo, { marca, imgs: p.imgs[i], ajustes: p.x.telas[i].aj || [] });
+  function atrasDe(i) { // só a borda da próxima tela aparece atrás da atual
+    const n = i + 1; atras.hidden = n > 3; if (n <= 3) atras.getContext("2d").drawImage(telas[n], 0, 0);
   }
   function pintar() {
     raf = 0; if (!dados || !vivo) return;
     const marca = marcaAgora();
-    dados.x.telas.forEach((tl, i) => desenharEstudio(telas[i].getContext("2d"), tl, dados.estilo, { marca, imgs: dados.imgs[i], ajustes: tl.aj || [] }));
-    const d1 = $("[data-dia1-arte]"); if (d1) d1.getContext("2d").drawImage(telas[0], 0, 0);
-    document.querySelectorAll("[data-ig-arroba]").forEach(e => { e.textContent = arroba(input.value, seg); });
-    $("[data-ig-av]").textContent = marca.charAt(0).toUpperCase();
-    const leg = legendaPreenchida(dados.x, dados.x.telas, input.value, ab(seg).marcaVazia).split("\n").filter(Boolean)[0];
-    $("[data-ig-legenda]").textContent = leg;
-    raiz.dataset.marca = marca; raiz.dataset.pronto = "1";
+    telas.forEach((c, i) => desenhar(c.getContext("2d"), dados.prev, i, marca));
+    atrasDe(atual);
+    const d1 = $("[data-dia1-arte]"); if (d1) desenhar(d1.getContext("2d"), dados.dia1, 0, marca);
+    raiz.dataset.marca = marca; raiz.dataset.carrossel = dados.prev.x.id; raiz.dataset.pronto = "1";
   }
   const agendar = () => { if (!raf) raf = requestAnimationFrame(pintar); };
-  function laterais(ja) {
-    clearTimeout(tLat); tLat = setTimeout(() => { if (!dados) return;
-      const imgs = raiz.querySelectorAll(".lat"), s0 = seg;
-      dados.a.laterais.forEach((id, k) => { const x = carrDoCat(dados.t.id, id);
-        miniatura(telaCat(dados.t.id, x), { marca: marcaAgora() }, 360).then(u => { if (seg === s0 && imgs[k]) { imgs[k].src = u; imgs[k].alt = ""; } }).catch(() => {}); });
-    }, ja ? 0 : 350);
-  }
-  const marcar = i => { atual = i; raiz.querySelectorAll("[data-ig-p]").forEach((p, k) => p.classList.toggle("on", k === i)); $("[data-ig-cont]").textContent = `${i + 1}/4`;
-    raiz.querySelector('[data-ig-ir="-1"]').disabled = i === 0; raiz.querySelector('[data-ig-ir="1"]').disabled = i === 3; raiz.dataset.tela = String(i); };
+  const marcar = i => { atual = i; raiz.querySelectorAll("[data-ig-p]").forEach((p, k) => p.classList.toggle("on", k === i)); $("[data-ig-cont]").textContent = `${i + 1} / 4`;
+    raiz.querySelector('[data-ig-ir="-1"]').disabled = i === 0; raiz.querySelector('[data-ig-ir="1"]').disabled = i === 3; raiz.dataset.tela = String(i); atrasDe(i); };
   const ir = i => { i = Math.max(0, Math.min(3, i)); post.scrollTo({ left: i * post.clientWidth, behavior: calmo() ? "auto" : "smooth" }); marcar(i); };
   post.addEventListener("scroll", () => { const i = Math.round(post.scrollLeft / Math.max(1, post.clientWidth)); if (i !== atual) marcar(i); }, { passive: true });
   post.addEventListener("keydown", e => { if (e.key === "ArrowRight") { e.preventDefault(); ir(atual + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); ir(atual - 1); } });
@@ -281,23 +274,24 @@ function montarAbertura() {
   addEventListener("pointermove", e => { if (x0 == null) return; const dx = e.clientX - x0; if (Math.abs(dx) > 4) arrastou = true; post.scrollLeft = s0 - dx; }, { signal: ac.signal });
   addEventListener("pointerup", e => { if (x0 == null) return; post.classList.remove("arrasta"); const dx = e.clientX - x0; x0 = null; ir(arrastou ? atual + (dx < -40 ? 1 : dx > 40 ? -1 : 0) : atual); }, { signal: ac.signal });
   raiz.addEventListener("click", e => { const b = e.target.closest("[data-ig-ir]"); if (b) ir(atual + +b.dataset.igIr); });
-  input.addEventListener("input", () => { if (ses) guardado.set(NOME_K, input.value, ses); agendar(); laterais(); });
-  // troca de segmento: a tela do celular vira como uma página e tudo acompanha
+  input.addEventListener("input", () => { if (ses) guardado.set(NOME_K, input.value, ses); agendar(); });
+  // troca de segmento: a prévia sai e entra de lado, num movimento curto
   async function trocar(novo) {
     if (novo === seg) return;
+    const ida = SITE.publicos.findIndex(p => p.id === novo) > SITE.publicos.findIndex(p => p.id === seg) ? -1 : 1;
     seg = novo; estado.publico = novo; guardado.set("nna-publico", novo);
-    raiz.dataset.seg = novo; raiz.querySelectorAll("[data-seg]").forEach(b => b.getAttribute("role") === "radio" && b.setAttribute("aria-checked", String(b.dataset.seg === novo)));
+    raiz.dataset.seg = novo; raiz.querySelectorAll(".seg [data-seg]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.seg === novo)));
     $("[data-convite]").textContent = ab(novo).convite;
-    const v = ++versao, prox = carregar(novo), tela = $("#cel-tela"), anima = !calmo() && tela.animate;
-    if (anima) await tela.animate([{ transform: "perspective(900px) rotateY(0)" }, { transform: "perspective(900px) rotateY(-88deg)", opacity: .6 }], { duration: 170, easing: "ease-in", fill: "forwards" }).finished;
+    const v = ++versao, prox = carregar(novo), ed = $("#ed-prev"), anima = !calmo() && ed.animate;
+    if (anima) await ed.animate([{ transform: "none", opacity: 1 }, { transform: `translateX(${ida * 36}px)`, opacity: 0 }], { duration: 160, easing: "ease-in", fill: "forwards" }).finished;
     const d = await prox; if (v !== versao) return;
-    dados = d; $("#dia1").innerHTML = dia1HTML(novo); pintar(); post.scrollLeft = 0; marcar(0); laterais(true);
-    if (anima) await tela.animate([{ transform: "perspective(900px) rotateY(88deg)", opacity: .6 }, { transform: "perspective(900px) rotateY(0)", opacity: 1 }], { duration: 200, easing: "ease-out", fill: "forwards" }).finished;
+    dados = d; $("#dia1").innerHTML = dia1HTML(novo); post.scrollLeft = 0; marcar(0); pintar();
+    if (anima) await ed.animate([{ transform: `translateX(${-ida * 36}px)`, opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 220, easing: "ease-out", fill: "forwards" }).finished;
   }
-  raiz.addEventListener("click", e => { const b = e.target.closest('.seg [data-seg]'); if (b) trocar(b.dataset.seg); });
-  raiz.addEventListener("keydown", e => { const b = e.target.closest('.seg [data-seg]'); if (!b || !/Arrow(Left|Right|Up|Down)/.test(e.key)) return; e.preventDefault();
+  raiz.addEventListener("click", e => { const b = e.target.closest(".seg [data-seg]"); if (b) trocar(b.dataset.seg); });
+  raiz.addEventListener("keydown", e => { const b = e.target.closest(".seg [data-seg]"); if (!b || !/Arrow(Left|Right|Up|Down)/.test(e.key)) return; e.preventDefault();
     const ids = SITE.publicos.map(p => p.id), n = ids[(ids.indexOf(seg) + 1) % ids.length]; trocar(n); raiz.querySelector(`.seg [data-seg="${n}"]`).focus(); });
-  (async () => { const v = ++versao; const d = await carregar(seg); if (v !== versao) return; dados = d; pintar(); marcar(0); laterais(true); })();
+  (async () => { const v = ++versao; const d = await carregar(seg); if (v !== versao) return; dados = d; marcar(0); pintar(); })();
   return { destruir: () => { vivo = false; ac.abort(); } };
 }
 

@@ -227,12 +227,15 @@ test("página inicial: carrossel do dia 1 e instrução iguais ao calendário do
   const { CATALOGO } = await import("../public/catalogo/index.js");
   for (const [c, d] of [[campanha, demo], [servico, demoServico]]) {
     const a = d.abertura, dia1 = c.calendario.dez[0].itens.find(it => it.f === "carrossel");
-    assert.equal(a.primeiroDia.carrossel, dia1.ref, `${c.id}: post do dia 1`); assert.equal(a.carrossel, dia1.ref, `${c.id}: o celular mostra o post do dia 1`);
+    assert.equal(a.primeiroDia.carrossel, dia1.ref, `${c.id}: "Seu primeiro dia" mostra o post do dia 1 do calendário real`);
     assert.equal(a.primeiroDia.instrucao, dia1.preparar, `${c.id}: instrução igual ao "Preparar" do kit`);
-    for (const id of [a.carrossel, ...a.laterais]) assert.ok(CATALOGO[c.id].carrosseis.some(x => x.id === id && x.nivel === 1), `${c.id}: ${id}`);
+    for (const id of [a.carrossel]) assert.ok(CATALOGO[c.id].carrosseis.some(x => x.id === id && x.nivel === 1), `${c.id}: ${id}`);
     assert.ok(a.convite && a.marcaVazia && a.publico);
   }
-  assert.equal(demo.abertura.carrossel, "ate-100"); assert.equal(demo.abertura.convite, "Quer ver com o nome da sua loja?"); assert.equal(demoServico.abertura.convite, "Quer ver com o nome da sua marca?");
+  assert.equal(demo.abertura.carrossel, "ate-100"); assert.equal(demoServico.abertura.carrossel, "tres-estilos", "serviços: a prévia destaca 3 estilos para as festas");
+  const tres = CATALOGO["seu-toque-nas-festas"].carrosseis.find(x => x.id === "tres-estilos");
+  assert.ok(tres.telas[0].l === "capa-numeral" && tres.telas[0].inv && tres.telas[0].c.numero === "3" && /\*as festas\*/.test(tres.telas[0].c.titulo), "capa nova: 3 em destaque, ameixa, “as festas” em itálico");
+  assert.deepEqual(tres.telas.slice(1).map(t => t.c.nome), ["Make leve", "Glow dourado", "Penteado de festa"], "as telas seguintes mostram os três estilos"); assert.equal(demo.abertura.convite, "Quer ver com o nome da sua loja?"); assert.equal(demoServico.abertura.convite, "Quer ver com o nome da sua marca?");
 });
 
 test("acesso: token assinado, válido, adulterado, expirado e sem segredo", () => {

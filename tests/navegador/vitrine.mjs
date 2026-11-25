@@ -34,19 +34,22 @@ for (const [nome, opts] of [["celular", { viewport: { width: 390, height: 844 } 
   const segs = await page.locator(".seg [data-seg]").allInnerTexts();
   ok(segs.join("|") === "Tenho uma loja|Presto serviços", `${nome}: "Tenho uma loja" e "Presto serviços"`);
   ok(await page.locator('.seg [data-seg="loja"]').getAttribute("aria-checked") === "true" && await page.evaluate(() => document.querySelector(".h2").dataset.seg) === "loja", `${nome}: começa em "Tenho uma loja"`);
-  const box = { seg: await page.locator(".seg").boundingBox(), cel: await page.locator(".cel").boundingBox(), h: opts.viewport.height };
+  const box = { seg: await page.locator(".seg").boundingBox(), cel: await page.locator(".ed").boundingBox(), h: opts.viewport.height };
   ok(box.seg.y + box.seg.height <= box.h && box.cel.y < box.h * 0.75, `${nome}: segmento e celular aparecem juntos na primeira tela (botões até ${Math.round(box.seg.y + box.seg.height)}px, celular a partir de ${Math.round(box.cel.y)}px)`);
   if (nome === "celular") ok(box.cel.y - (box.seg.y + box.seg.height) < 60, "celular: prévia logo abaixo da escolha de segmento");
-  else ok(box.cel.x > box.seg.x + box.seg.width, "computador: celular ao lado da chamada");
+  else ok(box.cel.x > box.seg.x + box.seg.width, "computador: prévia ao lado da chamada");
+  ok(await page.locator(".cel, .ig-top, .ig-acoes, .h2 .selo-pronto, .lat").count() === 0, `${nome}: sem moldura de celular, perfil, ícones do Instagram nem faixa`);
+  const capa = await page.locator('[data-ig-tela="0"]').boundingBox();
+  ok(Math.abs(capa.width / capa.height - 0.8) < 0.01 && capa.y + capa.height <= box.h + (nome === "celular" ? 140 : 0), `${nome}: capa inteira em 4:5 (${Math.round(capa.width)} × ${Math.round(capa.height)})`);
+  ok(await page.locator(".ed-atras").evaluate(c => !c.hidden && c.getBoundingClientRect().right > document.querySelector("#ig-post").getBoundingClientRect().right), `${nome}: borda da próxima tela aparece atrás`);
   ok(await page.evaluate(() => document.querySelector(".h2").dataset.marca) === "Nome da loja aqui", `${nome}: capa "5 presentes até R$ 100" com "Nome da loja aqui"`);
-  await page.waitForFunction(() => [...document.querySelectorAll(".lat")].every(i => i.naturalWidth > 0), null, { timeout: 8000 }).catch(() => {});
-  ok(await page.locator("[data-ig-tela]").count() === 4 && await page.locator(".lat").evaluateAll(is => is.filter(i => i.naturalWidth > 0).length) === 2, `${nome}: 4 telas no celular e 2 capas da coleção nas laterais`);
+  ok(await page.locator("[data-ig-tela]").count() === 4 && await page.evaluate(() => document.querySelector(".h2").dataset.carrossel) === "ate-100", `${nome}: loja abre com as 4 telas de "5 presentes até R$ 100"`);
   ok(/5 presentes até R\$ 100/.test(await page.locator("#dia1").innerText()) && /Separe cinco produtos da loja e troque as fotos no carrossel\./.test(await page.locator("#dia1").innerText()), `${nome}: primeiro dia "5 presentes até R$ 100" com a instrução do kit`);
   if (nome === "celular") await page.screenshot({ path: `${out}/home-celular-loja.png` });
   // marca na arte, também na tela seguinte
   const antes = await pixel(page, 0);
   await page.locator("[data-nome-marca]").fill("Ateliê da Bia"); await w(page, 250);
-  ok(await page.evaluate(() => document.querySelector(".h2").dataset.marca) === "Ateliê da Bia" && await pixel(page, 0) !== antes && (await page.locator(".ig-top b").innerText()) === "ateliedabia", `${nome}: o nome digitado entra na arte, no @ e na legenda`);
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.marca) === "Ateliê da Bia" && await pixel(page, 0) !== antes, `${nome}: o nome digitado entra na arte`);
   if (nome === "celular") { const pb = await page.locator("#ig-post").boundingBox(); await arrastar(ctx, page, "#ig-post", Math.round(pb.x + pb.width - 24), Math.round(pb.x + 30)); }
   else await page.locator('[data-ig-ir="1"]').click();
   await w(page, 700);
@@ -58,10 +61,11 @@ for (const [nome, opts] of [["celular", { viewport: { width: 390, height: 844 } 
   const cx = await page.evaluate(async () => { const { desenharEstudio } = await import("/js/estudio.js"); const { CATALOGO } = await import("/catalogo/index.js"); const { estiloOriginal } = await import("/catalogo/colecoes.js");
     const x = CATALOGO["presentes-por-orcamento"].carrosseis[0], cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1350; const out = [];
     x.telas.forEach(t => { const cx = []; desenharEstudio(cv.getContext("2d"), t, estiloOriginal("presentes-por-orcamento", x), { marca: "Studio Mariana Albuquerque Beauty & Co", imgs: [], ajustes: [], caixas: cx }); out.push(...cx.filter(b => b.campo === "marca" && (b.x < 0 || b.x + b.w > 1081))); }); return out.length; });
-  ok(cx === 0 && await semRolagem(page) && (await page.locator(".ig-top b").evaluate(b => b.scrollWidth > b.clientWidth || b.getBoundingClientRect().right <= innerWidth)), `${nome}: nome comprido cabe na arte (reduz e termina em "…") sem quebrar a página`);
+  ok(cx === 0 && await semRolagem(page), `${nome}: nome comprido cabe na arte (reduz e termina em "…") sem quebrar a página`);
   // trocar de segmento
   await page.locator('.seg [data-seg="servico"]').click(); await w(page, 900);
-  ok(await page.evaluate(() => document.querySelector(".h2").dataset.seg) === "servico" && /Seu toque nas festas|Pronta para a ceia/.test(await page.locator("#dia1").innerText()), `${nome}: "Presto serviços" troca a prévia e o primeiro dia (Pronta para a ceia)`);
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.seg) === "servico" && await page.evaluate(() => document.querySelector(".h2").dataset.carrossel) === "tres-estilos", `${nome}: "Presto serviços" abre "3 estilos para as festas"`);
+  ok(/Pronta para a ceia/.test(await page.locator("#dia1").innerText()), `${nome}: o Dia 1 continua com a peça do calendário (Pronta para a ceia)`);
   ok((await page.locator("[data-convite]").innerText()) === "Quer ver com o nome da sua marca?", `${nome}: convite muda para "nome da sua marca"`);
   ok(await page.evaluate(() => document.querySelector(".h2").dataset.tela) === "0" && await page.evaluate(() => document.querySelector(".h2").dataset.marca).then(m => m.startsWith("Studio Mariana")), `${nome}: nova coleção abre na capa, com o nome que já estava digitado`);
   ok(await page.locator("[data-quero]").getAttribute("href") === "#campanha/seu-toque-nas-festas", `${nome}: botão de compra leva à campanha de serviços`);

@@ -13,9 +13,9 @@ export default {
         T("int-info", { titulo: "Make de ceia", linha1: "R$ 160 · cerca de 1 hora", linha2: "No estúdio ou na sua casa (com taxa)", linha3: "Dias 23 e 24/12 com horário marcado", cta: "Reserve pelo WhatsApp" })
       ],
       legenda: "Pronta para a ceia, sem correr no dia 24 ✨\n\n{2.texto}\n\n{4.titulo}: {4.linha1}. {4.linha3}. Reserve o seu horário pelo WhatsApp. {marca}\n\n#makedenatal #maquiagem" },
-    { id: "tres-estilos", nivel: 1, nome: "3 estilos para as festas", paraQuem: "Maquiadoras e cabeleireiras", ideia: "Capa com os estilos em etiquetas. Cada tela liga um serviço a uma festa.",
+    { id: "tres-estilos", nivel: 1, nome: "3 estilos para as festas", paraQuem: "Maquiadoras e cabeleireiras", ideia: "Capa tipográfica em ameixa: o 3 gigante, “estilos para as festas” e a sua assinatura. Cada tela liga um serviço a uma festa.",
       telas: [
-        T("capa-lista", { titulo: "3 estilos para *as festas*", itens: "Make leve · Glow dourado · Penteado", apoio: "Qual combina com a sua?" }, [P.servico]),
+        T("capa-numeral", { numero: "3", titulo: "estilos\npara\n*as festas*", itens: "Make leve · Glow dourado · Penteado", assina: "por" }, [], { inv: true }),
         T("int-estilo", { estilo: "Para o *almoço* da firma", nome: "Make leve", preco: "R$ 120" }, [P.makeLeve]),
         T("int-estilo", { estilo: "Para o *jantar* de Natal", nome: "Glow dourado", preco: "R$ 160" }, [P.glow]),
         T("int-estilo", { estilo: "Para a *confra*", nome: "Penteado de festa", preco: "R$ 140" }, [P.penteado])

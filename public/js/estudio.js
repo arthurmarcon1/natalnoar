@@ -592,6 +592,24 @@ export const LAYOUTS = {
       corpo(ctx, s, o, t.c.assina, { x: W - M - 520, y: ay + 26, maxW: 520, linhas: 1, tam: [32, 29, 26], cor: s.suave, alinhar: "right", campo: "assina" });
       marca(ctx, s, o, { x: W - M, y: ay + 82, alinhar: "right", estilo: "assinatura", cor: s.tinta, maxW: 720, h: 90 });
     } },
+  /* número gigante + título ao lado, os itens embaixo e a profissional assinando */
+  "capa-numeral": { nome: "Capa com número em destaque", fotos: 0, campos: [C("numero", "Número"), C("titulo", "Título (use *destaque*)"), C("itens", "Itens (separe com ·)"), C("assina", "Antes da assinatura")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      icone(ctx, s.icone, W - M - 34, M + 40, 34, s.destaque, 0.2);
+      icone(ctx, s.icone, W - M - 110, M + 120, 16, s.destaque, -0.3);
+      // o número ocupa a coluna da esquerda; o título fica ao lado, centrado na altura do número
+      const colN = 410, yN = 170;
+      const hn = texto(ctx, s, o, t.c.numero, { x: M - 14, y: yN, maxW: colN, linhas: 1, tam: [820, 720, 620, 520, 430], cor: s.tinta, entre: 0.9, campo: "numero" });
+      texto(ctx, s, o, t.c.titulo, { x: M + colN + 10, y: yN + (hn || 680) * 0.56, maxW: W - 2 * M - colN - 10, linhas: 4, tam: [150, 136, 122, 108, 96, 84], cor: s.tinta, realce: s.realce, base: "meio", entre: 1.0, campo: "titulo" });
+      // os itens, um por linha, com filete
+      const itens = preencherMarca(t.c.itens, o).split("·").map(v => v.trim()).filter(Boolean).slice(0, 4);
+      let y = 1000; linhaFina(ctx, M, y - 34, M + 120, s.destaque, 3);
+      itens.forEach((it, i) => { rotulo(ctx, s, o, `${String(i + 1).padStart(2, "0")}  ${it}`, { x: M, y, maxW: W - 2 * M - 460, tam: [30, 27, 24, 21], cor: i % 2 ? s.tinta : s.realce, espaco: 5, campo: "itens" }); y += 54; });
+      // assinatura da profissional
+      corpo(ctx, s, o, t.c.assina, { x: W - M - 440, y: H - 240, maxW: 440, linhas: 1, tam: [30, 27, 24], cor: s.suave, alinhar: "right", campo: "assina" });
+      marca(ctx, s, o, { x: W - M, y: H - 186, alinhar: "right", estilo: "assinatura", cor: s.tinta, maxW: 460, h: 80 });
+    } },
   /* duas fotos grandes lado a lado com um "+" no meio; cada foto troca sozinha */
   "capa-par": { nome: "Capa com duas fotos lado a lado", fotos: 2, rotFotos: ["Peça 1 (esquerda)", "Peça 2 (direita)"], campos: [TIT, APO],
     desenhar(ctx, s, t, o) {
