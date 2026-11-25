@@ -601,7 +601,7 @@ export const LAYOUTS = {
       // o número ocupa a coluna da esquerda; o título fica ao lado, centrado na altura do número
       const colN = 410, yN = 170;
       const hn = texto(ctx, s, o, t.c.numero, { x: M - 14, y: yN, maxW: colN, linhas: 1, tam: [820, 720, 620, 520, 430], cor: s.tinta, entre: 0.9, campo: "numero" });
-      texto(ctx, s, o, t.c.titulo, { x: M + colN + 10, y: yN + (hn || 680) * 0.56, maxW: W - 2 * M - colN - 10, linhas: 4, tam: [150, 136, 122, 108, 96, 84], cor: s.tinta, realce: s.realce, base: "meio", entre: 1.0, campo: "titulo" });
+      texto(ctx, s, o, t.c.titulo, { x: M + colN + 10, y: yN + (hn || 680) * 0.56, maxW: W - 2 * M - colN - 10, linhas: 6, tam: [150, 136, 122, 108, 96, 84, 74, 64, 56], cor: s.tinta, realce: s.realce, base: "meio", entre: 1.0, campo: "titulo" });
       // os itens, um por linha, com filete
       const itens = preencherMarca(t.c.itens, o).split("·").map(v => v.trim()).filter(Boolean).slice(0, 4);
       let y = 1000; linhaFina(ctx, M, y - 34, M + 120, s.destaque, 3);
