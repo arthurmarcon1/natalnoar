@@ -1,5 +1,5 @@
 /* Vídeo tutorial em motion graphics (1080 × 1920, ~42 s), na identidade da página inicial nova.
-   Mostra a troca da foto por uma foto real (vestido de poá) e o nome e o preço: "Vestido Poá", R$ 99.
+   Mostra a troca da foto por uma foto real (bolsa com correntes) e o nome e o preço: "Bolsa Correntes", R$ 99,90.
    Tudo é uma função do tempo: quadro(t) desenha o instante t. Ao vivo, um laço chama quadro(agora);
    na gravação (tests/video/gravar.mjs), quadro(t) é chamado para cada quadro de 1/30 s.
    As artes vêm do motor real do editor (desenharEstudio) e do catálogo. */
@@ -12,7 +12,7 @@ export const DURACAO = 42;
 const $ = id => document.getElementById(id);
 const CAMP = "presentes-por-orcamento", CARR = CATALOGO[CAMP].carrosseis.find(x => x.id === "ate-100");
 const EST = estiloOriginal(CAMP, CARR), VERDE = { ...EST, fundo: "#1E4A35", texto: "#F3E8DC" };
-const FOTO_NOVA = "video/vestido-poa.jpg", ROLO = ["assets/exemplo/13-perfume.jpg", FOTO_NOVA, "assets/exemplo/14-oculos.jpg", "assets/exemplo/12-colar.jpg"];
+const FOTO_NOVA = "video/bolsa.jpg", ROLO = ["assets/exemplo/13-perfume.jpg", FOTO_NOVA, "assets/exemplo/14-oculos.jpg", "assets/exemplo/12-colar.jpg"];
 const TELA_FOTO = 3; // tela 4 (um produto em destaque): a foto real entra aqui
 
 /* ---------- curvas ---------- */
@@ -53,7 +53,8 @@ function arte(i, st) {
   const chave = JSON.stringify(st); if (ultimo[i] === chave) return; ultimo[i] = chave;
   const t = { ...CARR.telas[i], c: { ...CARR.telas[i].c } }, fotos = [...imgs[i]];
   let aj = t.aj || [];
-  if (i === TELA_FOTO) { if (st.foto) { fotos[0] = fotoNova; aj = [{ zoom: 1, fx: .5, fy: .4 }]; t.c.apoio = "Para a ceia e para a virada"; } t.c.nome = st.nome; t.c.preco = st.preco; }
+  // a bolsa no centro do quadro (zoom e posição calculados para a foto real)
+  if (i === TELA_FOTO) { if (st.foto) { fotos[0] = fotoNova; aj = [{ zoom: 1.04, fx: .9, fy: .96 }]; t.c.apoio = "Para a ceia e para a virada"; } t.c.nome = st.nome; t.c.preco = st.preco; }
   desenharEstudio(canv[i].getContext("2d"), t, st.verde ? VERDE : EST, { marca: st.marca || "Nome da loja aqui", imgs: fotos, ajustes: aj });
 }
 const digitar = (txt, t, a, b) => txt.slice(0, Math.round(txt.length * p(t, a, b)));
@@ -83,8 +84,8 @@ export function quadro(t) {
   // estado das artes
   const marca = t < 9.2 ? "" : digitar(MARCA, t, 9.2, 11.4);
   const NOME0 = CARR.telas[TELA_FOTO].c.nome, PRECO0 = CARR.telas[TELA_FOTO].c.preco;
-  const nome = t < 19.3 ? NOME0 : t < 19.9 ? digitar(NOME0, 19.9 - t + 19.3, 19.3, 19.9) : digitar("Vestido Poá", t, 19.9, 20.6);
-  const preco = t < 20.9 ? PRECO0 : t < 21.15 ? "R$ " : digitar("R$ 99", t, 20.9, 21.7);
+  const nome = t < 19.3 ? NOME0 : t < 19.9 ? digitar(NOME0, 19.9 - t + 19.3, 19.3, 19.9) : digitar("Bolsa Correntes", t, 19.9, 20.75);
+  const preco = t < 20.9 ? PRECO0 : t < 21.15 ? "R$ " : digitar("R$ 99,90", t, 20.9, 21.85);
   const foto = t >= 16.3;
   [0, 1, 2, 3].forEach(i => arte(i, { marca, foto: i === TELA_FOTO && foto, nome, preco, verde: t >= 25.0 + i * .16 }));
 
