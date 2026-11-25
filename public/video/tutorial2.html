@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Natal no Ar · vídeo tutorial (identidade nova)</title>
+<!-- Vídeo tutorial em motion graphics, 1080 × 1920, na identidade da página inicial nova:
+     fundo branco quente com grão e luz suave, Bricolage Grotesque, cereja, volta à mão em "vem pronto.".
+     Abra pelo servidor local em /video/tutorial2.html (?t=12 começa no segundo 12).
+     MP4: PAGINA=video/tutorial2.html node tests/video/gravar.mjs docs/video/tutorial-natal-no-ar-v2.mp4 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,500..800,0..100,0..1;1,9..144,500..800,0..100,0..1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Cormorant+Garamond:ital,wght@0,700;1,600&family=DM+Serif+Display:ital@0;1&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:wght@600;800&family=Jost:wght@400;500;600;700&display=swap">
+<style>
+  :root{--cereja:#B3122E;--tinta:#1A1013;--suave:#5E4B50;--linha:#E4DAD2;--neutro:#F4EEE8;--disp:"Bricolage Grotesque","Plus Jakarta Sans",sans-serif;--sans:"Plus Jakarta Sans",system-ui,sans-serif;--serif:"Fraunces",Georgia,serif}
+  html,body{margin:0;height:100%;background:#2a1a1e;overflow:hidden}
+  body{display:grid;place-items:center;font-family:var(--sans);color:var(--tinta)}
+  #palco{position:relative;width:1080px;height:1920px;overflow:hidden;background:#FFFBF6;transform-origin:50% 50%}
+  /* vida no fundo: luz quente, grão de papel e estrelinhas paradas */
+  .luz{position:absolute;inset:0;pointer-events:none;background:radial-gradient(48% 30% at 82% 38%,rgba(179,18,46,.07),transparent 70%),radial-gradient(46% 26% at 8% 70%,rgba(214,150,80,.12),transparent 72%),radial-gradient(40% 20% at 30% 6%,rgba(245,184,195,.18),transparent 70%)}
+  .grao{position:absolute;inset:0;pointer-events:none;opacity:.08;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .2 0 0 0 0 .15 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");background-size:220px 220px}
+  .est{position:absolute;color:var(--cereja);opacity:.22;line-height:1;pointer-events:none}
+  .abs{position:absolute;will-change:transform,opacity}
+  .logo{left:0;right:0;top:86px;text-align:center;font-family:var(--serif);font-weight:600;font-size:44px;letter-spacing:-.01em}
+  .logo i{font-style:normal;color:var(--cereja);font-size:32px;vertical-align:6px;margin-right:6px}
+  /* gancho */
+  .gancho{left:90px;right:60px;top:560px;font-family:var(--disp);font-weight:800;letter-spacing:-.04em}
+  .gancho .pre{display:block;font-size:62px;font-weight:600;letter-spacing:-.015em;color:var(--suave);margin-bottom:26px}
+  .gancho .big{display:block;font-size:134px;line-height:.98;white-space:nowrap}
+  .vp{position:relative;display:inline-block;margin-top:34px}
+  .vp em{font-style:normal;color:var(--cereja);display:inline-block;line-height:1;position:relative;z-index:1}
+  .vp svg{position:absolute;overflow:visible}
+  .vp path{fill:none;stroke:var(--cereja);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+  .vp circle{fill:var(--cereja)}
+  /* passo */
+  .passo{left:80px;top:200px;display:flex;align-items:center;gap:24px}
+  .passo b{width:86px;height:86px;border-radius:50%;background:var(--cereja);color:#fff;display:grid;place-items:center;font-family:var(--disp);font-size:46px;font-weight:800}
+  .passo span{font-family:var(--disp);font-weight:800;font-size:66px;letter-spacing:-.03em;line-height:1}
+  .passo small{display:block;font-family:var(--sans);font-weight:600;font-size:32px;color:var(--suave);letter-spacing:0;margin-top:10px}
+  /* segmento */
+  .seg{left:80px;right:80px;top:1480px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .seg div{border:4px solid var(--tinta);border-radius:999px;padding:30px 0;text-align:center;font-family:var(--disp);font-weight:700;font-size:44px;letter-spacing:-.01em;color:var(--tinta)}
+  .seg div.on{background:var(--cereja);border-color:var(--cereja);color:#fff}
+  /* cartões */
+  .trilho{left:0;top:410px;width:1080px;height:1000px}
+  .cartao{position:absolute;top:0;width:760px;height:950px;left:160px;border-radius:10px;transform-origin:0 0;overflow:hidden;box-shadow:0 60px 90px -54px rgba(40,18,22,.6),0 14px 30px -20px rgba(40,18,22,.32);background:#F3E8DC}
+  .cartao canvas{width:100%;height:100%;display:block}
+  /* campo */
+  .campo{left:110px;right:110px;top:1450px}
+  .campo label{display:block;font-weight:700;font-size:36px;color:var(--suave);margin-bottom:16px}
+  .campo .caixa{border:3px solid var(--cereja);border-radius:26px;background:#fff;padding:26px 34px;font-size:46px;font-weight:600;min-height:62px;white-space:nowrap;overflow:hidden;box-shadow:0 20px 40px -30px rgba(40,18,22,.5)}
+  .campo .caixa i{display:inline-block;width:4px;height:52px;background:var(--cereja);vertical-align:-8px;margin-left:4px}
+  /* rolo */
+  .rolo{left:110px;right:110px;top:1440px;background:#fff;border-radius:30px;padding:26px;box-shadow:0 30px 60px -40px rgba(40,18,22,.55)}
+  .rolo p{margin:0 0 18px;font-family:var(--disp);font-weight:700;font-size:36px}
+  .rolo .g{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .rolo img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;display:block}
+  .voa{width:200px;height:200px;object-fit:cover;border-radius:16px;box-shadow:0 30px 50px -24px rgba(0,0,0,.5);z-index:8}
+  /* cores */
+  .cores{left:0;right:0;top:1370px;display:flex;justify-content:center;gap:30px}
+  .cores i{width:110px;height:110px;border-radius:50%;box-shadow:0 0 0 6px #fff,0 16px 30px -16px rgba(0,0,0,.4)}
+  .cores i.on{box-shadow:0 0 0 6px #fff,0 0 0 12px var(--cereja),0 16px 30px -16px rgba(0,0,0,.4)}
+  .aviso{left:0;right:0;top:1530px;text-align:center;font-family:var(--disp);font-weight:700;font-size:40px;color:var(--cereja)}
+  /* baixar */
+  .chip{left:0;width:290px;height:96px;border-radius:24px;background:#fff;display:flex;align-items:center;gap:16px;padding:0 20px;box-shadow:0 20px 40px -26px rgba(40,18,22,.6);font-weight:700;font-size:30px;box-sizing:border-box}
+  .chip b{width:56px;height:56px;border-radius:14px;background:var(--cereja);color:#fff;display:grid;place-items:center;font-size:26px;font-family:var(--disp)}
+  .botao{left:200px;right:200px;top:1730px;height:124px;border-radius:62px;background:var(--cereja);color:#fff;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:46px;box-shadow:0 24px 44px -24px rgba(179,18,46,.85)}
+  /* extras */
+  .extras-t{left:80px;right:80px;top:300px;font-family:var(--disp);font-weight:800;font-size:86px;line-height:1;letter-spacing:-.035em}
+  .extras-t em{font-style:normal;color:var(--cereja)}
+  .extra{width:300px;height:540px;border-radius:26px;background:#fff;box-shadow:0 30px 60px -40px rgba(40,18,22,.6);overflow:hidden;box-sizing:border-box;padding:26px 22px}
+  .extra h4{margin:0 0 14px;font-family:var(--disp);font-weight:800;font-size:42px;letter-spacing:-.02em;line-height:1}
+  .extra p{margin:0 0 10px;font-size:24px;line-height:1.3;color:var(--suave)}
+  .extra .cena{display:block;background:var(--neutro);border-radius:14px;padding:12px 14px;margin-bottom:10px;font-size:22px;font-weight:700;color:var(--tinta)}
+  .extra canvas{width:100%;border-radius:12px;display:block}
+  .extra .dias{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .extra .dias span{aspect-ratio:1;border-radius:14px;background:var(--neutro);display:grid;place-items:center;font-weight:800;font-size:28px;font-family:var(--disp)}
+  .extra .dias span.x{background:var(--cereja);color:#fff}
+  /* chamada final */
+  .cta{left:70px;right:70px;top:430px;text-align:center}
+  .cta .m{font-family:var(--serif);font-weight:600;font-size:88px;letter-spacing:-.02em}
+  .cta .m i{font-style:normal;color:var(--cereja);font-size:62px;vertical-align:14px;margin-right:10px}
+  .cta .pre{margin-top:70px;font-family:var(--disp);font-weight:600;font-size:52px;color:var(--suave);letter-spacing:-.015em}
+  .cta .big{font-family:var(--disp);font-weight:800;font-size:118px;line-height:1;letter-spacing:-.04em;margin-top:14px}
+  .cta .vp{margin-top:26px}
+  .cta .preco{display:inline-block;margin-top:70px;background:var(--cereja);color:#fff;border-radius:60px;padding:30px 60px;font-family:var(--disp);font-weight:700;font-size:54px}
+  .cta .url{margin-top:50px;font-weight:800;font-size:44px}
+  .cta .gratis{margin-top:14px;font-size:36px;color:var(--suave);font-weight:600}
+  /* dedo */
+  .dedo{width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;background:rgba(255,255,255,.55);border:6px solid rgba(26,16,19,.72);box-shadow:0 10px 24px -8px rgba(0,0,0,.4);z-index:20}
+  .onda{width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:6px solid var(--cereja);z-index:19}
+  .progresso{left:0;bottom:0;height:10px;background:var(--cereja);z-index:30}
+  #controle{position:fixed;left:12px;bottom:12px;font:600 13px system-ui;color:#fff;opacity:.6}
+</style>
+</head>
+<body>
+<div id="palco">
+  <div class="luz"></div><div class="grao"></div>
+  <span class="est" style="left:70px;top:330px;font-size:34px">✦</span><span class="est" style="left:930px;top:240px;font-size:44px">✦</span>
+  <span class="est" style="left:980px;top:1250px;font-size:28px">✦</span><span class="est" style="left:60px;top:1330px;font-size:24px">✦</span>
+  <span class="est" style="left:520px;top:1840px;font-size:26px">✦</span><span class="est" style="left:500px;top:150px;font-size:20px">✦</span>
+  <div class="abs logo" id="logo"><i>✦</i>Natal no Ar</div>
+  <div class="abs gancho" id="gancho">
+    <span class="pre" id="g1">Fim de ano corrido?</span>
+    <span class="big" id="g2">Seu conteúdo</span>
+    <span class="big"><span class="vp" id="vp1"><em id="g3">vem pronto.</em><svg><path/><circle r="11"/></svg></span></span>
+  </div>
+  <div class="abs passo" id="passo"><b id="passo-n">1</b><span id="passo-t">Escolha seu perfil<small id="passo-s"></small></span></div>
+  <div class="abs seg" id="seg"><div id="seg-loja">Tenho uma loja</div><div id="seg-serv">Presto serviços</div></div>
+  <div class="abs trilho" id="trilho">
+    <div class="cartao" id="c0"><canvas width="1080" height="1350"></canvas></div>
+    <div class="cartao" id="c1"><canvas width="1080" height="1350"></canvas></div>
+    <div class="cartao" id="c2"><canvas width="1080" height="1350"></canvas></div>
+    <div class="cartao" id="c3"><canvas width="1080" height="1350"></canvas></div>
+  </div>
+  <div class="abs campo" id="campo"><label id="campo-rot">Nome da sua marca</label><div class="caixa"><span id="campo-txt"></span><i id="caret"></i></div></div>
+  <div class="abs rolo" id="rolo"><p>Suas fotos</p><div class="g"><img id="r0" alt=""><img id="r1" alt=""><img id="r2" alt=""><img id="r3" alt=""></div></div>
+  <img class="abs voa" id="voa" alt="">
+  <div class="abs cores" id="cores"><i style="background:#F3E8DC"></i><i style="background:#1E4A35" id="cor-verde"></i><i style="background:#1B2A4A"></i><i style="background:#A3122A"></i></div>
+  <div class="abs aviso" id="aviso">Aplicado às 4 telas ✓</div>
+  <div class="abs chip" id="d0"><b>01</b>capa.png</div>
+  <div class="abs chip" id="d1"><b>02</b>tela-2.png</div>
+  <div class="abs chip" id="d2"><b>03</b>tela-3.png</div>
+  <div class="abs chip" id="d3"><b>04</b>tela-4.png</div>
+  <div class="abs botao" id="botao">Baixar as 4 imagens</div>
+  <div class="abs extras-t" id="extras-t">E o kit ainda traz <em>Reels, Stories</em> e o calendário.</div>
+  <div class="abs extra" id="e0"><h4>Reels</h4><p>Roteiro cena por cena:</p><span class="cena">1 · Caixa fechada na bancada</span><span class="cena">2 · “Esse cabe ✔”</span><span class="cena">3 · “E ainda sobra troco 😉”</span><p>Dá para gravar sem aparecer.</p></div>
+  <div class="abs extra" id="e1"><h4>Stories</h4><canvas id="story" width="1080" height="1920"></canvas></div>
+  <div class="abs extra" id="e2"><h4>Calendário</h4><p>O que postar em cada dia:</p><div class="dias" id="dias"></div></div>
+  <div class="abs cta" id="cta"><div class="m"><i>✦</i>Natal no Ar</div><div class="pre">Fim de ano corrido?</div><div class="big">Seu conteúdo<br><span class="vp" id="vp2"><em>vem pronto.</em><svg><path/><circle r="9"/></svg></span></div><div class="preco">a partir de R$ 89,90</div><div class="url">natal-no-ar.vercel.app</div><div class="gratis">Teste grátis no site, direto do celular.</div></div>
+  <div class="abs onda" id="onda"></div>
+  <div class="abs dedo" id="dedo"></div>
+  <div class="abs progresso" id="prog"></div>
+</div>
+<div id="controle">espaço: pausar · ← →: 1 s · R: reiniciar</div>
+<script type="module" src="tutorial2.js"></script>
+</body>
+</html>
