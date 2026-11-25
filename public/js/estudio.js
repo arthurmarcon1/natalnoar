@@ -239,7 +239,11 @@ function foto(ctx, s, o, i, x, y, w, h, { forma = "ret", r = 0, fade = false } =
   ctx.save(); caminho(ctx, x, y, w, h, forma, r); ctx.clip();
   if (f && f.img) {
     const c = coverRect(f.w, f.h, w, h, a.zoom, a.fx, a.fy); ctx.imageSmoothingQuality = "high";
-    if (fade) { // elemento fotográfico: a foto se funde ao fundo pelas bordas (funciona com o fundo original da foto)
+    if (a.inteira && !fade) { // "Mostrar foto inteira": a foto toda, na proporção original, centralizada sobre o fundo da coleção
+      ctx.fillStyle = s.fundo; ctx.fillRect(x, y, w, h);
+      const k = Math.min(w / f.w, h / f.h) * (a.zoom || 1), dw = f.w * k, dh = f.h * k;
+      ctx.imageSmoothingQuality = "high"; ctx.drawImage(f.img, x + (w - dw) * a.fx, y + (h - dh) * a.fy, dw, dh);
+    } else if (fade) { // elemento fotográfico: a foto se funde ao fundo pelas bordas (funciona com o fundo original da foto)
       const t = document.createElement("canvas"); t.width = Math.round(w); t.height = Math.round(h);
       const tc = t.getContext("2d"); tc.drawImage(f.img, c.sx, c.sy, c.sw, c.sh, 0, 0, t.width, t.height);
       tc.globalCompositeOperation = "destination-in";
@@ -723,19 +727,28 @@ export const LAYOUTS = {
     } },
 
   /* ===== telas internas ===== */
-  "int-dois": { nome: "Dois produtos", fotos: 2, campos: [C("titulo", "Rótulo"), C("nome1", "Produto 1"), C("preco1", "Preço 1"), C("nome2", "Produto 2"), C("preco2", "Preço 2")],
+  "int-dois": { nome: "Dois produtos", fotos: 2, rotFotos: ["Produto 1 (foto quadrada)", "Produto 2 (foto quadrada)"], campos: [C("titulo", "Rótulo"), C("nome1", "Produto 1"), C("preco1", "Preço 1"), C("nome2", "Produto 2"), C("preco2", "Preço 2")],
     desenhar(ctx, s, t, o) {
       fundo(ctx, s);
-      rotulo(ctx, s, o, t.c.titulo, { x: M, y: M, maxW: W - 2 * M - 200, tam: [28, 25, 22], cor: s.realce, campo: "titulo" });
-      marca(ctx, s, o, { x: W - M, y: M - 14, alinhar: "right", cor: s.suave, maxW: 300, h: 50 });
-      const cw = (W - 2 * M - 36) / 2;
-      [[0, M], [1, M + cw + 36]].forEach(([i, x]) => {
-        cartao(ctx, s, x, 150, cw, 1110, 24);
-        foto(ctx, s, o, i, x + 18, 168, cw - 36, 760, { r: 14 });
-        texto(ctx, s, o, t.c[`nome${i + 1}`], { x: x + 30, y: 960, maxW: cw - 60, linhas: 2, tam: [58, 50, 44, 38, 34], cor: s.tintaPapel, campo: `nome${i + 1}` });
-        texto(ctx, s, o, t.c[`preco${i + 1}`], { x: x + 30, y: 1250, maxW: cw - 60, linhas: 1, tam: [64, 56, 48, 42], fam: "x", peso: 800, cor: s.realcePapel, base: "baixo", campo: `preco${i + 1}` });
+      // dois cartões com foto quadrada (1:1), nome logo abaixo e preço abaixo do nome (alinhado nos dois cartões);
+      // o cartão acompanha o tamanho do texto e o conjunto fica centrado na tela 4:5
+      const gap = 32, cw = (W - 2 * M - gap) / 2, pad = 16, lado = cw - 2 * pad;
+      const oN = i => ({ x: 0, y: 0, maxW: cw - 56, linhas: 2, tam: [62, 54, 48, 42, 36], cor: s.tintaPapel, entre: 1.04, campo: `nome${i + 1}` });
+      const med = document.createElement("canvas").getContext("2d"), so = { ...o, caixas: null };
+      const hNome = Math.max(60, ...[0, 1].map(i => texto(med, s, so, t.c[`nome${i + 1}`], oN(i))));
+      const oT = { x: M, maxW: W - 2 * M, linhas: 2, tam: [84, 74, 66, 58, 50], cor: s.tinta, realce: s.realce, entre: 1.02, campo: "titulo" };
+      const hT = texto(med, s, so, t.c.titulo, { ...oT, y: 0 }), eT = hT ? 46 : 0;
+      const hPreco = 80, ch = pad + lado + 34 + hNome + 20 + hPreco + 34, bloco = hT + eT + ch + 60, y0 = Math.max(150, Math.round((H - bloco) / 2) + 30) + hT + eT;
+      marca(ctx, s, o, { x: M, y: M - 10, cor: s.suave, maxW: 600, h: 50 });
+      texto(ctx, s, o, t.c.titulo, { ...oT, y: y0 - eT - hT });
+      [[0, M], [1, M + cw + gap]].forEach(([i, x]) => {
+        cartao(ctx, s, x, y0, cw, ch, 24);
+        foto(ctx, s, o, i, x + pad, y0 + pad, lado, lado, { r: 14 });
+        const yn = y0 + pad + lado + 34;
+        texto(ctx, s, o, t.c[`nome${i + 1}`], { ...oN(i), x: x + 28, y: yn });
+        texto(ctx, s, o, t.c[`preco${i + 1}`], { x: x + 28, y: yn + hNome + 20, maxW: cw - 56, linhas: 1, tam: [72, 62, 54, 46], fam: "x", peso: 800, cor: s.realcePapel, campo: `preco${i + 1}` });
       });
-      icone(ctx, s.icone, W / 2, 1300, 18, s.destaque);
+      icone(ctx, s.icone, W / 2, y0 + ch + 60, 20, s.destaque);
     } },
   "int-um": { nome: "Um produto em destaque", fotos: 1, campos: [C("nome", "Produto"), C("preco", "Preço"), C("apoio", "Para quem combina"), C("cta", "Chamada")],
     desenhar(ctx, s, t, o) {
@@ -798,12 +811,12 @@ export const LAYOUTS = {
     desenhar(ctx, s, t, o) {
       fundo(ctx, s);
       marca(ctx, s, o, { x: M, y: M, cor: s.suave, h: 50 });
-      const w = 440, h = 560;
-      quadro(ctx, s, o, 0, M + 10, 150, w, h, { rot: -0.03 }); quadro(ctx, s, o, 1, W - M - 10 - w, 150, w, h, { rot: 0.03 });
-      ctx.save(); sombra(ctx, true, 0.6); ctx.fillStyle = s.destaque; ctx.beginPath(); ctx.arc(W / 2, 430, 56, 0, 7); ctx.fill(); sombra(ctx, false);
-      ctx.strokeStyle = s.sobreDestaque; ctx.lineWidth = 11; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(W / 2, 404); ctx.lineTo(W / 2, 456); ctx.moveTo(W / 2 - 26, 430); ctx.lineTo(W / 2 + 26, 430); ctx.stroke(); ctx.restore();
-      texto(ctx, s, o, t.c.nome, { x: M, y: 800, maxW: W - 2 * M, linhas: 2, tam: [84, 74, 64, 56, 48], cor: s.tinta, realce: s.realce, campo: "nome" });
-      corpo(ctx, s, o, t.c.porque, { x: M, y: 990, maxW: W - 2 * M, linhas: 3, tam: [40, 36, 32, 29, 26], cor: s.suave, campo: "porque" });
+      const w = 420, y = 170, cy = y + w / 2; // fotos quadradas (1:1)
+      quadro(ctx, s, o, 0, M + 10, y, w, w, { rot: -0.03 }); quadro(ctx, s, o, 1, W - M - 10 - w, y, w, w, { rot: 0.03 });
+      ctx.save(); sombra(ctx, true, 0.6); ctx.fillStyle = s.destaque; ctx.beginPath(); ctx.arc(W / 2, cy, 56, 0, 7); ctx.fill(); sombra(ctx, false);
+      ctx.strokeStyle = s.sobreDestaque; ctx.lineWidth = 11; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(W / 2, cy - 26); ctx.lineTo(W / 2, cy + 26); ctx.moveTo(W / 2 - 26, cy); ctx.lineTo(W / 2 + 26, cy); ctx.stroke(); ctx.restore();
+      const hn = texto(ctx, s, o, t.c.nome, { x: M, y: 688, maxW: W - 2 * M, linhas: 2, tam: [88, 78, 68, 58, 50], cor: s.tinta, realce: s.realce, campo: "nome" });
+      corpo(ctx, s, o, t.c.porque, { x: M, y: 688 + hn + 28, maxW: W - 2 * M, linhas: 3, tam: [42, 38, 34, 30, 27], cor: s.suave, campo: "porque" });
       etiqueta(ctx, s, o, t.c.preco, W - 290, 1240, { rot: -0.05, tam: [64, 56, 48, 42] });
     } },
   "int-prazo": { nome: "Prazos", fotos: 0, campos: [C("titulo", "Título"), C("rot1", "Prazo 1"), C("data1", "Data 1"), C("rot2", "Prazo 2"), C("data2", "Data 2"), C("nota", "Observação")],
@@ -842,11 +855,14 @@ export const LAYOUTS = {
   "int-comparar": { nome: "Comparação", fotos: 2, campos: [C("rot1", "Rótulo 1"), C("rot2", "Rótulo 2"), C("texto", "Texto")],
     desenhar(ctx, s, t, o) {
       fundo(ctx, s);
-      foto(ctx, s, o, 0, 0, 0, W / 2 - 4, 900); foto(ctx, s, o, 1, W / 2 + 4, 0, W / 2 - 4, 900);
-      [[t.c.rot1, M, 0], [t.c.rot2, W / 2 + 40, 1]].forEach(([r, x, k]) => { if (!r) return; ctx.fillStyle = k ? s.destaque : s.papel; ctx.beginPath(); ctx.roundRect(x - 20, 780, W / 2 - 80, 70, 35); ctx.fill();
-        rotulo(ctx, s, o, r, { x, y: 798, maxW: W / 2 - 120, tam: [28, 25, 22, 20], espaco: 3, cor: k ? s.sobreDestaque : s.tintaPapel, alinhar: "center", campo: `rot${k + 1}` }); });
-      marca(ctx, s, o, { x: M, y: 950, cor: s.suave, h: 50 });
-      texto(ctx, s, o, t.c.texto, { x: M, y: 1020, maxW: W - 2 * M, linhas: 3, tam: [64, 56, 50, 44, 38], cor: s.tinta, realce: s.realce, entre: 1.1, campo: "texto" });
+      const g = 24, l = (W - 2 * M - g) / 2; // fotos quadradas (1:1); o conjunto fica centrado na tela
+      const oTx = { x: M, maxW: W - 2 * M, linhas: 4, tam: [72, 64, 56, 50, 44, 38], cor: s.tinta, realce: s.realce, entre: 1.1, campo: "texto" };
+      const hTx = texto(document.createElement("canvas").getContext("2d"), s, { ...o, caixas: null }, t.c.texto, { ...oTx, y: 0 }), y = Math.max(160, Math.round((H - (l + 70 + hTx)) / 2));
+      marca(ctx, s, o, { x: M, y: M - 10, cor: s.suave, h: 50 });
+      foto(ctx, s, o, 0, M, y, l, l, { r: 18 }); foto(ctx, s, o, 1, M + l + g, y, l, l, { r: 18 });
+      [[t.c.rot1, M, 0], [t.c.rot2, M + l + g, 1]].forEach(([r, x, k]) => { if (!r) return; ctx.fillStyle = k ? s.destaque : s.papel; ctx.beginPath(); ctx.roundRect(x + 20, y + l - 90, l - 40, 66, 33); ctx.fill();
+        rotulo(ctx, s, o, r, { x: x + 40, y: y + l - 74, maxW: l - 80, tam: [28, 25, 22, 20], espaco: 3, cor: k ? s.sobreDestaque : s.tintaPapel, alinhar: "center", campo: `rot${k + 1}` }); });
+      texto(ctx, s, o, t.c.texto, { ...oTx, y: y + l + 70 });
     } },
   "int-frase": { nome: "Frase em destaque", fotos: 0, campos: [C("frase", "Frase (use *destaque*)"), C("autor", "Assinatura")],
     desenhar(ctx, s, t, o) {

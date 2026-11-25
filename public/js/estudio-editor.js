@@ -160,7 +160,7 @@ export function montarEstudio(raiz, op) {
   function guardarTelas() {
     projCarr().telas = telas.map(t => {
       const c = Object.fromEntries(Object.entries(t.c).filter(([k, v]) => v !== t.orig.c[k]));
-      const aj = t.aj.map((a, k) => { const o = { zoom: 1, fx: 0.5, fy: 0.5, ...((t.orig.aj || [])[k] || {}) }; return a.zoom === o.zoom && a.fx === o.fx && a.fy === o.fy ? null : a; });
+      const aj = t.aj.map((a, k) => { const o = { zoom: 1, fx: 0.5, fy: 0.5, ...((t.orig.aj || [])[k] || {}) }; return a.zoom === o.zoom && a.fx === o.fx && a.fy === o.fy && !!a.inteira === !!o.inteira ? null : a; });
       return { c, aj, p: t.p };
     });
     salvar();
@@ -212,6 +212,7 @@ export function montarEstudio(raiz, op) {
           <label class="campo mini"><span>Posição ← →</span><input type="range" data-es-aj="fx" data-k="${k}" min="0" max="1" step="0.01" value="${a.fx}"></label>
           <label class="campo mini"><span>Posição ↑ ↓</span><input type="range" data-es-aj="fy" data-k="${k}" min="0" max="1" step="0.01" value="${a.fy}"></label>
         </div>
+        <label class="es-inteira"><input type="checkbox" data-es-inteira="${k}" ${a.inteira ? "checked" : ""}> Mostrar foto inteira <span class="hint">sem cortar as bordas do produto</span></label>
       </div>`).join("") : `<p class="hint">Esta tela não usa foto: ela é só tipográfica. Mude as cores e as fontes na aba Estilo.</p>`);
   }
   function painelEstilo() {
@@ -335,6 +336,8 @@ export function montarEstudio(raiz, op) {
   });
   raiz.addEventListener("change", async e => {
     if (e.target.matches("[data-es-carr]")) { abrir(e.target.value); return; }
+    if (e.target.matches("[data-es-inteira]")) { const k = +e.target.dataset.esInteira; telas[ativa].aj[k].inteira = e.target.checked; agendar(ativa); guardarTelas();
+      toast(e.target.checked ? "Foto inteira, sem cortar as bordas." : "Foto preenchendo o quadro."); return; }
     const inp = e.target.closest("[data-es-arquivo]"), lg = e.target.closest("[data-es-logo]");
     if (!inp && !lg) return;
     const f = e.target.files[0]; e.target.value = "";
