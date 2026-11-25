@@ -254,7 +254,7 @@ const d = (dia, ...itens) => ({ dia, itens });
 const calendario = {
   dica: "Publique o feed entre 11h e 13h ou entre 18h e 20h. Stories podem sair ao longo do dia. A mensagem “Resposta a quem pergunta o preço” serve para qualquer dia.",
   dez: [
-    d(1, C("ate-100", "Fotos dos 5 presentes até R$ [valor], cada um sozinho."), S("s-ate-100", "Uma foto da embalagem e uma de um presente mais caro para a enquete.")),
+    d(1, C("ate-100", "Separe cinco produtos da loja e troque as fotos no carrossel."), S("s-ate-100", "Uma foto da embalagem e uma de um presente mais caro para a enquete.")),
     d(2, R("r-ate-100", "Os 5 presentes e uma caixa. Grave em 10 minutos, perto da janela.")),
     d(3, C("cara-dela", "Fotos de 3 presentes com estilos diferentes."), S("s-cara-dela", "As mesmas fotos de ontem servem.")),
     d(4, R("r-cara-dela", "Os 3 presentes de ontem escondidos atrás das costas."), W("w-sugestao", "Envie para 10 clientes que já compraram com você.")),
@@ -266,12 +266,12 @@ const calendario = {
     d(10, R("r-ainda-da-tempo", "Sacola da loja e um papel com as datas."))
   ],
   expressa: [
-    d(1, C("ate-100", "Fotos dos 5 presentes até R$ [valor]."), S("s-ate-100", "Embalagem e um presente para a enquete.")),
+    d(1, C("ate-100", "Separe cinco produtos da loja e troque as fotos no carrossel."), S("s-ate-100", "Embalagem e um presente para a enquete.")),
     d(2, R("r-ate-100", "Os 5 presentes e uma caixa."), W("w-sugestao", "Envie para clientes que já compraram.")),
     d(3, C("ainda-da-tempo", "Datas reais de entrega e retirada."), S("s-ainda-da-tempo", "Troque o número de dias."), W("w-prazo", "Envie para quem perguntou e não fechou."))
   ],
   quinze: [
-    d(1, C("ate-100", "Fotos dos 5 presentes até R$ [valor], cada um sozinho."), S("s-ate-100", "Uma foto da embalagem e uma de um presente mais caro.")),
+    d(1, C("ate-100", "Separe cinco produtos da loja e troque as fotos no carrossel."), S("s-ate-100", "Uma foto da embalagem e uma de um presente mais caro.")),
     d(2, R("r-ate-100", "Os 5 presentes e uma caixa.")),
     d(3, C("cara-dela", "Fotos de 3 presentes com estilos diferentes."), S("s-cara-dela", "As mesmas fotos do carrossel.")),
     d(4, R("r-cara-dela", "Os 3 presentes escondidos atrás das costas."), W("w-sugestao", "Envie para 10 clientes que já compraram com você.")),

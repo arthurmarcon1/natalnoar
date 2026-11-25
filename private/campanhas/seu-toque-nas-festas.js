@@ -220,7 +220,7 @@ const d = (dia, ...itens) => ({ dia, itens });
 const calendario = {
   dica: "Publique o feed entre 11h e 13h ou entre 18h e 20h. Stories podem sair ao longo do dia. A mensagem “Resposta a quem pergunta o preço” serve para qualquer dia. Use os carrosséis do seu serviço: maquiagem, unhas, doces ou decoração.",
   dez: [
-    d(1, C("pronta-ceia", "Fotos de uma make de festa: o rosto pronto e a pele de perto."), S("s-pronta-ceia", "Uma foto de antes e uma de depois da mesma cliente.")),
+    d(1, C("pronta-ceia", "Separe a foto de uma make de festa pronta e uma da pele de perto, e troque no carrossel."), S("s-pronta-ceia", "Uma foto de antes e uma de depois da mesma cliente.")),
     d(2, R("r-pronta-ceia", "Uma cliente com autorização para filmar e o celular apoiado.")),
     d(3, C("tres-estilos", "Fotos de 3 trabalhos com estilos diferentes."), S("s-tres-estilos", "As mesmas fotos do carrossel.")),
     d(4, R("r-tres-estilos", "Os 3 trabalhos em vídeo curto ou foto."), W("w-vale", "Envie para 10 clientes que já atendeu.")),
@@ -232,12 +232,12 @@ const calendario = {
     d(10, R("r-mesa-posta", "A mesa vazia e tudo o que vai nela."))
   ],
   expressa: [
-    d(1, C("pronta-ceia", "Fotos de uma make de festa."), S("s-pronta-ceia", "Antes e depois da mesma cliente.")),
+    d(1, C("pronta-ceia", "Separe a foto de uma make de festa pronta e uma da pele de perto, e troque no carrossel."), S("s-pronta-ceia", "Antes e depois da mesma cliente.")),
     d(2, R("r-pronta-ceia", "Uma cliente com autorização para filmar."), W("w-vale", "Envie para clientes que já atendeu.")),
     d(3, C("tres-estilos", "Fotos de 3 trabalhos diferentes."), S("s-tres-estilos", "As mesmas fotos."), W("w-datas", "Envie para quem perguntou e não marcou."))
   ],
   quinze: [
-    d(1, C("pronta-ceia", "Fotos de uma make de festa: o rosto pronto e a pele de perto."), S("s-pronta-ceia", "Antes e depois da mesma cliente.")),
+    d(1, C("pronta-ceia", "Separe a foto de uma make de festa pronta e uma da pele de perto, e troque no carrossel."), S("s-pronta-ceia", "Antes e depois da mesma cliente.")),
     d(2, R("r-pronta-ceia", "Uma cliente com autorização para filmar.")),
     d(3, C("tres-estilos", "Fotos de 3 trabalhos com estilos diferentes."), S("s-tres-estilos", "As mesmas fotos do carrossel.")),
     d(4, R("r-tres-estilos", "Os 3 trabalhos em vídeo curto ou foto."), W("w-vale", "Envie para 10 clientes que já atendeu.")),

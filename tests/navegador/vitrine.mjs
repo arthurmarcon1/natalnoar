@@ -1,4 +1,4 @@
-// Verificação da vitrine pop no celular (390 × 664 e 390 × 844). Uso igual ao de galeria.mjs:
+// Página inicial (celular e computador) e página da campanha. Uso:
 //   URL=http://localhost:8767/ node vitrine.mjs <pasta-de-saída>
 import { chromium } from "playwright";
 const URL = process.env.URL, out = process.argv[2] || ".";
@@ -21,59 +21,77 @@ const arrastar = async (ctx, page, sel, de, ate) => {
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 };
 
-/* ===== abertura ===== */
-let { ctx, page } = await novo();
-await page.goto(URL, { waitUntil: "domcontentloaded" }); await w(page, 200);
-const h1 = await page.evaluate(() => ({ txt: document.querySelector("h1").innerText.replace(/\s+/g, " ").trim(), em: getComputedStyle(document.querySelector("h1 em")), fs: parseFloat(getComputedStyle(document.querySelector("h1")).fontSize) }));
-const em = await page.evaluate(() => { const c = getComputedStyle(document.querySelector("h1 em")); return { estilo: c.fontStyle, cor: c.color, vars: c.fontVariationSettings, tam: parseFloat(c.fontSize) }; });
-ok(h1.txt === "Fim de ano corrido? Seu conteúdo vem pronto.", `chamada mantida: "${h1.txt}"`);
-ok(em.estilo === "italic" && em.cor === "rgb(179, 18, 46)" && /WONK/.test(em.vars) && em.tam > h1.fs * 1.3, `"vem pronto." em itálico expressivo e maior (${Math.round(em.tam)}px)`);
-const linhas = await page.evaluate(() => [...document.querySelectorAll("h1 .l, h1 em")].every(l => { const r = document.createRange(); r.selectNodeContents(l); const b = r.getBoundingClientRect(); return b.left >= 0 && b.right <= innerWidth - 8; }));
-ok(linhas, "chamada inteira na tela, sem corte");
-const btn = await page.locator(".hero .btn").boundingBox();
-const clicavel = await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest(".hero .btn"), [btn.x + btn.width / 2, btn.y + btn.height / 2]);
-ok(btn.y + btn.height <= 664 && clicavel, `"Escolher minha campanha" visível e clicável desde o início, em 390 × 664 (base em ${Math.round(btn.y + btn.height)}px)`);
-const vpb = await page.locator("#vitrine-pop").boundingBox(), h1b = await page.locator("h1").boundingBox();
-ok(vpb.y >= h1b.y + h1b.height - 4 && vpb.y < h1b.y + h1b.height + 40, "foto do produto logo abaixo da chamada");
-const fase = await page.evaluate(() => ({ abre: document.getElementById("vitrine-pop").classList.contains("abre"), preco: +getComputedStyle(document.querySelector(".vp-preco")).opacity, atras: +getComputedStyle(document.querySelector('.vp-card[data-pos="1"]')).opacity }));
-ok(fase.abre && fase.preco < 1 && fase.atras < 1, "animação começa: foto primeiro, título e telas de trás ainda entrando");
-await page.screenshot({ path: `${out}/vit-0.png` });
-await w(page, 3200);
-const fim = await page.evaluate(() => ({ abre: document.getElementById("vitrine-pop").classList.contains("abre"), cards: [...document.querySelectorAll(".vp-card")].map(c => [c.dataset.pos, +getComputedStyle(c).opacity]), mini: [...document.querySelectorAll("[data-vp-mini]")].every(i => i.naturalWidth > 0) }));
-ok(!fim.abre && fim.cards.every(([, o]) => o === 1) && fim.mini, "termina em leque de 3 telas (moldura, título, preço e duas telas atrás)");
-ok(await page.evaluate(() => document.querySelectorAll(".selo-pronto").length >= 1 && /pronto pra postar/i.test(document.querySelector(".vp .selo-pronto").textContent)), "assinatura: etiqueta cereja \"pronto pra postar\"");
-await arrastar(ctx, page, "#vitrine-pop", 280, 80); await w(page, 500);
-const pos1 = await page.evaluate(() => [...document.querySelectorAll(".vp-card")].map(c => c.dataset.pos).join());
-ok(pos1 !== "0,1,2", `deslizar a pilha traz outra tela para a frente (${pos1})`);
-await page.locator('[data-vp="0"]').click(); await w(page, 450);
-ok(await page.evaluate(() => document.querySelector('.vp-card[data-i="0"]').dataset.pos) === "0", "pontos levam a uma tela específica");
-const est = page.locator("[data-estrela]").first();
-await est.click(); ok(await est.evaluate(e => e.classList.contains("gira")), "estrela desenhada reage ao toque");
-ok(await semRolagem(page), "abertura sem rolagem lateral");
-// a abertura acontece uma vez: voltar ao início não repete
-await page.goto(URL + "#campanhas"); await w(page, 300); await page.goto(URL + "#inicio"); await w(page, 200);
-ok(!(await page.evaluate(() => document.getElementById("vitrine-pop").classList.contains("abre"))), "a animação não se repete ao voltar para o início");
-ok(page.errs.length === 0, `sem erros de JS ${page.errs.join(" | ")}`);
-await ctx.close();
-
-/* movimento reduzido: sem animação, composição final na hora */
-({ ctx, page } = await novo({ reducedMotion: "reduce" }));
-await page.goto(URL, { waitUntil: "domcontentloaded" }); await w(page, 150);
-const rm = await page.evaluate(() => ({ anim: document.getAnimations().filter(a => a.playState === "running").length, cards: [...document.querySelectorAll(".vp-card")].map(c => +getComputedStyle(c).opacity), preco: +getComputedStyle(document.querySelector(".vp-preco")).opacity }));
-ok(rm.anim === 0 && rm.cards.every(o => o === 1) && rm.preco === 1, "movimento reduzido: leque pronto na hora, sem animação");
-await ctx.close();
-
-/* ===== vitrine de campanhas (captura) ===== */
-({ ctx, page } = await novo({ viewport: { width: 390, height: 844 } }));
-await page.goto(URL + "#campanhas", { waitUntil: "networkidle" }); await w(page, 2500);
-const capa = await page.locator("[data-capa-camp]").evaluateAll(is => is.map(i => i.naturalWidth));
-ok(capa.length === 1 && capa[0] > 0, "lojistas: capa real da campanha, na identidade da coleção");
-await page.screenshot({ path: `${out}/vit-campanhas.png` });
-await page.locator('[data-publico="servico"]').click(); await w(page, 2000);
-ok(await page.locator("[data-capa-camp]").evaluate(i => i.naturalWidth > 0 && i.dataset.capaCamp === "seu-toque-nas-festas"), "prestadoras: capa com a identidade de bastidores");
-ok(/Ver o que vem no kit/.test(await page.locator("body").innerText()), "explicações em \"Ver o que vem no kit\"");
-ok(await page.locator(".fita-d").count() >= 2, "traços de fita nas passagens de seção");
-ok(await semRolagem(page), "vitrine de campanhas sem rolagem lateral");
+/* ===== página inicial: segmento, celular com o carrossel do dia 1, nome na arte, primeiro dia ===== */
+let ctx, page;
+const prontoHome = p => p.waitForFunction(() => document.querySelector(".h2")?.dataset.pronto === "1", null, { timeout: 15000 });
+const pixel = (p, i) => p.evaluate(i => { const c = document.querySelectorAll("[data-ig-tela]")[i]; const d = c.getContext("2d").getImageData(0, 0, 1080, 260).data; let h = 0; for (let k = 0; k < d.length; k += 97) h = (h * 31 + d[k]) >>> 0; return h; }, i);
+for (const [nome, opts] of [["celular", { viewport: { width: 390, height: 844 } }], ["computador", { viewport: { width: 1366, height: 820 }, isMobile: false, hasTouch: false, deviceScaleFactor: 1 }]]) {
+  ({ ctx, page } = await novo(opts));
+  await page.goto(URL, { waitUntil: "domcontentloaded" }); await prontoHome(page); await w(page, 300);
+  const h1 = await page.evaluate(() => document.querySelector("h1").innerText.replace(/\s+/g, " ").trim());
+  const em = await page.evaluate(() => [...document.querySelectorAll("h1 em")].map(e => e.textContent));
+  ok(h1 === "Fim de ano corrido? Seu conteúdo vem pronto." && em.join() === "vem pronto.", `${nome}: chamada exata, só "vem pronto." em itálico`);
+  const segs = await page.locator(".seg [data-seg]").allInnerTexts();
+  ok(segs.join("|") === "Tenho uma loja|Presto serviços", `${nome}: "Tenho uma loja" e "Presto serviços"`);
+  ok(await page.locator('.seg [data-seg="loja"]').getAttribute("aria-checked") === "true" && await page.evaluate(() => document.querySelector(".h2").dataset.seg) === "loja", `${nome}: começa em "Tenho uma loja"`);
+  const box = { seg: await page.locator(".seg").boundingBox(), cel: await page.locator(".cel").boundingBox(), h: opts.viewport.height };
+  ok(box.seg.y + box.seg.height <= box.h && box.cel.y < box.h * 0.75, `${nome}: segmento e celular aparecem juntos na primeira tela (botões até ${Math.round(box.seg.y + box.seg.height)}px, celular a partir de ${Math.round(box.cel.y)}px)`);
+  if (nome === "celular") ok(box.cel.y - (box.seg.y + box.seg.height) < 60, "celular: prévia logo abaixo da escolha de segmento");
+  else ok(box.cel.x > box.seg.x + box.seg.width, "computador: celular ao lado da chamada");
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.marca) === "Nome da loja aqui", `${nome}: capa "5 presentes até R$ 100" com "Nome da loja aqui"`);
+  await page.waitForFunction(() => [...document.querySelectorAll(".lat")].every(i => i.naturalWidth > 0), null, { timeout: 8000 }).catch(() => {});
+  ok(await page.locator("[data-ig-tela]").count() === 4 && await page.locator(".lat").evaluateAll(is => is.filter(i => i.naturalWidth > 0).length) === 2, `${nome}: 4 telas no celular e 2 capas da coleção nas laterais`);
+  ok(/5 presentes até R\$ 100/.test(await page.locator("#dia1").innerText()) && /Separe cinco produtos da loja e troque as fotos no carrossel\./.test(await page.locator("#dia1").innerText()), `${nome}: primeiro dia "5 presentes até R$ 100" com a instrução do kit`);
+  if (nome === "celular") await page.screenshot({ path: `${out}/home-celular-loja.png` });
+  // marca na arte, também na tela seguinte
+  const antes = await pixel(page, 0);
+  await page.locator("[data-nome-marca]").fill("Ateliê da Bia"); await w(page, 250);
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.marca) === "Ateliê da Bia" && await pixel(page, 0) !== antes && (await page.locator(".ig-top b").innerText()) === "ateliedabia", `${nome}: o nome digitado entra na arte, no @ e na legenda`);
+  if (nome === "celular") { const pb = await page.locator("#ig-post").boundingBox(); await arrastar(ctx, page, "#ig-post", Math.round(pb.x + pb.width - 24), Math.round(pb.x + 30)); }
+  else await page.locator('[data-ig-ir="1"]').click();
+  await w(page, 700);
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.tela) === "1", `${nome}: ${nome === "celular" ? "deslizar o dedo" : "a seta"} passa para a tela 2`);
+  const t2 = await page.locator('[data-ig-tela="1"]').boundingBox(), post = await page.locator("#ig-post").boundingBox();
+  ok(Math.abs(t2.x - post.x) < 3, `${nome}: tela 2 inteira à vista`);
+  // nome comprido
+  await page.locator("[data-nome-marca]").fill("Studio Mariana Albuquerque Beauty & Co"); await w(page, 300);
+  const cx = await page.evaluate(async () => { const { desenharEstudio } = await import("/js/estudio.js"); const { CATALOGO } = await import("/catalogo/index.js"); const { estiloOriginal } = await import("/catalogo/colecoes.js");
+    const x = CATALOGO["presentes-por-orcamento"].carrosseis[0], cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1350; const out = [];
+    x.telas.forEach(t => { const cx = []; desenharEstudio(cv.getContext("2d"), t, estiloOriginal("presentes-por-orcamento", x), { marca: "Studio Mariana Albuquerque Beauty & Co", imgs: [], ajustes: [], caixas: cx }); out.push(...cx.filter(b => b.campo === "marca" && (b.x < 0 || b.x + b.w > 1081))); }); return out.length; });
+  ok(cx === 0 && await semRolagem(page) && (await page.locator(".ig-top b").evaluate(b => b.scrollWidth > b.clientWidth || b.getBoundingClientRect().right <= innerWidth)), `${nome}: nome comprido cabe na arte (reduz e termina em "…") sem quebrar a página`);
+  // trocar de segmento
+  await page.locator('.seg [data-seg="servico"]').click(); await w(page, 900);
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.seg) === "servico" && /Seu toque nas festas|Pronta para a ceia/.test(await page.locator("#dia1").innerText()), `${nome}: "Presto serviços" troca a prévia e o primeiro dia (Pronta para a ceia)`);
+  ok((await page.locator("[data-convite]").innerText()) === "Quer ver com o nome da sua marca?", `${nome}: convite muda para "nome da sua marca"`);
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.tela) === "0" && await page.evaluate(() => document.querySelector(".h2").dataset.marca).then(m => m.startsWith("Studio Mariana")), `${nome}: nova coleção abre na capa, com o nome que já estava digitado`);
+  ok(await page.locator("[data-quero]").getAttribute("href") === "#campanha/seu-toque-nas-festas", `${nome}: botão de compra leva à campanha de serviços`);
+  await page.locator("[data-nome-marca]").fill("Bia Make"); await w(page, 400);
+  await page.locator(".h2").evaluate(e => e.scrollIntoView()); await page.evaluate(() => scrollTo(0, 0)); await w(page, 200);
+  await page.screenshot({ path: `${out}/home-${nome}-servico.png` });
+  // botão com o campo vazio
+  await page.locator('.seg [data-seg="loja"]').click(); await w(page, 900);
+  await page.locator("[data-nome-marca]").fill(""); await w(page, 300);
+  ok(await page.evaluate(() => document.querySelector(".h2").dataset.marca) === "Nome da loja aqui", `${nome}: campo vazio volta para "Nome da loja aqui"`);
+  if (nome === "computador") await page.screenshot({ path: `${out}/home-computador-loja.png` });
+  const quero = page.locator("[data-quero]");
+  ok((await quero.innerText()).replace(/\s+/g, " ") === "Quero essa campanha · a partir de R$ 89,90", `${nome}: "Quero essa campanha · a partir de R$ 89,90"`);
+  await quero.click(); await w(page, 1500);
+  const pl = await page.locator("#planos").boundingBox();
+  ok(page.url().endsWith("#campanha/presentes-por-orcamento") && pl && Math.abs(pl.y) < 140, `${nome}: com o campo vazio, o botão abre os planos de Presentes por orçamento`);
+  // o resto da página
+  await page.goto(URL + "#inicio"); await prontoHome(page); await w(page, 1500);
+  ok(await page.locator(".venda").count() === 2 && await page.locator(".venda img").evaluateAll(is => is.every(i => i.naturalWidth > 0)) && /A partir de R\$ 89,90/.test(await page.locator(".vendas").innerText()), `${nome}: as duas campanhas à venda com capa, público e preço`);
+  ok(await page.locator(".gh-capa").count() === 8 && await page.locator('a[href="#galeria"]').filter({ hasText: "Explorar a galeria" }).count() === 1, `${nome}: "Explorar a galeria" com as outras 8 coleções`);
+  ok(await page.locator("#gestao").count() === 1, `${nome}: gestão mensal como opção secundária`);
+  ok(await semRolagem(page), `${nome}: página inicial sem rolagem lateral`);
+  ok(page.errs.length === 0, `${nome}: sem erros de JS ${page.errs.join(" | ")}`);
+  await ctx.close();
+}
+/* movimento reduzido: troca de segmento sem animação */
+({ ctx, page } = await novo({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" }));
+await page.goto(URL); await prontoHome(page);
+await page.locator('.seg [data-seg="servico"]').click(); await w(page, 120);
+ok(await page.evaluate(() => document.getAnimations().filter(a => a.playState === "running").length) === 0, "movimento reduzido: troca sem animação");
 await ctx.close();
 
 /* ===== campanha: miniaturas, carrossel e Stories ===== */

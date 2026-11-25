@@ -15,6 +15,10 @@ export default {
   faixa: "as festas",
   capaFoto: "assets/exemplo/05-servico-capa.jpg",
   capa: { texto: "3 estilos para", preco: "as festas", apoio: "Qual é o seu? →" },
+  /* Abertura da página inicial (ver presentes-por-orcamento.js). */
+  abertura: { carrossel: "pronta-ceia", laterais: ["tres-estilos", "doce-ceia"], convite: "Quer ver com o nome da sua marca?", marcaVazia: "Nome da sua marca",
+    publico: "Para maquiadoras, cabeleireiras, manicures, confeiteiras e decoradoras",
+    primeiroDia: { carrossel: "pronta-ceia", instrucao: "Separe a foto de uma make de festa pronta e uma da pele de perto, e troque no carrossel." } },
   produtos: [
     { id: "make-leve", nome: "Make leve", preco: "R$ 120", paraQuem: "Para o almoço da firma", estilo: "Almoço da firma:",
       detalhe: "Pele fresca e boca rosada, que dura o dia todo.", foto: "assets/exemplo/06-make-leve.jpg" },

@@ -267,10 +267,18 @@ Ao final, entregue:
   - `pagamento.js`: webhook da plataforma de pagamento. **Ainda não ligado** (responde 503); ver comentário no arquivo.
 - Rotas: `#inicio` (âncoras `#campanhas`, `#gestao`), `#campanha/<id>` (carrossel em destaque, Reel e Stories), `#galeria[/<campanha>]`, `#editar/<campanha>/<carrossel>` (teste grátis; `#testar/<campanha>` abre a prévia), `#pedido/<tema>/<plano>` (revisão do pedido), `#area` (área da cliente). Um link `/#acesso=<token>` salva o acesso no aparelho e abre `#area`.
 
+## Página inicial (24/11/2026)
+- **Abertura:** chamada "Fim de ano corrido? / Seu conteúdo *vem pronto.*", logo abaixo os botões **Tenho uma loja** / **Presto serviços** e, ao lado (no celular, logo abaixo), um celular com o carrossel do dia 1 da coleção, desenhado pelo motor do editor (`desenharEstudio`), com duas capas da mesma coleção saindo pelas laterais. Folheia com o dedo (rolagem nativa com encaixe), com as setas no computador ou arrastando com o mouse.
+- **Segmento:** loja → "5 presentes até R$ 100" (Presentes por orçamento); serviços → "Pronta para a ceia" (Seu toque nas festas). A tela do celular vira como página (com movimento reduzido, troca direto) e mudam junto: laterais, @ e legenda do post, convite do nome, primeiro dia e destino do botão.
+- **Nome da marca:** campo opcional ("Quer ver com o nome da sua loja/marca?"). O nome entra na arte das 4 telas, no @ e na legenda enquanto a visitante digita. Vazio = "Nome da loja aqui" / "Nome da sua marca". Fica só na aba (sessionStorage `nna-nome-teste`); nada é enviado.
+- **Seu primeiro dia de campanha:** a capa, o título e a instrução do dia 1 do calendário do kit. A configuração fica em `public/amostra/<id>.js` (`abertura`); o teste confere que a instrução é igual ao "Preparar" do kit. Botão "Quero essa campanha · a partir de R$ 89,90" → `#campanha/<id>` rolando até os planos (funciona com o campo vazio).
+- **Depois:** "Campanhas à venda" (2 cartões com capa, público, preço), "Explorar a galeria" (faixa com as outras 8 coleções) e a gestão mensal como opção secundária.
+- Código: `viewInicio`, `dia1HTML` e `montarAbertura` em `public/js/app.js`; CSS em "abertura: segmento + celular". Teste: `tests/navegador/vitrine.mjs` (celular e computador). Capturas: `docs/capturas/inicio-*.png`.
+
 ## Identidade "vitrine pop" (23/11/2026)
 - **Paleta:** cereja `--cereja` (ação), rosa-claro `--fundo-2`/`--rosa`, branco e texto escuro `--tinta`. Gestão mensal em cereja escuro.
 - **Tipografia:** Fraunces variável (eixos SOFT e WONK) em peso 800 nos títulos; "vem pronto." em itálico expressivo (SOFT 100, WONK 1), 1,42× maior, com traço de fita rosa embaixo. Plus Jakarta Sans no texto.
-- **Abertura:** chamada em 3 linhas (Fim de ano corrido? / Seu conteúdo / *vem pronto.*), logo abaixo a foto de produto que vira post (moldura → título e preço → duas telas atrás em leque) uma vez por visita; termina numa pilha que desliza com o dedo (pontos e setas do teclado também). Botão "Escolher minha campanha" visível desde o início (base a 616 px em 390 × 664). Fotos da abertura: `public/amostra/presentes-por-orcamento.js` e capas do catálogo (`ate-100`, `cara-dela`).
+- **Abertura:** substituída pela página inicial de 24/11/2026 (ver acima).
 - **Assinatura:** etiqueta cereja com recorte ondulado "pronto pra postar" (`.selo-pronto`). Estrelas desenhadas (giram ao toque) e traços de fita entre seções (se desenham ao entrar na tela).
 - **Vitrine de campanhas:** capa real de cada campanha: o 1º carrossel do catálogo, desenhado pelo motor do editor.
 - **Campanha:** 3 miniaturas de produto comandam a prévia (abas Carrossel / Stories / Reel). Tocar troca a tela do carrossel (imagem, nome e preço juntos); deslizar acompanha o dedo; Stories usam a mesma foto na enquete.

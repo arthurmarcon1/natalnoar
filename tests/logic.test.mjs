@@ -193,7 +193,7 @@ test("área paga: nenhum texto pago aparece nos arquivos públicos (só os trech
       ...c.stories.filter(st => st.id !== d.trechos.story.id).flatMap(st => st.telas.filter(t => t.c.texto && !doCatalogo.has(t.c.texto)).map(t => t.c.texto)), // texto que já está no carrossel público não é segredo
       ...c.whatsapp.map(m => m.texto),
       ...c.tutorial.map(p => p.texto),
-      ...L.calendariosDoConteudo(c).flatMap(([, , dias]) => dias.flatMap(x => x.itens.map(it => it.preparar)))
+      ...L.calendariosDoConteudo(c).flatMap(([, , dias]) => dias.flatMap(x => x.itens.map(it => it.preparar))).filter(t => t !== d.abertura.primeiroDia.instrucao) // a instrução do dia 1 é mostrada na página inicial
     ];
     for (const t of new Set(pagos)) assert.ok(!publico.includes(t), `${c.id}: texto pago no público: ${t.slice(0, 50)}…`);
   }
@@ -221,6 +221,18 @@ test("vitrine: trechos reais tirados do kit, sem o “3 presentes” antigo", as
   }
   const tudo = arquivosPublicos().filter(f => /\.(html|js)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
   assert.ok(!/3 presentes até/.test(tudo), "nada de “3 presentes até” no site");
+});
+
+test("página inicial: carrossel do dia 1 e instrução iguais ao calendário do kit", async () => {
+  const { CATALOGO } = await import("../public/catalogo/index.js");
+  for (const [c, d] of [[campanha, demo], [servico, demoServico]]) {
+    const a = d.abertura, dia1 = c.calendario.dez[0].itens.find(it => it.f === "carrossel");
+    assert.equal(a.primeiroDia.carrossel, dia1.ref, `${c.id}: post do dia 1`); assert.equal(a.carrossel, dia1.ref, `${c.id}: o celular mostra o post do dia 1`);
+    assert.equal(a.primeiroDia.instrucao, dia1.preparar, `${c.id}: instrução igual ao "Preparar" do kit`);
+    for (const id of [a.carrossel, ...a.laterais]) assert.ok(CATALOGO[c.id].carrosseis.some(x => x.id === id && x.nivel === 1), `${c.id}: ${id}`);
+    assert.ok(a.convite && a.marcaVazia && a.publico);
+  }
+  assert.equal(demo.abertura.carrossel, "ate-100"); assert.equal(demo.abertura.convite, "Quer ver com o nome da sua loja?"); assert.equal(demoServico.abertura.convite, "Quer ver com o nome da sua marca?");
 });
 
 test("acesso: token assinado, válido, adulterado, expirado e sem segredo", () => {
