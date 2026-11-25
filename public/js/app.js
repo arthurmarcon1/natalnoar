@@ -421,7 +421,7 @@ function viewPedido(id, planoId) {
 const ajudaWhatsApp = msg => linkContato(SITE.whatsappVendas, msg) || "";
 function formPagamento(tema, plano) {
   const ajuda = ajudaWhatsApp(`Olá! Tenho uma dúvida sobre a compra de ${tema.nome} (${plano.nome}).`);
-  return `<form class="pg-form" data-pagar data-camp="${tema.id}" data-plano-pedido="${plano.id}" novalidate>
+  return `<form class="pg-form" hidden data-pagar data-camp="${tema.id}" data-plano-pedido="${plano.id}" novalidate>
     <label class="campo"><span>E-mail que vai receber o acesso</span><input type="email" name="email" autocomplete="email" inputmode="email" required maxlength="120" placeholder="voce@email.com"></label>
     <label class="campo"><span>Confirme o e-mail</span><input type="email" name="confirmacao" autocomplete="off" inputmode="email" required maxlength="120" placeholder="digite de novo"></label>
     <p class="pg-erro" role="alert" hidden></p>
@@ -430,6 +430,17 @@ function formPagamento(tema, plano) {
     <p class="aviso-pedido" role="note">Compra única, sem mensalidade. Assim que o pagamento for confirmado, o botão <b>Abrir minha campanha</b> aparece na tela e o link de acesso chega no seu e-mail, mesmo se você fechar esta página.</p>
     ${ajuda ? `<p class="hint">Dúvidas? <a href="${esc(ajuda)}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a>.</p>` : ""}
   </form>`;
+}
+/* o pagamento online só aparece se o servidor estiver configurado; senão, a compra segue pelo WhatsApp */
+async function prepararPagamento() {
+  const f = $(".pg-form"); if (!f) return;
+  let ativo = false;
+  try { const r = await fetch("/api/pedido", { cache: "no-store" }); ativo = r.ok && (await r.json()).ativo === true; } catch {}
+  if (ativo) { f.hidden = false; return; }
+  const tema = temaPorId(SITE, f.dataset.camp), plano = planoPorId(SITE, f.dataset.planoPedido);
+  const w = ajudaWhatsApp(String(SITE.mensagemCompra || "").replaceAll("{campanha}", tema.nome).replaceAll("{plano}", plano.nome).replaceAll("{preco}", fmtBRL(plano.preco)));
+  f.outerHTML = `<p class="aviso-pedido" role="note"><b>Nenhum pagamento foi feito.</b> O pedido é finalizado pelo WhatsApp: a gente confirma o pagamento e envia o seu link de acesso.</p>
+    ${w ? `<a class="btn grande block" href="${esc(w)}" target="_blank" rel="noopener" data-checkout><span>Continuar pelo WhatsApp · <span class="nw">${fmtBRL(plano.preco)}</span></span></a>` : `<p class="aviso">O checkout ainda não foi configurado.</p>`}`;
 }
 async function enviarPedido(form) {
   const erro = form.querySelector(".pg-erro"), btn = form.querySelector("button[type=submit]"), f = new FormData(form);
@@ -704,6 +715,7 @@ function render(rolar = true) {
     if (r.tela === "galeria") montarGaleria(r.id);
     if (r.tela === "inicio") { montados.push(montarAbertura()); montarCapasCampanhas(); }
     if (r.tela === "retorno") montados.push(montarRetorno());
+    if (r.tela === "pedido") prepararPagamento();
     document.body.dataset.tela = r.tela;
     vidaNosDetalhes();
     if (r.tela === "campanha" && $("#carrossel")) {
