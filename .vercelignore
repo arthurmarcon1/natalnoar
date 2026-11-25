@@ -3,3 +3,4 @@ docs/
 CLAUDE.md
 .gitignore
 .env*
+public/video/
