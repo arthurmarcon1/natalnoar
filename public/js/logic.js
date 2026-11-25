@@ -31,19 +31,24 @@ export function entregasDoPlano(p) {
 }
 /* Conteúdo pago liberado pelo plano (o servidor só entrega isto). */
 export function conteudoDoPlano(campanha, plano) {
-  const n = plano ? plano.nivel : 1;
-  const c = { ...campanha, calendario: { ...campanha.calendario } };
-  if (n < 2) { delete c.extras; delete c.calendario.quinze; }
-  if (n < 3) delete c.reveillon;
-  return c;
+  const n = plano ? plano.nivel : 1, cal = campanha.calendario;
+  return {
+    ...campanha,
+    reels: campanha.reels.filter(x => x.nivel <= n),
+    stories: campanha.stories.filter(x => x.nivel <= n),
+    // Natal Pronto: 10 dias + expressa. Completo: 15 dias + expressa. Natal + Virada: 15 dias + expressa + 5 de Réveillon.
+    calendario: { dica: cal.dica, ...(n < 2 ? { dez: cal.dez } : { quinze: cal.quinze }), expressa: cal.expressa, ...(n >= 3 ? { reveillon: cal.reveillon } : {}) }
+  };
 }
-/* Todos os carrosséis liberados, na ordem: Natal (5), extras (3), Réveillon (3). */
-export function carrosseisLiberados(c) {
-  return [
-    ...c.temas.map((t, i) => ({ grupo: "Natal", t, i })),
-    ...(c.extras || []).map((t, i) => ({ grupo: "Tema extra", t, i })),
-    ...((c.reveillon && c.reveillon.temas) || []).map((t, i) => ({ grupo: "Réveillon", t, i }))
-  ];
+/* Calendários de um conteúdo já filtrado, na ordem de uso: [chave, rótulo, dias]. */
+export function calendariosDoConteudo(c) {
+  const k = c.calendario;
+  return [["dez", "Natal · 10 dias", k.dez], ["quinze", "Natal · 15 dias", k.quinze], ["reveillon", "Réveillon · 5 dias", k.reveillon], ["expressa", "Expressa · 3 dias", k.expressa]].filter(([, , d]) => d && d.length);
+}
+/* Confere se cada item do calendário aponta para um material liberado. Devolve a lista de problemas. */
+export function conferirCalendario(c, carrosseis) {
+  const ids = { carrossel: new Set(carrosseis.map(x => x.id)), reel: new Set(c.reels.map(x => x.id)), stories: new Set(c.stories.map(x => x.id)), whatsapp: new Set(c.whatsapp.map(x => x.id)) };
+  return calendariosDoConteudo(c).flatMap(([k, , dias]) => dias.flatMap(d => d.itens.filter(it => !ids[it.f] || !ids[it.f].has(it.ref)).map(it => `${k} dia ${d.dia}: ${it.f} ${it.ref}`)));
 }
 
 /* ---------- compra ----------
@@ -119,27 +124,9 @@ export function ajustarTexto(texto, maxW, maxLinhas, tamanhos, measureAt) {
   return { size, linhas: quebrarLinhas(texto, maxW, s => measureAt(s, size)) };
 }
 
-/* ---------- legenda do editor ---------- */
-const minuscula = s => s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
-export function legendaEditor(modelo, estado) {
-  const [capa, ...prods] = estado.telas;
-  let t = modelo.replaceAll("[nome da loja]", estado.marca.trim() || "[nome da loja]")
-                .replaceAll("[valor]", (capa.preco || "").trim() || "R$ [valor]");
-  prods.forEach((p, i) => {
-    const item = [p.texto.trim(), p.preco.trim() && `(${p.preco.trim()})`].filter(Boolean).join(" ");
-    t = t.replaceAll(`[tela ${i + 2}]`, [item, minuscula(p.apoio.trim())].filter(Boolean).join(", "));
-  });
-  return t;
-}
-
 /* ---------- nomes dos arquivos ---------- */
 export const slug = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
   .replace(/\[|\]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-export function nomeArquivo(i, tela) {
-  const base = slug(tela.tipo === "capa" ? "capa" : tela.texto) || `tela-${i + 1}`;
-  return `${String(i + 1).padStart(2, "0")}-${base.slice(0, 40)}.png`;
-}
-
 /* ---------- zip (modo "store", sem compressão: PNG já é comprimido) ---------- */
 const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 export function crc32(bytes) { let c = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
@@ -171,21 +158,4 @@ export function zipStore(files, data = new Date()) {
   const out = new Uint8Array(partes.reduce((s, b) => s + b.length, 0));
   let p = 0; for (const b of partes) { out.set(b, p); p += b.length; }
   return out;
-}
-
-/* ---------- editor completo: modelo e legenda de cada carrossel ---------- */
-/* Converte as telas do conteúdo pago no formato do editor. A capa "… R$ [valor]" vira texto + preço. */
-export function modeloDoTema(tema) {
-  return {
-    marca: "[nome da loja]",
-    telas: tema.carrossel.telas.map((t, i) => {
-      if (i === 0) { const m = String(t.titulo).match(/^(.*?)\s*(R\$ \[valor\])$/); return { tipo: "capa", texto: m ? m[1] : t.titulo, preco: m ? m[2] : "", apoio: t.apoio || "" }; }
-      return { tipo: "produto", texto: t.titulo, preco: t.preco || "", apoio: t.apoio || "" };
-    })
-  };
-}
-export function legendaDoTema(campanha, indice, estado) {
-  if (indice === 0 && campanha.editor) return legendaEditor(campanha.editor.legenda, estado);
-  const marca = (estado.marca || "").trim();
-  return campanha.temas[indice].carrossel.legenda.replaceAll("[nome da loja]", marca && marca !== "[nome da loja]" ? marca : "[nome da loja]");
 }

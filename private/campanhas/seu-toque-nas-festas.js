@@ -1,472 +1,286 @@
 /* =====================================================================
-   CAMPANHA: Seu toque nas festas (público: prestadoras de serviço)
-
-   Para maquiadoras, cabeleireiras, designers de sobrancelha, manicures,
-   confeiteiras e decoradoras. Os exemplos usam uma maquiadora; os marcadores
-   ([serviço], [preço], [nome do negócio]…) adaptam para qualquer serviço.
-   Em cada tema, carrossel, Reel e Stories usam as MESMAS fotos de trabalhos.
+   KIT PAGO: Seu toque nas festas (prestadoras de serviço)
+   Só sai pela função api/campanha.js, filtrado pelo plano comprado.
+   Mesma estrutura de presentes-por-orcamento.js (ver o comentário de lá).
+   Cada peça se liga a um carrossel do catálogo (public/catalogo/seu-toque-nas-festas.js).
    ===================================================================== */
-const campanha = {
-  id: "seu-toque-nas-festas",
-  nome: "Seu toque nas festas",
-  resumo: "Mostre como o seu serviço entra nas comemorações de fim de ano, com trabalhos reais, bastidores e chamadas para o WhatsApp.",
+import { T, FOTOS as P, close } from "../../public/catalogo/_base.js";
 
-  temas: [
-    /* ------------------------------------------------------------- 1 */
-    {
-      id: "estilo-para-cada-festa",
-      nome: "Um estilo para cada festa",
-      ideia: "Três versões do seu serviço, cada uma pensada para uma comemoração. A cliente se enxerga numa delas.",
-      fotografar: "3 trabalhos diferentes (fotos de clientes com autorização ou de um modelo), cada um sozinho, com luz natural.",
-      carrossel: {
-        nome: "3 estilos para as festas",
-        telas: [
-          { titulo: "3 estilos para as festas", apoio: "Qual é o seu? →", foto: "Uma foto bonita de trabalho, de perto." },
-          { titulo: "[serviço 1]", preco: "R$ [preço]", apoio: "Para o almoço da firma", foto: "Trabalho 1." },
-          { titulo: "[serviço 2]", preco: "R$ [preço]", apoio: "Para o jantar de Natal", foto: "Trabalho 2." },
-          { titulo: "[serviço 3]", preco: "R$ [preço]", apoio: "Para a confraternização", foto: "Trabalho 3." }
-        ],
-        legenda: "Cada festa pede um toque diferente ✨\n\nSeparei 3 estilos para o fim de ano:\n• [serviço 1], para o almoço da firma\n• [serviço 2], para o jantar de Natal\n• [serviço 3], para a confraternização\n\nQual combina com a sua festa? Me chama no WhatsApp ou no direct.\n\n#[serviço]defesta #[cidade]"
-      },
-      reel: {
-        nome: "Qual combina com a sua festa?",
-        duracao: "15 a 20 segundos",
-        abertura: "Você olhando para a câmera: \"Qual estilo combina com a sua festa?\". Texto na tela igual.",
-        cenas: [
-          { filmar: "Close no trabalho 1 pronto, virando devagar para a luz.", texto: "[serviço 1] · almoço da firma" },
-          { filmar: "Close no trabalho 2 pronto.", texto: "[serviço 2] · jantar de Natal" },
-          { filmar: "Close no trabalho 3 pronto.", texto: "[serviço 3] · confraternização" },
-          { filmar: "Suas mãos organizando o material de trabalho.", texto: "Qual é o seu?" }
-        ],
-        legenda: "Almoço, jantar ou confraternização? Tem um estilo para cada uma ✨ Comenta o seu.",
-        chamadaFinal: "Texto na tela: \"Me chama no WhatsApp\".",
-        semAparecer: "Troque a abertura por uma tela com texto sobre a foto do trabalho 1 e grave só os resultados e as mãos."
-      },
-      stories: {
-        nome: "Qual combina com a sua festa?",
-        telas: [
-          { mostrar: "Fotos dos 3 trabalhos.", texto: "Qual combina com a sua festa?", recurso: "Enquete: [serviço 1] / [serviço 2] / [serviço 3]" },
-          { mostrar: "O trabalho mais votado, de perto.", texto: "Esse sai por R$ [preço].", recurso: "Nenhum" },
-          { mostrar: "Seu material de trabalho organizado.", texto: "Quer esse para a sua festa?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    },
+/* ---------------- Reels ---------------- */
+const reels = [
+  { id: "r-pronta-ceia", carrossel: "pronta-ceia", nivel: 1, nome: "Do rosto lavado à ceia", duracao: "20 segundos",
+    ideia: "Acompanha um detalhe do atendimento (a pele) e revela o resultado no final.",
+    preparar: "Uma cliente (ou você mesma) com autorização para filmar, luz de janela e o celular num tripé ou apoiado.",
+    abertura: { filmar: "Close no rosto sem make, com a cliente de olhos fechados.", fala: "Ela tinha ceia às 20h. Começamos às 18h." },
+    cenas: [
+      { filmar: "Close na pele recebendo hidratante, com os dedos ou o pincel.", texto: "Primeiro, a pele" },
+      { filmar: "Pó sendo aplicado só na testa e no nariz.", texto: "Pó só onde precisa" },
+      { filmar: "Os olhos de perto, com o último toque de iluminador no canto.", texto: "O detalhe que aparece na foto" }
+    ],
+    final: { filmar: "Ela abre os olhos e sorri para a câmera. Corte para ela pronta, de corpo inteiro.", texto: "Pronta para a ceia ✨ · horários em 23 e 24/12" },
+    semAparecer: "Você não precisa aparecer: só as suas mãos trabalham. Se a cliente não quiser mostrar o rosto, filme só os olhos e a boca, e no fim ela de costas, com o cabelo pronto.",
+    legenda: "Ela tinha ceia às 20h. Começamos às 18h ✨\n\nPele preparada, pó só onde precisa e o iluminador no ponto certo: dura até a sobremesa.\n\nAinda tenho horários em 23 e 24/12, no estúdio ou na sua casa. Me chama no WhatsApp.\n\n#makedenatal #maquiagem" },
 
-    /* ------------------------------------------------------------- 2 */
-    {
-      id: "vale-presente",
-      nome: "Vale-presente de Natal",
-      ideia: "O seu serviço como presente. Quem quer agradar a mãe, a amiga ou a sogra compra de você.",
-      fotografar: "Um cartão ou envelope de vale-presente (pode ser impresso em casa) e 2 trabalhos seus.",
-      carrossel: {
-        nome: "Presente que vira cuidado",
-        telas: [
-          { titulo: "Presente que vira cuidado", apoio: "Vale-presente de Natal →", foto: "O cartão do vale-presente com laço." },
-          { titulo: "Vale [serviço 1]", preco: "R$ [preço]", apoio: "Para a mãe que nunca para", foto: "Trabalho 1." },
-          { titulo: "Vale [serviço 2]", preco: "R$ [preço]", apoio: "Para a amiga que merece", foto: "Trabalho 2." },
-          { titulo: "Monte o seu", preco: "a partir de R$ [preço]", apoio: "Você escolhe o valor", foto: "O cartão nas mãos." }
-        ],
-        legenda: "Neste Natal, dê cuidado de presente 🎁\n\nO vale-presente da [nome do negócio] vale para [serviço 1], [serviço 2] ou o valor que você escolher. Chega num cartão bonito, pronto para entregar.\n\nMe chama no WhatsApp ou no direct.\n\n#valepresente #presentedenatal"
-      },
-      reel: {
-        nome: "O presente que ela vai lembrar",
-        duracao: "15 segundos",
-        abertura: "O cartão do vale-presente entrando no envelope. Texto na tela: \"O presente que ela vai lembrar\".",
-        cenas: [
-          { filmar: "Você escrevendo o nome no cartão.", texto: "Vale [serviço]" },
-          { filmar: "Um trabalho seu pronto, de perto.", texto: "Ela escolhe o dia" },
-          { filmar: "O envelope sendo fechado com laço.", texto: "A partir de R$ [preço]" }
-        ],
-        legenda: "Presente que vira cuidado 🎁 Vale-presente pelo WhatsApp.",
-        chamadaFinal: "Texto na tela: \"Peça o seu pelo WhatsApp\".",
-        semAparecer: "Todas as cenas funcionam só com mãos, cartão e trabalhos."
-      },
-      stories: {
-        nome: "Pra quem você daria?",
-        telas: [
-          { mostrar: "O cartão do vale-presente.", texto: "Pra quem você daria um vale-presente?", recurso: "Enquete: Mãe / Amiga / Sogra" },
-          { mostrar: "Um trabalho seu.", texto: "Vale a partir de R$ [preço].", recurso: "Nenhum" },
-          { mostrar: "O cartão nas mãos.", texto: "Quer o seu?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    },
+  { id: "r-tres-estilos", carrossel: "tres-estilos", nivel: 1, nome: "Qual combina com a sua festa?", duracao: "15 segundos",
+    ideia: "Três festas, três produções. Quem assiste se reconhece numa delas.",
+    preparar: "Fotos ou vídeos curtos de 3 trabalhos seus: um leve, um com brilho e um penteado.",
+    abertura: { filmar: "Você olhando para a câmera, com os pincéis na mão.", fala: "Qual estilo combina com a sua festa?" },
+    cenas: [
+      { filmar: "Trabalho 1 pronto, a cliente virando o rosto devagar para a luz.", texto: "Almoço da firma: make leve" },
+      { filmar: "Trabalho 2 pronto, de perto, para mostrar o brilho.", texto: "Jantar de Natal: glow dourado" },
+      { filmar: "Trabalho 3: o penteado de costas, girando devagar.", texto: "Confra: penteado de festa" }
+    ],
+    final: { filmar: "Você de novo, apontando para baixo.", texto: "Comenta a sua festa 👇" },
+    semAparecer: "Abra com uma tela de texto (“Qual combina com a sua festa?”) e mostre só os trabalhos prontos. Pode usar fotos, 2 segundos cada.",
+    legenda: "Cada festa pede um toque diferente ✨\n\nAlmoço da firma: make leve. Jantar de Natal: glow dourado. Confra: penteado de festa.\n\nQual combina com a sua? Comenta aqui ou me chama no WhatsApp que eu passo os horários.\n\n#makedefesta #penteado" },
 
-    /* ------------------------------------------------------------- 3 */
-    {
-      id: "antes-e-depois",
-      nome: "Antes e depois",
-      ideia: "A transformação conta o valor do trabalho melhor que qualquer explicação.",
-      fotografar: "Uma cliente (com autorização) antes, durante e depois, sempre com a mesma luz e o mesmo ângulo.",
-      carrossel: {
-        nome: "Antes e depois de uma produção de festa",
-        telas: [
-          { titulo: "Antes e depois de uma produção de festa", apoio: "Arrasta pro lado →", foto: "O resultado final, de perto." },
-          { titulo: "Antes", preco: "", apoio: "[como chegou]", foto: "Antes." },
-          { titulo: "Durante", preco: "", apoio: "[o que eu fiz]", foto: "Durante." },
-          { titulo: "Depois", preco: "R$ [preço]", apoio: "[serviço] · [tempo]", foto: "Depois." }
-        ],
-        legenda: "Do antes ao depois em [tempo] ✨\n\nA [nome da cliente] chegou com [como chegou] e saiu pronta para a festa. Fiz [o que eu fiz].\n\n[serviço] por R$ [preço]. Me chama no WhatsApp ou no direct.\n\n#antesedepois #[serviço]"
-      },
-      reel: {
-        nome: "Do antes ao depois",
-        duracao: "10 a 15 segundos",
-        abertura: "O antes, parado por 1 segundo. Texto na tela: \"Antes…\".",
-        cenas: [
-          { filmar: "Cenas rápidas do processo, em velocidade acelerada.", texto: "[o que eu fiz]" },
-          { filmar: "Corte seco para o resultado.", texto: "…e depois ✨" },
-          { filmar: "O resultado virando devagar para a luz.", texto: "[serviço] · R$ [preço]" }
-        ],
-        legenda: "Do antes ao depois em [tempo] ✨ Quer o seu?",
-        chamadaFinal: "Texto na tela: \"Me chama no WhatsApp\".",
-        semAparecer: "Você não precisa aparecer: grave só a cliente (com autorização) e as suas mãos trabalhando."
-      },
-      stories: {
-        nome: "Antes ou depois?",
-        telas: [
-          { mostrar: "O antes.", texto: "Adivinha como ficou 👀", recurso: "Slider de emoji" },
-          { mostrar: "O depois.", texto: "Ficou assim! [serviço] por R$ [preço].", recurso: "Enquete: Amei / Quero também" },
-          { mostrar: "Antes e depois lado a lado.", texto: "Quer o seu?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    },
+  { id: "r-unhas", carrossel: "unhas", nivel: 1, nome: "Da unha do dia a dia à unha de festa", duracao: "15 segundos",
+    ideia: "Antes e depois com uma virada de mão. Simples de gravar e muito assistido.",
+    preparar: "As mãos da cliente antes de começar e depois de pronta. Luz de janela e fundo liso.",
+    abertura: { filmar: "Mãos da cliente com as unhas do dia a dia, paradas sobre a toalha.", fala: "Unha do dia a dia…" },
+    cenas: [
+      { filmar: "As mãos viram para baixo. Corte e elas viram de volta prontas.", texto: "…unha de festa" },
+      { filmar: "Close numa unha, girando devagar para pegar a luz.", texto: "Esmaltação em gel" },
+      { filmar: "As mãos segurando uma taça ou um talher.", texto: "Aguenta a ceia, a louça e a virada" }
+    ],
+    final: { filmar: "Os vidros de esmalte enfileirados.", texto: "Dezembro lota rápido · garanta seu horário" },
+    semAparecer: "Este roteiro já mostra só as mãos da cliente. Você não aparece em nenhum momento.",
+    legenda: "Da unha do dia a dia à unha de festa 💅\n\nEsmaltação em gel que aguenta a ceia, a louça e a virada. Vermelho clássico, nude com glitter ou francesinha dourada.\n\nDezembro lota rápido: escolhe o dia e me chama no WhatsApp que eu confirmo.\n\n#unhasdefesta #manicure" },
 
-    /* ------------------------------------------------------------- 4 */
-    {
-      id: "por-dentro-do-atendimento",
-      nome: "Por dentro do atendimento",
-      ideia: "Mostrar como é ser atendida por você tira o medo de quem nunca veio e valoriza cada etapa.",
-      fotografar: "O seu espaço arrumado, o material separado e um detalhe de cada etapa.",
-      carrossel: {
-        nome: "Como é um atendimento comigo",
-        telas: [
-          { titulo: "Como é um atendimento comigo", apoio: "Do café ao resultado →", foto: "O seu espaço arrumado." },
-          { titulo: "A conversa", preco: "", apoio: "Entendo a festa, a roupa e o seu jeito", foto: "Referências ou o café servido." },
-          { titulo: "O preparo", preco: "", apoio: "[primeira etapa do serviço]", foto: "Material separado ou a etapa." },
-          { titulo: "O resultado", preco: "R$ [preço]", apoio: "[serviço] · [duração]", foto: "O resultado final." }
-        ],
-        legenda: "Já pensou como é um atendimento comigo? ☕\n\nComeça com uma conversa sobre a sua festa, passa pelo preparo com calma e termina com você se olhando no espelho.\n\n[serviço] por R$ [preço], em [duração]. Me chama no WhatsApp ou no direct.\n\n#bastidores #[serviço]"
-      },
-      reel: {
-        nome: "Um atendimento em 15 segundos",
-        duracao: "15 segundos",
-        abertura: "A porta do seu espaço abrindo. Texto na tela: \"Vem comigo num atendimento\".",
-        cenas: [
-          { filmar: "O café sendo servido ou as referências na mesa.", texto: "Primeiro, a conversa" },
-          { filmar: "Suas mãos fazendo a primeira etapa.", texto: "Depois, o preparo" },
-          { filmar: "O resultado no espelho.", texto: "E o resultado ✨" }
-        ],
-        legenda: "Um atendimento inteiro em 15 segundos ☕✨",
-        chamadaFinal: "Texto na tela: \"Vem viver isso também\".",
-        semAparecer: "Grave o espaço, o material e as suas mãos; o rosto da cliente só com autorização."
-      },
-      stories: {
-        nome: "Bastidores de hoje",
-        telas: [
-          { mostrar: "O seu espaço pela manhã.", texto: "Bastidores de hoje ☕", recurso: "Caixa de perguntas: \"O que você quer saber?\"" },
-          { mostrar: "O material separado para o atendimento.", texto: "Tudo pronto para a cliente das [horário].", recurso: "Nenhum" },
-          { mostrar: "O resultado do dia.", texto: "Ficou assim! Quer o seu?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    },
+  { id: "r-doce-ceia", carrossel: "doce-ceia", nivel: 1, nome: "O corte que fecha a ceia", duracao: "15 segundos",
+    ideia: "O primeiro corte do bolo, em câmera lenta. O recheio aparecendo é o que segura quem assiste.",
+    preparar: "Um bolo pronto, uma faca bonita e luz de janela. Ative a câmera lenta do celular.",
+    abertura: { filmar: "O bolo inteiro na mesa, câmera parada.", fala: "Quem vai levar a sobremesa da ceia?" },
+    cenas: [
+      { filmar: "A faca entra no bolo, em câmera lenta.", texto: "O primeiro corte…" },
+      { filmar: "A fatia saindo, com o recheio de perto.", texto: "[recheio]" },
+      { filmar: "A fatia no prato, com um garfo pegando um pedaço.", texto: "Serve 6, 12 ou 20 pessoas" }
+    ],
+    final: { filmar: "O bolo embalado na caixa, com laço.", texto: "Encomendas até [data]" },
+    semAparecer: "Este roteiro já é feito só com o bolo e as mãos. Se preferir, deixe a faca e o prato parados e filme só o bolo girando num prato giratório.",
+    legenda: "Quem vai levar a sobremesa da ceia? 🎂\n\n[recheio]. Mini (serve 6), médio (serve 12) ou grande (serve 20).\n\nEncomendas até [data], com retirada em 23 e 24/12. Me chama no WhatsApp pra garantir o seu.\n\n#bolodenatal #confeitaria" },
 
-    /* ------------------------------------------------------------- 5 */
-    {
-      id: "o-que-minhas-clientes-dizem",
-      nome: "O que minhas clientes dizem",
-      ideia: "A palavra de quem já foi atendida convence quem ainda está em dúvida.",
-      fotografar: "Prints de mensagens de clientes (com autorização e sem dados pessoais) e fotos dos trabalhos delas.",
-      carrossel: {
-        nome: "O que minhas clientes dizem",
-        telas: [
-          { titulo: "O que minhas clientes dizem", apoio: "Arrasta e lê →", foto: "Um trabalho seu bonito." },
-          { titulo: "“[depoimento 1]”", preco: "", apoio: "[nome da cliente 1] · [serviço]", foto: "Trabalho da cliente 1." },
-          { titulo: "“[depoimento 2]”", preco: "", apoio: "[nome da cliente 2] · [serviço]", foto: "Trabalho da cliente 2." },
-          { titulo: "“[depoimento 3]”", preco: "", apoio: "[nome da cliente 3] · [serviço]", foto: "Trabalho da cliente 3." }
-        ],
-        legenda: "Nada me deixa mais feliz do que mensagens assim 💛\n\nObrigada a cada cliente que confiou no meu trabalho este ano. Quer ser a próxima? Me chama no WhatsApp ou no direct.\n\n#depoimentos #[serviço]"
-      },
-      reel: {
-        nome: "Mensagens que eu guardo",
-        duracao: "10 a 15 segundos",
-        abertura: "Você rolando o celular com as mensagens. Texto na tela: \"Mensagens que eu guardo\".",
-        cenas: [
-          { filmar: "Print do depoimento 1 com o trabalho atrás.", texto: "“[trecho do depoimento 1]”" },
-          { filmar: "Print do depoimento 2 com o trabalho atrás.", texto: "“[trecho do depoimento 2]”" },
-          { filmar: "Print do depoimento 3 com o trabalho atrás.", texto: "“[trecho do depoimento 3]”" }
-        ],
-        legenda: "Cada mensagem dessas vale o ano inteiro 💛",
-        chamadaFinal: "Texto na tela: \"Quer ser a próxima? Me chama\".",
-        semAparecer: "Use só os prints e as fotos dos trabalhos, com transições simples."
-      },
-      stories: {
-        nome: "Recebi essa mensagem",
-        telas: [
-          { mostrar: "Print de um depoimento (sem dados pessoais).", texto: "Recebi essa mensagem hoje 🥹", recurso: "Slider de emoji" },
-          { mostrar: "O trabalho dessa cliente.", texto: "E foi esse o resultado.", recurso: "Nenhum" },
-          { mostrar: "Seu espaço ou material.", texto: "Quer o seu?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    }
-  ],
+  { id: "r-mesa-posta", carrossel: "mesa-posta", nivel: 1, nome: "Monta comigo a mesa de Natal", duracao: "20 segundos",
+    ideia: "A mesa vazia vira mesa posta em três camadas. Timelapse rápido e satisfatório.",
+    preparar: "A mesa vazia, toalha, caminho de mesa, flores, velas e louça. Celular apoiado no alto.",
+    abertura: { filmar: "A mesa vazia, câmera do alto, parada.", fala: "Monta comigo a mesa de Natal?" },
+    cenas: [
+      { filmar: "Timelapse: a toalha e o caminho de mesa entrando.", texto: "1 · a base" },
+      { filmar: "Timelapse: o arranjo baixo de flores e velas no centro.", texto: "2 · o centro baixo" },
+      { filmar: "Timelapse: pratos, taças e guardanapos.", texto: "3 · a louça" }
+    ],
+    final: { filmar: "Velas acesas, a câmera passeando devagar pela mesa.", texto: "Quer a sua pronta no dia 24?" },
+    semAparecer: "O timelapse já mostra só a mesa. Suas mãos podem aparecer arrumando, ou nem isso: grave a mesa a cada etapa e junte as partes.",
+    legenda: "Monta comigo a mesa de Natal? 🕯️\n\nBase clara, centro baixo pra ninguém perder a conversa e a louça no lugar. Simples e com cara de festa.\n\nQuer a sua pronta no dia 24? Monto no dia e retiro no dia seguinte. Me chama no WhatsApp pra um orçamento.\n\n#mesaposta #decoracaodenatal" },
 
-  whatsapp: [
-    { titulo: "Resposta a quem pergunta o preço", quando: "Quando alguém pergunta \"quanto custa?\".",
-      texto: "Oi, [nome]! Tudo bem? 😊 O [serviço] sai por R$ [preço] e leva cerca de [duração]. Para festas de fim de ano, tenho [dias disponíveis]. Quer que eu reserve um horário para você?" },
-    { titulo: "Sugestão de vale-presente", quando: "Para clientes que já foram atendidas. Envie individualmente.",
-      texto: "Oi, [nome]! Aqui é a [seu nome], da [nome do negócio] 🎁 Este ano estou com vale-presente de Natal: dá para presentear a mãe, uma amiga ou quem você quiser com [serviço]. Quer que eu te mande os valores?" },
-    { titulo: "Aviso de últimas datas", quando: "Nos últimos dias antes do Natal.",
-      texto: "Oi, [nome]! Passando para avisar: restam poucas datas antes do Natal ([datas]) 🎄 Se você tem festa chegando, me chama que eu vejo o melhor horário para você." }
-  ],
+  { id: "r-dura", carrossel: "dura", nivel: 2, nome: "Make dura a noite toda?", duracao: "15 segundos",
+    ideia: "Responde à dúvida mais comum com uma prova: o mesmo rosto às 19h e à 1h.",
+    preparar: "Uma foto ou vídeo da cliente pronta no começo da festa e outro no fim (peça para ela gravar).",
+    abertura: { filmar: "Você olhando para a câmera, séria, segurando um pincel.", fala: "“Make dura a noite toda?” Essa é a pergunta que eu mais ouço." },
+    cenas: [
+      { filmar: "Close na pele sendo preparada com hidratante e primer.", texto: "Segredo 1: pele preparada" },
+      { filmar: "O pincel aplicando camadas finas.", texto: "Segredo 2: camadas finas" },
+      { filmar: "A cliente às 19h e a mesma cliente à 1h, lado a lado.", texto: "19h · 1h" }
+    ],
+    final: { filmar: "Você de novo, sorrindo.", texto: "Resposta curta: dura, sim" },
+    semAparecer: "Troque a abertura por uma tela de texto com a pergunta. Nas cenas, só as mãos e a pele da cliente.",
+    legenda: "“Make dura a noite toda?” Essa é a pergunta que eu mais ouço em dezembro 💬\n\nDura, sim. O segredo é a pele bem preparada e o produto em camadas finas.\n\nTem festa chegando? Me chama no WhatsApp que eu vejo o seu horário.\n\n#maquiagem #makedefesta" },
 
-  calendario: {
-    dica: "Publique o feed entre 11h e 13h ou entre 18h e 20h. Stories podem sair ao longo do dia. A resposta a quem pergunta o preço vale para qualquer dia."
-  },
+  { id: "r-detalhe", carrossel: "detalhe", nivel: 2, nome: "Me manda a foto do look", duracao: "15 segundos",
+    ideia: "Mostra como a foto do vestido decide a make. A cliente entende o valor de mandar o look antes.",
+    preparar: "Um print (com autorização) de uma cliente mandando a foto do vestido e o resultado da make.",
+    abertura: { filmar: "A tela do celular com a foto do vestido chegando no WhatsApp.", fala: "Ela me mandou o vestido. Eu escolhi a make em dois minutos." },
+    cenas: [
+      { filmar: "Close no decote e na cor do vestido.", texto: "A cor e o decote decidem" },
+      { filmar: "Paleta e batons separados sobre a bancada.", texto: "Batom ou olho? Aqui foi o olho" },
+      { filmar: "O resultado: a cliente pronta, com o vestido.", texto: "Pronta para a festa" }
+    ],
+    final: { filmar: "Você digitando no celular.", texto: "Me manda a foto do seu look 📲" },
+    semAparecer: "Todo o roteiro pode ser feito com a tela do celular, as mãos separando os produtos e o resultado na cliente.",
+    legenda: "Ela me mandou a foto do vestido e eu escolhi a make em dois minutos 👗\n\nA cor e o decote dizem onde ir de batom e onde ir de olho. A luz da festa diz quanto iluminador usar.\n\nMe manda a foto do seu look no WhatsApp que eu já sugiro a make antes do dia.\n\n#maquiagem #makedefesta" },
 
-  tutorial: [
-    { titulo: "Fotografe com luz de janela", texto: "Trabalho no centro, fundo limpo, celular na vertical. Peça autorização à cliente antes de usar o rosto dela." },
-    { titulo: "Troque os marcadores", texto: "Tudo o que está entre colchetes, como [serviço], [preço] e [nome do negócio], é para trocar pelo que é seu." },
-    { titulo: "Monte as telas", texto: "No editor, toque em cada tela, escolha a foto e ajuste o enquadramento. O texto fica legível em qualquer foto." },
-    { titulo: "Baixe na ordem", texto: "As imagens saem numeradas (01 a 04) no tamanho do Instagram, 1080 × 1350. No iPhone, use \"Compartilhar\" e salve as imagens." },
-    { titulo: "Publique e cole a legenda", texto: "Selecione as imagens na ordem, cole a legenda (botão Copiar legenda) e publique no dia indicado no calendário." },
-    { titulo: "Grave os Reels pelo roteiro", texto: "Cada roteiro tem as cenas e o texto na tela. Se não quiser aparecer, siga a alternativa: só mãos, trabalho ou tela com texto." }
-  ],
+  { id: "r-imprevisto", carrossel: "imprevisto", nivel: 2, nome: "40 minutos antes da festa", duracao: "20 segundos",
+    ideia: "Uma história curta com problema, solução e final feliz. Mostra calma e experiência.",
+    preparar: "Fotos ou vídeos do antes e do depois de um atendimento com imprevisto (com autorização).",
+    abertura: { filmar: "Close no relógio do celular marcando a hora.", fala: "Ela chegou com o cabelo molhado da chuva. 40 minutos antes da festa." },
+    cenas: [
+      { filmar: "O cabelo molhado, de costas.", texto: "O imprevisto" },
+      { filmar: "Suas mãos prendendo o coque, rápido.", texto: "A solução: coque baixo, firme e rápido" },
+      { filmar: "Ela pronta, de perfil, saindo pela porta.", texto: "Chegou no horário" }
+    ],
+    final: { filmar: "Você guardando os grampos, aliviada.", texto: "E ninguém soube da chuva 😉" },
+    semAparecer: "Conte a história só com textos na tela e as imagens do cabelo e das mãos.",
+    legenda: "Ela chegou com o cabelo molhado da chuva, 40 minutos antes da festa 😱\n\nTrocamos o cabelo solto por um coque baixo, mais rápido e firme. Ela chegou no horário e ninguém soube da chuva.\n\nTem festa chegando? Me chama no WhatsApp.\n\n#penteado #bastidores" },
 
-  editor: {
-    tema: "estilo-para-cada-festa",
-    exemplo: {
-      marca: "Bia Make",
-      telas: [
-        { tipo: "capa", texto: "3 estilos para", preco: "as festas", apoio: "Qual é o seu? →", foto: "assets/exemplo/05-servico-capa.jpg" },
-        { tipo: "produto", texto: "Make leve", preco: "R$ 120", apoio: "Para o almoço da firma", foto: "assets/exemplo/06-make-leve.jpg" },
-        { tipo: "produto", texto: "Glow dourado", preco: "R$ 160", apoio: "Para o jantar de Natal", foto: "assets/exemplo/07-glow.jpg" },
-        { tipo: "produto", texto: "Penteado de festa", preco: "R$ 140", apoio: "Para a confraternização", foto: "assets/exemplo/08-penteado.jpg" }
-      ]
-    },
-    legenda: "Cada festa pede um toque diferente ✨\n\nSeparei 3 estilos para o fim de ano aqui na [nome da loja]:\n• [tela 2]\n• [tela 3]\n• [tela 4]\n\nQual combina com a sua festa? Me chama no WhatsApp ou no direct."
-  }
-};
+  { id: "r-producao-virada", carrossel: "producao-virada", nivel: 3, nome: "Produção completa da virada", duracao: "15 segundos",
+    ideia: "Make e penteado no mesmo horário, com o brilho da virada.",
+    preparar: "Um trabalho com brilho (make e penteado prontos) e confete ou glitter para a abertura.",
+    abertura: { filmar: "Confete ou glitter caindo na frente da câmera.", fala: "Vai virar o ano como?" },
+    cenas: [
+      { filmar: "Close na make glow, a cliente virando o rosto para a luz.", texto: "Make glow" },
+      { filmar: "O penteado de costas, girando devagar.", texto: "+ penteado" },
+      { filmar: "O kit de retoque entrando na bolsinha.", texto: "Fixação para calor e praia" }
+    ],
+    final: { filmar: "A cliente pronta, brindando com uma taça.", texto: "R$ [preço] · agenda do dia 31" },
+    semAparecer: "Abra com o confete e mostre só os trabalhos e as mãos. O brinde pode ser só das taças.",
+    legenda: "Vai virar o ano como? ✨\n\nProdução completa: make glow e penteado no mesmo horário, com fixação para calor e praia e kit de retoque.\n\nAtendo no dia 31 das 9h às 18h. Restam poucos horários: me chama no WhatsApp.\n\n#reveillon #makedefesta" },
 
-/* =====================================================================
-   PLANO NATAL COMPLETO: 3 temas extras (cada um: 1 carrossel + 1 roteiro)
-   ===================================================================== */
-campanha.extras = [
-  {
-    id: "duvida-que-sempre-me-fazem",
-    nome: "Uma dúvida que sempre me fazem",
-    ideia: "Responder a pergunta mais comum mostra conhecimento e tira a última barreira antes da compra.",
-    fotografar: "Você (ou suas mãos) com o material de trabalho e 2 trabalhos que ilustram a resposta.",
-    carrossel: {
-      nome: "A dúvida que eu mais ouço",
-      telas: [
-        { titulo: "A dúvida que eu mais ouço", apoio: "“[pergunta frequente]” →", foto: "Você ou seu material." },
-        { titulo: "A resposta curta", preco: "", apoio: "[resposta em uma frase]", foto: "Trabalho que ilustra a resposta." },
-        { titulo: "Por que isso importa", preco: "", apoio: "[explicação simples]", foto: "Detalhe do trabalho." },
-        { titulo: "No seu caso", preco: "R$ [preço]", apoio: "[serviço indicado] · me chama", foto: "Resultado final." }
-      ],
-      legenda: "Toda semana alguém me pergunta: \"[pergunta frequente]\" 🤔\n\nA resposta curta: [resposta em uma frase]. Arrasta que eu explico.\n\nFicou alguma dúvida? Me chama no WhatsApp ou no direct.\n\n#duvidas #[serviço]"
-    },
-    reel: {
-      nome: "Respondendo a dúvida número 1",
-      duracao: "15 a 20 segundos",
-      abertura: "Você lendo a pergunta no celular. Texto na tela: \"“[pergunta frequente]”\".",
-      cenas: [
-        { filmar: "Você olhando para a câmera e dando a resposta curta.", texto: "[resposta em uma frase]" },
-        { filmar: "Close no trabalho que ilustra a resposta.", texto: "Olha a diferença" },
-        { filmar: "O resultado final.", texto: "Ficou com dúvida? Me chama" }
-      ],
-      legenda: "A dúvida que eu mais ouço, respondida em 15 segundos 💬",
-      chamadaFinal: "Texto na tela: \"Manda sua dúvida no direct\".",
-      semAparecer: "Escreva a pergunta e a resposta como texto na tela, sobre vídeos das suas mãos e dos trabalhos."
-    }
-  },
-  {
-    id: "como-escolho-cada-detalhe",
-    nome: "Como escolho cada detalhe",
-    ideia: "As escolhas por trás do resultado mostram que o seu trabalho é pensado, não sorte.",
-    fotografar: "Um trabalho pronto e os materiais usados nele, organizados sobre a bancada.",
-    carrossel: {
-      nome: "Por que escolhi cada detalhe",
-      telas: [
-        { titulo: "Por que escolhi cada detalhe", apoio: "Nada aqui é por acaso →", foto: "O trabalho pronto." },
-        { titulo: "[escolha 1]", preco: "", apoio: "Porque [motivo 1]", foto: "Detalhe 1 ou material 1." },
-        { titulo: "[escolha 2]", preco: "", apoio: "Porque [motivo 2]", foto: "Detalhe 2 ou material 2." },
-        { titulo: "[escolha 3]", preco: "R$ [preço]", apoio: "Porque [motivo 3]", foto: "Detalhe 3 ou material 3." }
-      ],
-      legenda: "Resultado bonito não é sorte: é escolha ✨\n\nNeste trabalho, escolhi [escolha 1] porque [motivo 1], [escolha 2] porque [motivo 2] e [escolha 3] porque [motivo 3].\n\nQuer um trabalho pensado para você? Me chama no WhatsApp ou no direct.\n\n#bastidores #[serviço]"
-    },
-    reel: {
-      nome: "Nada aqui é por acaso",
-      duracao: "15 segundos",
-      abertura: "O trabalho pronto. Texto na tela: \"Nada aqui é por acaso\".",
-      cenas: [
-        { filmar: "Suas mãos pegando o material 1.", texto: "[escolha 1]: [motivo 1]" },
-        { filmar: "Suas mãos pegando o material 2.", texto: "[escolha 2]: [motivo 2]" },
-        { filmar: "Suas mãos pegando o material 3.", texto: "[escolha 3]: [motivo 3]" }
-      ],
-      legenda: "Cada detalhe tem um porquê ✨ Qual você não sabia?",
-      chamadaFinal: "Texto na tela: \"Quer o seu? Me chama\".",
-      semAparecer: "O roteiro já é feito só com mãos, materiais e o trabalho pronto."
-    }
-  },
-  {
-    id: "historia-por-tras-de-um-trabalho",
-    nome: "A história por trás de um trabalho",
-    ideia: "Uma história real cria conexão e mostra o cuidado com cada cliente.",
-    fotografar: "Um trabalho marcante do ano (com autorização da cliente) e um detalhe que conte a história.",
-    carrossel: {
-      nome: "A história por trás deste trabalho",
-      telas: [
-        { titulo: "A história por trás deste trabalho", apoio: "Arrasta pro lado →", foto: "O trabalho pronto." },
-        { titulo: "O pedido", preco: "", apoio: "[o que a cliente queria]", foto: "Referência ou o antes." },
-        { titulo: "O desafio", preco: "", apoio: "[o que tornou especial]", foto: "Um detalhe do processo." },
-        { titulo: "O resultado", preco: "", apoio: "[como ela reagiu]", foto: "O resultado e a cliente." }
-      ],
-      legenda: "Esse trabalho tem história 💛\n\nA [nome da cliente] me pediu [o que a cliente queria]. O desafio foi [o que tornou especial]. Quando ela viu o resultado, [como ela reagiu].\n\nTem uma história para eu fazer parte? Me chama no WhatsApp ou no direct.\n\n#historiasreais #[serviço]"
-    },
-    reel: {
-      nome: "Esse trabalho tem história",
-      duracao: "20 segundos",
-      abertura: "O resultado final, em silêncio. Texto na tela: \"Esse trabalho tem história\".",
-      cenas: [
-        { filmar: "A referência ou o antes.", texto: "Ela queria [o que a cliente queria]" },
-        { filmar: "Um momento do processo.", texto: "O desafio: [o que tornou especial]" },
-        { filmar: "A reação da cliente (com autorização) ou o resultado.", texto: "E ela [como ela reagiu] 🥹" }
-      ],
-      legenda: "Tem trabalho que vira lembrança 💛",
-      chamadaFinal: "Texto na tela: \"Qual é a sua história?\".",
-      semAparecer: "Conte a história só em texto na tela, sobre fotos e vídeos do trabalho."
-    }
-  }
+  { id: "r-ritual", carrossel: "ritual", nivel: 3, nome: "Meu ritual de fim de ano", duracao: "15 segundos",
+    ideia: "Três dias, três cuidados. A cliente se organiza e já reserva os horários.",
+    preparar: "Imagens rápidas de unha, cabelo e make (do estúdio ou de clientes).",
+    abertura: { filmar: "Um calendário de papel ou do celular, com o dedo no dia 29.", fala: "Teu ritual de fim de ano, sem correria:" },
+    cenas: [
+      { filmar: "Unhas sendo feitas.", texto: "Dia 29: unhas e sobrancelha" },
+      { filmar: "Hidratação no cabelo, com as mãos.", texto: "Dia 30: hidratação" },
+      { filmar: "Make e penteado prontos.", texto: "Dia 31: make e penteado" }
+    ],
+    final: { filmar: "Duas taças brindando.", texto: "Meia-noite: só brindar 🥂" },
+    semAparecer: "Este roteiro já é feito com mãos e detalhes. Ninguém precisa aparecer de rosto.",
+    legenda: "Teu ritual de fim de ano, sem correria 🥂\n\nDia 29: unhas e sobrancelha. Dia 30: hidratação no cabelo. Dia 31: make e penteado. Meia-noite: só brindar.\n\nMe conta o que você quer que eu organizo os horários. Chama no WhatsApp.\n\n#reveillon #ritual" },
+
+  { id: "r-obrigada-ano", carrossel: "obrigada-ano", nivel: 3, nome: "Obrigada por este ano", duracao: "15 a 20 segundos",
+    ideia: "Uma retrospectiva rápida dos trabalhos do ano, com agradecimento e agenda nova.",
+    preparar: "8 a 12 fotos ou vídeos curtos de trabalhos do ano (com autorização das clientes).",
+    abertura: { filmar: "Você (ou suas mãos) segurando um cartão escrito “2026”.", fala: "Obrigada por este ano." },
+    cenas: [
+      { filmar: "Sequência rápida de trabalhos, meio segundo cada.", texto: "Noivas" },
+      { filmar: "Mais trabalhos, no mesmo ritmo.", texto: "Formandas" },
+      { filmar: "Mais trabalhos, no mesmo ritmo.", texto: "Muita festa de família" }
+    ],
+    final: { filmar: "O cartão virando: do outro lado está escrito “2027”.", texto: "Agenda de 2027 aberta" },
+    semAparecer: "Abra com o cartão na mão (só a mão aparece) e siga só com os trabalhos.",
+    legenda: "Obrigada por me deixar fazer parte dos seus dias especiais 🤍\n\nNoivas, formandas, aniversariantes e muita festa de família em 2026.\n\nA agenda de 2027 já está aberta. Me chama no WhatsApp pra garantir a sua data.\n\n#obrigada #retrospectiva" }
 ];
 
-/* =====================================================================
-   PLANO NATAL + VIRADA: minicampanha de Réveillon
-   ===================================================================== */
-campanha.reveillon = {
-  nome: "Virada com [nome do negócio]",
-  temas: [
-    {
-      id: "producao-para-a-virada",
-      nome: "Produção para a virada",
-      ideia: "Três propostas para o Réveillon, do discreto ao brilho total.",
-      fotografar: "3 trabalhos com clima de festa (brilho, branco, dourado), cada um sozinho.",
-      carrossel: {
-        nome: "3 produções para a virada",
-        telas: [
-          { titulo: "3 produções para a virada", apoio: "Do discreto ao brilho total →", foto: "Um trabalho com brilho, de perto." },
-          { titulo: "[serviço 1]", preco: "R$ [preço]", apoio: "Para virar na praia", foto: "Trabalho 1." },
-          { titulo: "[serviço 2]", preco: "R$ [preço]", apoio: "Para a ceia em família", foto: "Trabalho 2." },
-          { titulo: "[serviço 3]", preco: "R$ [preço]", apoio: "Para a festa da virada", foto: "Trabalho 3." }
-        ],
-        legenda: "Como você quer começar o ano novo? 🥂\n\n• [serviço 1], para virar na praia\n• [serviço 2], para a ceia em família\n• [serviço 3], para a festa da virada\n\nAs datas de fim de ano são poucas. Me chama no WhatsApp ou no direct.\n\n#reveillon #[serviço]"
-      },
-      reel: {
-        nome: "Escolha a sua produção da virada",
-        duracao: "15 segundos",
-        abertura: "Brilho ou confete na frente da câmera. Texto na tela: \"Produção para a virada\".",
-        cenas: [
-          { filmar: "Close no trabalho 1.", texto: "Praia: [serviço 1]" },
-          { filmar: "Close no trabalho 2.", texto: "Família: [serviço 2]" },
-          { filmar: "Close no trabalho 3, com bastante brilho.", texto: "Festa: [serviço 3]" }
-        ],
-        legenda: "Praia, família ou festa? Escolha a sua produção da virada 🥂",
-        chamadaFinal: "Texto na tela: \"Me chama no WhatsApp\".",
-        semAparecer: "Grave só os trabalhos e as suas mãos, com cortes secos."
-      },
-      stories: {
-        nome: "Como vai ser a sua virada?",
-        telas: [
-          { mostrar: "Os 3 trabalhos juntos.", texto: "Como vai ser a sua virada?", recurso: "Enquete: Praia / Família / Festa" },
-          { mostrar: "O trabalho mais votado.", texto: "Esse sai por R$ [preço].", recurso: "Nenhum" },
-          { mostrar: "Seu material com brilho.", texto: "Quer esse para a virada?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    },
-    {
-      id: "ritual-de-fim-de-ano",
-      nome: "Ritual de fim de ano",
-      ideia: "Um momento de cuidado antes do ano novo, para fechar o ano bem consigo mesma.",
-      fotografar: "Seu espaço com clima acolhedor (luz baixa, vela, café) e um trabalho tranquilo.",
-      carrossel: {
-        nome: "Feche o ano cuidando de você",
-        telas: [
-          { titulo: "Feche o ano cuidando de você", apoio: "Um ritual antes da virada →", foto: "Seu espaço acolhedor." },
-          { titulo: "Desacelere", preco: "", apoio: "[momento 1 do atendimento]", foto: "Detalhe tranquilo." },
-          { titulo: "Se cuide", preco: "", apoio: "[momento 2 do atendimento]", foto: "Suas mãos trabalhando." },
-          { titulo: "Comece o ano renovada", preco: "R$ [preço]", apoio: "[serviço] · [duração]", foto: "O resultado." }
-        ],
-        legenda: "Antes de pensar no ano novo, pense em você 🤍\n\nPreparei um [serviço] especial para fechar o ano: [momento 1], [momento 2] e você saindo renovada.\n\nR$ [preço], em [duração]. Me chama no WhatsApp ou no direct.\n\n#autocuidado #reveillon"
-      },
-      reel: {
-        nome: "Um respiro antes da virada",
-        duracao: "15 segundos",
-        abertura: "Uma vela sendo acesa no seu espaço. Texto na tela: \"Um respiro antes da virada\".",
-        cenas: [
-          { filmar: "Detalhes tranquilos do atendimento.", texto: "Desacelere" },
-          { filmar: "Suas mãos trabalhando com calma.", texto: "Se cuide" },
-          { filmar: "O resultado, com luz suave.", texto: "Comece o ano renovada" }
-        ],
-        legenda: "Um respiro antes do ano novo 🤍 Vem viver esse ritual.",
-        chamadaFinal: "Texto na tela: \"Me chama no WhatsApp\".",
-        semAparecer: "O roteiro já é feito com detalhes, mãos e o espaço."
-      },
-      stories: {
-        nome: "Como você quer fechar o ano?",
-        telas: [
-          { mostrar: "Seu espaço acolhedor.", texto: "Como você quer fechar o ano?", recurso: "Enquete: Correndo / Me cuidando" },
-          { mostrar: "Um detalhe do atendimento.", texto: "Preparei um ritual de fim de ano: R$ [preço].", recurso: "Nenhum" },
-          { mostrar: "O resultado.", texto: "Quer o seu?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    },
-    {
-      id: "obrigada-por-este-ano",
-      nome: "Obrigada por este ano",
-      ideia: "Agradecer às clientes fecha o ano com carinho e lembra quem ainda não voltou.",
-      fotografar: "Fotos de trabalhos do ano e uma foto sua (ou do espaço) para o agradecimento.",
-      carrossel: {
-        nome: "Obrigada por este ano",
-        telas: [
-          { titulo: "Obrigada por este ano", apoio: "Uma retrospectiva com vocês →", foto: "Você ou seu espaço." },
-          { titulo: "[número] clientes", preco: "", apoio: "atendidas com carinho", foto: "Um trabalho do ano." },
-          { titulo: "[momento marcante]", preco: "", apoio: "[por que foi especial]", foto: "O trabalho desse momento." },
-          { titulo: "Que venha [ano]", preco: "", apoio: "[novidade ou desejo para o ano]", foto: "Seu espaço ou material." }
-        ],
-        legenda: "Obrigada por este ano 🤍\n\nForam [número] clientes, muitas histórias e [momento marcante]. Cada uma de vocês fez parte disso.\n\nQue venha [ano], com [novidade ou desejo]. Feliz ano novo!\n\n#retrospectiva #gratidao"
-      },
-      reel: {
-        nome: "Meu ano em 15 segundos",
-        duracao: "15 segundos",
-        abertura: "Texto na tela: \"Meu ano em 15 segundos\" sobre uma foto sua.",
-        cenas: [
-          { filmar: "Sequência rápida de fotos de trabalhos do ano.", texto: "[número] clientes" },
-          { filmar: "O trabalho do momento marcante.", texto: "[momento marcante]" },
-          { filmar: "Você acenando ou seu espaço arrumado.", texto: "Obrigada! Que venha [ano] 🥂" }
-        ],
-        legenda: "Meu ano em 15 segundos. Obrigada por cada atendimento 🤍",
-        chamadaFinal: "Texto na tela: \"Nos vemos em [ano]\".",
-        semAparecer: "Use só as fotos dos trabalhos e termine com uma tela de texto."
-      },
-      stories: {
-        nome: "Obrigada por este ano",
-        telas: [
-          { mostrar: "Uma foto sua ou do espaço.", texto: "Obrigada por este ano 🤍", recurso: "Nenhum" },
-          { mostrar: "Um trabalho marcante.", texto: "Qual foi o seu momento favorito comigo?", recurso: "Caixa de perguntas" },
-          { mostrar: "Seu material arrumado.", texto: "Já quer garantir o primeiro horário de [ano]?", recurso: "Link ou botão: \"Falar no WhatsApp\"" }
-        ]
-      }
-    }
+/* ---------------- Stories ---------------- */
+const enquete = (pergunta, a, b) => ({ tipo: "Enquete", pergunta, respostas: [a, b] });
+const link = texto => ({ tipo: "Link", texto });
+const caixinha = pergunta => ({ tipo: "Caixa de perguntas", pergunta });
+const N = (foto, adesivo) => ({ foto, ...(adesivo ? { adesivo } : {}) });
+const LINK_WA = link("Adesivo Link com o seu WhatsApp (wa.me/55…).");
+
+const stories = [
+  { id: "s-pronta-ceia", carrossel: "pronta-ceia", nivel: 1, nome: "Pronta para a ceia?", ideia: "Pergunta, antes e depois de uma cliente e os horários livres.",
+    telas: [
+      { ...T("st-abre", { titulo: "Pronta para a *ceia*?", apoio: "Sem correr no dia 24." }, [P.glow]), nota: N("Uma cliente pronta, de perto.") },
+      { ...T("st-antes", { titulo: "Do rosto lavado à *make de ceia*", rot1: "Antes", rot2: "Depois" }, [P.servico, P.glow]), nota: N("Em cima: a cliente antes. Embaixo: a mesma cliente pronta.") },
+      { ...T("st-acao", { titulo: "Ainda tenho *horários*", texto: "Dias 23 e 24/12, no estúdio ou na sua casa.", botao: "Reservar meu horário", dica: "Toque no link ↓" }, [P.makeLeve]), nota: N("Um detalhe do seu trabalho.", LINK_WA) }
+    ] },
+  { id: "s-tres-estilos", carrossel: "tres-estilos", nivel: 1, nome: "Qual é a sua festa?", ideia: "Enquete de festa, o estilo indicado e a caixinha para a cliente contar a dela.",
+    telas: [
+      { ...T("st-enquete", { pergunta: "Qual é a *sua* festa?", op1: "Almoço da firma", op2: "Jantar de Natal", dica: "Vota na enquete ↓" }, [P.makeLeve, P.glow]), nota: N("Esquerda: uma make leve. Direita: uma make com brilho.", enquete("Qual é a sua festa?", "Almoço da firma", "Jantar de Natal")) },
+      { ...T("st-foto", { titulo: "Jantar pede *glow dourado*", texto: "Pele iluminada que aguenta a noite toda.", preco: "R$ 160" }, [P.glow]), nota: N("A make com brilho, de perto.") },
+      { ...T("st-caixa", { titulo: "Me conta *a sua festa*", apoio: "Eu indico o estilo e passo os horários.", dica: "Escreve aqui ↓" }, [P.penteado]), nota: N("Um penteado ou outro trabalho.", caixinha("Qual festa você tem?")) }
+    ] },
+  { id: "s-unhas", carrossel: "unhas", nivel: 1, nome: "Qual vai ser a unha de festa?", ideia: "Enquete de cor, o gel que dura e o pedido de horário.",
+    telas: [
+      { ...T("st-enquete", { pergunta: "Qual vai ser a *unha de festa*?", op1: "Vermelho clássico", op2: "Nude com glitter", dica: "Vota na enquete ↓" }, [P.esmaltes, P.esmaltes], { aj: [close(2, 0.33, 0.6), close(2, 0.5, 0.6)] }), nota: N("Uma unha vermelha e uma nude com glitter (ou os vidros).", enquete("Qual vai ser a unha de festa?", "Vermelho clássico", "Nude com glitter")) },
+      { ...T("st-foto", { titulo: "Esmaltação em *gel*", texto: "Aguenta a ceia, a louça e a virada.", preco: "R$ 55" }, [P.esmaltes]), nota: N("Mãos prontas, de perto.") },
+      { ...T("st-acao", { titulo: "Dezembro *lota* rápido", texto: "Escolhe o dia que eu confirmo.", botao: "Garantir meu horário", dica: "Toque no link ↓" }, [P.esmaltes], { aj: [close(1.6, 0.5, 0.6)] }), nota: N("Os vidros de esmalte ou a sua bancada.", LINK_WA) }
+    ] },
+  { id: "s-doce-ceia", carrossel: "doce-ceia", nivel: 1, nome: "Quem leva a sobremesa?", ideia: "Pergunta com o bolo, tamanhos e preços, e a encomenda.",
+    telas: [
+      { ...T("st-abre", { titulo: "Quem vai levar *a sobremesa*?", apoio: "Se for você, eu ajudo." }, [P.bolo]), nota: N("O bolo inteiro, com luz de janela.") },
+      { ...T("st-lista", { titulo: "*Tamanhos*", item1: "Mini · serve 6 · R$ 95", item2: "Médio · serve 12 · R$ 160", item3: "Grande · serve 20 · R$ 240", apoio: "Pedidos até 20/12." }), nota: N("Esta tela não usa foto. Confira tamanhos, preços e prazo.") },
+      { ...T("st-acao", { titulo: "Garanta o seu *bolo de Natal*", texto: "Retirada em 23 e 24/12.", botao: "Encomendar", dica: "Toque no link ↓" }, [P.bolo], { aj: [close(2, 0.5, 0.45)] }), nota: N("O recheio de perto.", LINK_WA) }
+    ] },
+  { id: "s-mesa-posta", carrossel: "mesa-posta", nivel: 1, nome: "Sua mesa de Natal é…", ideia: "Enquete de estilo, uma dica de decoração e o orçamento.",
+    telas: [
+      { ...T("st-enquete", { pergunta: "Sua mesa de Natal é…", op1: "Clássica", op2: "Moderna", dica: "Vota na enquete ↓" }, [P.flores, P.luzes]), nota: N("Duas mesas ou dois arranjos com estilos diferentes.", enquete("Sua mesa de Natal é…", "Clássica", "Moderna")) },
+      { ...T("st-foto", { titulo: "O segredo é o *centro baixo*", texto: "Flores e velas na altura certa: ninguém perde a conversa." }, [P.luzes]), nota: N("O centro de uma mesa que você montou.") },
+      { ...T("st-acao", { titulo: "Quer a mesa *pronta* no dia 24?", texto: "Monto no dia e retiro no dia seguinte.", botao: "Pedir orçamento", dica: "Toque no link ↓" }, [P.flores]), nota: N("Um detalhe da decoração.", LINK_WA) }
+    ] },
+  { id: "s-producao-virada", carrossel: "producao-virada", nivel: 3, nome: "Já sabe como vai virar?", ideia: "Pergunta, a produção completa e a agenda do dia 31.",
+    telas: [
+      { ...T("st-texto", { titulo: "Já sabe *como vai virar*?", apoio: "Make e penteado no mesmo horário →" }), nota: N("Esta tela não usa foto.") },
+      { ...T("st-foto", { titulo: "Produção *completa*", texto: "Make glow + penteado, com fixação para calor e praia.", preco: "R$ 260" }, [P.glow]), nota: N("Um trabalho com brilho, de perto.") },
+      { ...T("st-acao", { titulo: "Agenda do *dia 31*", texto: "Das 9h às 18h. Restam poucos horários.", botao: "Quero meu horário", dica: "Toque no link ↓" }, [P.penteado]), nota: N("Um penteado de festa.", LINK_WA) }
+    ] },
+  { id: "s-ritual", carrossel: "ritual", nivel: 3, nome: "Você se arruma com calma?", ideia: "Enquete, o ritual dia a dia e a caixinha para montar o da cliente.",
+    telas: [
+      { ...T("st-enquete", { pergunta: "Você se arruma pra virada…", op1: "Com calma", op2: "Na correria", dica: "Vota na enquete ↓" }, [P.esmaltes, P.makeLeve]), nota: N("Duas fotos do seu trabalho.", enquete("Você se arruma pra virada…", "Com calma", "Na correria")) },
+      { ...T("st-lista", { titulo: "Seu *ritual*", item1: "Dia 29: unhas e sobrancelha", item2: "Dia 30: hidratação no cabelo", item3: "Dia 31: make e penteado", apoio: "Meia-noite: só brindar." }), nota: N("Esta tela não usa foto. Ajuste aos seus serviços.") },
+      { ...T("st-caixa", { titulo: "O que *falta* no seu ritual?", apoio: "Me conta que eu organizo os horários.", dica: "Responde aqui ↓" }, [P.makeLeve]), nota: N("Um detalhe do seu trabalho.", caixinha("O que falta no seu ritual?")) }
+    ] },
+  { id: "s-obrigada-ano", carrossel: "obrigada-ano", nivel: 3, nome: "Obrigada por este ano", ideia: "Agradecimento, os trabalhos do ano e a agenda nova.",
+    telas: [
+      { ...T("st-abre", { titulo: "Obrigada por *este ano*", apoio: "Cada cliente, uma festa." }, [P.glow]), nota: N("Seu trabalho favorito do ano.") },
+      { ...T("st-foto", { titulo: "Produções de *2026*", texto: "Noivas, formandas e muita festa de família." }, [P.penteado]), nota: N("Outro trabalho marcante do ano.") },
+      { ...T("st-acao", { titulo: "Agenda de *2027* aberta", texto: "Já estou marcando noivas e formaturas.", botao: "Garantir minha data", dica: "Toque no link ↓" }, [P.servico]), nota: N("Você trabalhando, ou o seu material.", LINK_WA) }
+    ] }
+];
+
+/* ---------------- calendários ---------------- */
+const C = (ref, preparar) => ({ f: "carrossel", ref, preparar });
+const R = (ref, preparar) => ({ f: "reel", ref, preparar });
+const S = (ref, preparar) => ({ f: "stories", ref, preparar });
+const W = (ref, preparar) => ({ f: "whatsapp", ref, preparar });
+const d = (dia, ...itens) => ({ dia, itens });
+
+const calendario = {
+  dica: "Publique o feed entre 11h e 13h ou entre 18h e 20h. Stories podem sair ao longo do dia. A mensagem “Resposta a quem pergunta o preço” serve para qualquer dia. Use os carrosséis do seu serviço: maquiagem, unhas, doces ou decoração.",
+  dez: [
+    d(1, C("pronta-ceia", "Fotos de uma make de festa: o rosto pronto e a pele de perto."), S("s-pronta-ceia", "Uma foto de antes e uma de depois da mesma cliente.")),
+    d(2, R("r-pronta-ceia", "Uma cliente com autorização para filmar e o celular apoiado.")),
+    d(3, C("tres-estilos", "Fotos de 3 trabalhos com estilos diferentes."), S("s-tres-estilos", "As mesmas fotos do carrossel.")),
+    d(4, R("r-tres-estilos", "Os 3 trabalhos em vídeo curto ou foto."), W("w-vale", "Envie para 10 clientes que já atendeu.")),
+    d(5, C("unhas", "Foto das unhas antes e depois e das cores da temporada.")),
+    d(6, R("r-unhas", "As mãos da cliente antes e depois."), S("s-unhas", "Fotos das unhas prontas.")),
+    d(7, C("doce-ceia", "O bolo inteiro, o recheio de perto e os tamanhos."), S("s-doce-ceia", "Confira tamanhos, preços e prazo.")),
+    d(8, R("r-doce-ceia", "Um bolo pronto e a câmera lenta ligada.")),
+    d(9, C("mesa-posta", "Fotos de uma mesa montada por você."), S("s-mesa-posta", "Duas mesas ou arranjos diferentes."), W("w-datas", "Envie para quem perguntou e não marcou.")),
+    d(10, R("r-mesa-posta", "A mesa vazia e tudo o que vai nela."))
+  ],
+  expressa: [
+    d(1, C("pronta-ceia", "Fotos de uma make de festa."), S("s-pronta-ceia", "Antes e depois da mesma cliente.")),
+    d(2, R("r-pronta-ceia", "Uma cliente com autorização para filmar."), W("w-vale", "Envie para clientes que já atendeu.")),
+    d(3, C("tres-estilos", "Fotos de 3 trabalhos diferentes."), S("s-tres-estilos", "As mesmas fotos."), W("w-datas", "Envie para quem perguntou e não marcou."))
+  ],
+  quinze: [
+    d(1, C("pronta-ceia", "Fotos de uma make de festa: o rosto pronto e a pele de perto."), S("s-pronta-ceia", "Antes e depois da mesma cliente.")),
+    d(2, R("r-pronta-ceia", "Uma cliente com autorização para filmar.")),
+    d(3, C("tres-estilos", "Fotos de 3 trabalhos com estilos diferentes."), S("s-tres-estilos", "As mesmas fotos do carrossel.")),
+    d(4, R("r-tres-estilos", "Os 3 trabalhos em vídeo curto ou foto."), W("w-vale", "Envie para 10 clientes que já atendeu.")),
+    d(5, C("dura", "Duas fotos que mostrem a pele preparada e a make pronta.")),
+    d(6, R("r-dura", "A mesma cliente no começo e no fim da festa.")),
+    d(7, C("unhas", "Unhas antes e depois e as cores da temporada."), S("s-unhas", "Fotos das unhas prontas.")),
+    d(8, R("r-unhas", "As mãos da cliente antes e depois.")),
+    d(9, C("detalhe", "Uma frase de cliente e fotos do vestido e da make.")),
+    d(10, R("r-detalhe", "Um print do look (com autorização) e o resultado.")),
+    d(11, C("doce-ceia", "O bolo inteiro, o recheio e os tamanhos."), S("s-doce-ceia", "Confira tamanhos, preços e prazo.")),
+    d(12, R("r-doce-ceia", "Um bolo pronto e a câmera lenta ligada.")),
+    d(13, C("imprevisto", "Fotos de um atendimento com imprevisto: antes, solução e resultado."), R("r-imprevisto", "As mesmas imagens. Publique à noite.")),
+    d(14, C("mesa-posta", "Fotos de uma mesa montada por você."), S("s-mesa-posta", "Duas mesas ou arranjos."), W("w-datas", "Envie para quem perguntou e não marcou.")),
+    d(15, R("r-mesa-posta", "A mesa vazia e tudo o que vai nela."))
+  ],
+  reveillon: [
+    d(1, C("producao-virada", "Um trabalho com brilho e o preço da produção completa."), S("s-producao-virada", "Fotos de make e penteado de festa.")),
+    d(2, R("r-producao-virada", "Um trabalho com brilho e confete para a abertura.")),
+    d(3, C("ritual", "Seus horários de 29, 30 e 31/12."), S("s-ritual", "Ajuste o ritual aos seus serviços."), R("r-ritual", "Imagens de unha, cabelo e make. Publique à noite.")),
+    d(4, C("obrigada-ano", "3 trabalhos marcantes do ano e mais 4 para a grade."), S("s-obrigada-ano", "Seu trabalho favorito do ano.")),
+    d(5, R("r-obrigada-ano", "8 a 12 fotos ou vídeos do ano e um cartão com “2026” e “2027”."))
   ]
 };
 
-/* ---------- calendários (citam cada peça pelo nome) ---------- */
-const C = t => `Carrossel: ${t.carrossel.nome}`, R = t => `Reel: ${t.reel.nome}`, S = t => `Stories: ${t.stories.nome}`;
-const W = i => `WhatsApp: ${campanha.whatsapp[i].titulo}`;
-const [t1, t2, t3, t4, t5] = campanha.temas, [x1, x2, x3] = campanha.extras, [v1, v2, v3] = campanha.reveillon.temas;
-const dias = lista => lista.map((pecas, i) => ({ dia: i + 1, pecas }));
-campanha.calendario.dez = dias([[C(t1), S(t1)], [R(t1)], [C(t2), S(t2)], [R(t2), W(1)], [C(t3), S(t3)], [R(t3)], [C(t4), S(t4)], [R(t4)], [C(t5), S(t5), W(2)], [R(t5)]]);
-campanha.calendario.expressa = dias([[C(t1), S(t1)], [R(t1), W(1)], [C(t2), S(t2), W(2)]]);
-campanha.calendario.quinze = dias([[C(t1), S(t1)], [R(t1)], [C(x1)], [C(t2), S(t2)], [R(t2), W(1)], [R(x1)], [C(t3), S(t3)], [R(t3)], [C(x2)], [R(x2)], [C(t4), S(t4)], [R(t4)], [C(x3), R(x3)], [C(t5), S(t5), W(2)], [R(t5)]]);
-campanha.reveillon.calendario = dias([[C(v1), S(v1)], [R(v1)], [C(v2), S(v2)], [R(v2), C(v3)], [R(v3), S(v3)]]);
-
-export default campanha;
+export default {
+  id: "seu-toque-nas-festas",
+  nome: "Seu toque nas festas",
+  resumo: "Mostre como o seu serviço entra nas comemorações de fim de ano, com trabalhos reais, bastidores e chamadas para o WhatsApp.",
+  reels, stories, calendario,
+  whatsapp: [
+    { id: "w-preco", titulo: "Resposta a quem pergunta o preço", quando: "Quando alguém pergunta “quanto custa?”.",
+      texto: "Oi, [nome]! Tudo bem? 😊 O [serviço] sai por R$ [preço] e leva cerca de [duração]. Para as festas de fim de ano, tenho [dias disponíveis]. Quer que eu reserve um horário pra você?" },
+    { id: "w-vale", titulo: "Sugestão de vale-presente", quando: "Para clientes que você já atendeu. Envie uma por uma, não em grupo.",
+      texto: "Oi, [nome]! Aqui é a [seu nome] 🎁 Este ano estou com vale-presente de Natal: dá pra presentear a mãe, uma amiga ou quem você quiser com [serviço]. Quer que eu te mande os valores?" },
+    { id: "w-datas", titulo: "Aviso de últimas datas", quando: "Nos últimos dias antes do Natal.",
+      texto: "Oi, [nome]! Passando pra avisar: restam poucas datas antes do Natal ([datas]) 🎄 Se você tem festa chegando, me chama que eu vejo o melhor horário pra você." }
+  ],
+  tutorial: [
+    { titulo: "Siga o calendário", texto: "Abra o Calendário, veja o dia e toque em “Abrir”: o material certo abre na hora. Em “Preparar” está o que você precisa ter em mãos." },
+    { titulo: "Fotografe com luz de janela", texto: "Trabalho no centro, fundo limpo, celular na vertical. Peça autorização à cliente antes de mostrar o rosto dela." },
+    { titulo: "Troque foto, texto e preço", texto: "No editor, toque na tela, troque a foto pela sua e ajuste o zoom e a posição. Na aba Textos, mude preços e nomes. Na aba Marca, coloque o seu nome ou logo: vale para tudo." },
+    { titulo: "Baixe e publique", texto: "Carrosséis saem em 4 imagens de 1080 × 1350 e Stories em 3 imagens de 1080 × 1920, já numeradas. No iPhone, use “Compartilhar imagens” e “Salvar imagens”. No carrossel, cole a legenda com “Copiar legenda”." },
+    { titulo: "Stories com adesivo", texto: "Quando a tela pede enquete, link ou caixinha, a pergunta e as respostas estão ao lado, prontas para copiar. Coloque o adesivo no Instagram, no espaço livre com a seta." },
+    { titulo: "Grave o Reel pelo roteiro", texto: "“Para gravar” diz o que filmar em cada cena. “Para copiar” traz os textos da tela e a legenda. Não quer aparecer? Siga “Sem aparecer”: só mãos, trabalho ou texto na tela." }
+  ]
+};

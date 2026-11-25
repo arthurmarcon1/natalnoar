@@ -156,14 +156,14 @@ ok(/^#editar\/presentes-por-orcamento\/cores-virada$/.test(await page.evaluate((
 /* ===== área paga: Natal Completo, sem marca-d'água ===== */
 if (process.env.ADMIN_TOKEN) {
   const r = await (await fetch(URL + "api/liberar", { method: "POST", headers: { "x-admin-token": process.env.ADMIN_TOKEN, "content-type": "application/json" }, body: JSON.stringify({ campanha: "presentes-por-orcamento", plano: "natal-completo", dias: 2 }) })).json();
-  await page.goto(URL + "#acesso=" + r.link.split("#acesso=")[1]); await pronto("#estudio-kit");
+  await page.goto(URL + "#acesso=" + r.link.split("#acesso=")[1]); await page.waitForSelector(".area-abas"); await page.goto(URL + "#area/carrosseis"); await pronto("#estudio-kit");
   ok(await page.locator("#estudio-kit [data-es-carr] option").count() === 8, "área Natal Completo: 8 carrosséis no editor");
   await page.locator("#estudio-kit [data-es-aba=\"fotos\"]").click(); await page.locator('#estudio-kit [data-es-ir="1"]').click();
   await page.locator('#estudio-kit [data-es-arquivo="0"]').first().setInputFiles(jpeg("10-camisa.jpg")); await w(800);
   ok((await page.evaluate(() => document.getElementById("estudio-kit").dataset.marcas)) === "limpa,limpa,limpa,limpa", "kit pago: foto própria sem AMOSTRA");
-  ok(await page.locator("#pagos-do-tema summary").first().innerText().then(t => /Roteiro de Reel/.test(t)), "área: roteiro de Reel do tema ao lado do carrossel");
+  ok(/Reel ·/.test(await page.locator("#do-tema").innerText()), "área: atalho para o Reel do mesmo tema ao lado do carrossel");
   await page.locator("#estudio-kit [data-es-carr]").selectOption("equipe"); await pronto("#estudio-kit");
-  ok(/Escolhas da equipe|equipe/i.test(await page.locator("#pagos-do-tema").innerText()), "trocar de carrossel troca o Reel e os Stories do tema");
+  ok(/O que a equipe daria/.test(await page.locator("#do-tema").innerText()), "trocar de carrossel troca o atalho do tema");
   await exportar("kit", "#estudio-kit");
 }
 ok(errs.length === 0, `sem erros de JS ${errs.join(" | ")}`);

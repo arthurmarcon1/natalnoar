@@ -2,12 +2,12 @@ import { SITE } from "../config.js";
 import { DEMOS } from "../amostra/index.js";
 import {
   fmtBRL, temasDoPublico, publicoPorId, temaPorId, estadoCompra, linkContato,
-  planoPorId, planoPadrao, pecasDoPlano, entregasDoPlano
+  planoPorId, planoPadrao, pecasDoPlano, entregasDoPlano, calendariosDoConteudo
 } from "./logic.js";
 import { montarEstudio } from "./estudio-editor.js";
 import { montarCarrossel, montarFormatos } from "./demo.js";
 import { CATALOGO, GRUPOS, COLECOES, carrosseisDoNivel, estiloOriginal, marcaExemplo } from "../catalogo/index.js";
-import { miniatura } from "./render.js";
+import { miniatura, desenharExemplo } from "./render.js";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -122,14 +122,24 @@ function verTudo(demo, plano, { trechos = false, tema = null } = {}) {
         <div><span class="kt-num">${plano.carrosseis}</span><span>carrosséis + ${plano.roteiros} roteiros de Reels no ${esc(plano.nome)}</span></div>
         <b>${tema ? `por ${fmtBRL(plano.preco)}` : aPartirMin}</b>
       </div>
-      ${trechos ? `<h3 class="trechos-t">Um pedaço do conteúdo</h3><div class="trechos">
-        <article class="trecho"><span class="eyebrow">Legenda</span><p>${multi(t.legenda)}</p></article>
-        <article class="trecho"><span class="eyebrow">Roteiro de Reel</span><p><b>Abertura:</b> ${marc(t.roteiro.abertura)}</p><p><b>Cena 1:</b> ${marc(t.roteiro.cena)}</p><p class="hint">${esc(t.roteiro.resto)}</p></article>
-        <article class="trecho"><span class="eyebrow">Calendário</span><ul>${t.calendario.map(d => `<li><b>Dia ${d.dia}</b> ${marc(d.peca)}</li>`).join("")}</ul><p class="hint">${esc(t.calendarioResto)}</p></article>
+      ${trechos ? `<h3 class="trechos-t">Tirado do kit</h3><div class="trechos">
+        <article class="trecho"><span class="eyebrow">Roteiro de Reel · ${esc(t.reel.duracao)}</span><b class="tr-nome">${marc(t.reel.nome)}</b>
+          <p><b>Abertura.</b> Grave: ${marc(t.reel.abertura.filmar)}<br><span class="tr-fala">Fale: “${marc(t.reel.abertura.fala)}”</span></p>
+          <p><b>Cena 1.</b> Grave: ${marc(t.reel.cena.filmar)}<br><span class="tr-fala">Texto na tela: “${marc(t.reel.cena.texto)}”</span></p><p class="hint">${esc(t.reel.resto)}</p></article>
+        <article class="trecho tr-story"><span class="eyebrow">Stories · tela ${t.story.tela} de 3</span><b class="tr-nome">${marc(t.story.nome)}</b>
+          <canvas data-trecho-story width="1080" height="1920" role="img" aria-label="Tela de Stories do kit: ${esc(t.story.c.pergunta.replace(/\*/g, ""))}"></canvas><p class="hint">${esc(t.story.adesivo)}. Você coloca o adesivo no Instagram.</p></article>
+        <article class="trecho"><span class="eyebrow">Calendário · primeiros dias</span><ul>${t.calendario.map(d => `<li><b>Dia ${d.dia}</b> ${d.pecas.map(marc).join("<br>")}</li>`).join("")}</ul><p class="hint">${esc(t.calendarioResto)}</p>
+          <span class="eyebrow">Legenda</span><p>${multi(t.legenda)}</p></article>
       </div>` : ""}
       <ol class="passos"><li><b>Escolha o plano</b><span>Compra única, ${aPartirMin}.</span></li><li><b>Receba o link de acesso</b><span>A campanha fica na sua área.</span></li><li><b>Troque fotos, preços e a marca</b><span>No celular, direto no site.</span></li><li><b>Baixe e publique</b><span>Seguindo o calendário.</span></li></ol>
       ${tema ? botaoComprar(tema, plano, "block kit-comprar") : `<a class="btn grande block kit-comprar" href="#campanhas">Escolher minha campanha</a>`}
     </div></details>`;
+}
+/* desenha a tela de Stories tirada do kit (vitrine da campanha) */
+function desenharTrechoStory(campId) {
+  const cv = document.querySelector("[data-trecho-story]"), demo = DEMOS[campId]; if (!cv || !demo) return;
+  const st = demo.trechos.story;
+  desenharExemplo(cv, { ...st, estilo: estiloOriginal(campId, { nivel: 1 }) }, { marca: marcaExemplo(campId, null) });
 }
 const conviteGestao = () => `<p class="convite">Quer alguém cuidando do seu Instagram o ano todo? <a href="#gestao">Gestão mensal</a></p>`;
 
@@ -268,6 +278,7 @@ function aplicarPlano(id, foco) {
   $("#pl-botao").innerHTML = botaoComprar(tema, p, "block");
   const kit = $("#kit"), aberto = kit && kit.open;
   if (kit) { kit.outerHTML = verTudo(demo, p, { trechos: true, tema }); if (aberto) $("#kit").open = true; }
+  desenharTrechoStory(tema && tema.id);
 }
 
 /* ---------- revisão do pedido (modo de testes) ---------- */
@@ -343,27 +354,79 @@ function montarGaleria(id) {
   montados.push({ destruir: () => io.disconnect() });
 }
 
-/* ---------- área da cliente ---------- */
+/* ---------- área da cliente ----------
+   Rotas: #area (calendário), #area/carrosseis[/<id>], #area/reels[/<id>], #area/stories[/<id>],
+          #area/calendario, #area/mensagens[/<id>]. O calendário abre cada material pelo atalho. */
 const TOKEN_K = "nna-acesso";
-/* conteúdo pago que acompanha o carrossel (Reel e Stories do mesmo tema, pela posição no plano) */
-function temaPagoDoCarrossel(c, campId, carrId) {
-  const x = CATALOGO[campId] && CATALOGO[campId].carrosseis.find(y => y.id === carrId); if (!x) return null;
-  const i = CATALOGO[campId].carrosseis.filter(y => y.nivel === x.nivel).indexOf(x);
-  return (x.nivel === 1 ? c.temas : x.nivel === 2 ? c.extras : c.reveillon && c.reveillon.temas || [])[i] || null;
+const ABAS_AREA = [["calendario", "Calendário"], ["carrosseis", "Carrosséis"], ["reels", "Reels"], ["stories", "Stories"]];
+const FMT = { carrossel: ["Carrossel", "carrosseis"], reel: ["Reel", "reels"], stories: ["Stories", "stories"], whatsapp: ["WhatsApp", "mensagens"] };
+const grupoDoNivel = n => (GRUPOS.find(([k]) => k === n) || [, ""])[1];
+/* nome exato de uma peça do kit (o calendário nunca guarda o nome, só a referência) */
+function pecaDoKit(c, f, ref) {
+  if (f === "carrossel") { const x = CATALOGO[c.id] && CATALOGO[c.id].carrosseis.find(y => y.id === ref); return x && { nome: x.nome, nivel: x.nivel }; }
+  const lista = f === "reel" ? c.reels : f === "stories" ? c.stories : c.whatsapp;
+  const x = lista.find(y => y.id === ref); return x && { nome: x.nome || x.titulo, nivel: x.nivel || 1 };
 }
-function detalhesPagos(t) {
-  if (!t) return "";
-  return `<details class="kit-det" open><summary>Roteiro de Reel · ${marc(t.reel.nome)}</summary><div class="kit-det-corpo">
-      <p class="aviso-reel">Roteiro para você gravar (${esc(t.reel.duracao)}). Não é um vídeo pronto.</p>
-      <dl class="roteiro">
-        <dt>Abertura</dt><dd>${marc(t.reel.abertura)}</dd>
-        <dt>Cenas</dt><dd><ol>${t.reel.cenas.map(s => `<li>${marc(s.filmar)}<br><span class="tt">Texto na tela: “${marc(s.texto)}”</span></li>`).join("")}</ol></dd>
-        <dt>Legenda</dt><dd>${marc(t.reel.legenda)}</dd><dt>Chamada final</dt><dd>${marc(t.reel.chamadaFinal)}</dd><dt>Sem aparecer</dt><dd>${marc(t.reel.semAparecer)}</dd>
-      </dl></div></details>
-    ${t.stories ? `<details class="kit-det"><summary>Stories · ${marc(t.stories.nome)}</summary><div class="kit-det-corpo">
-      <ol class="stories-txt">${t.stories.telas.map((s, i) => `<li><span class="n">Tela ${i + 1}</span><b>${marc(s.texto)}</b><span>Mostre: ${marc(s.mostrar)}</span><small>${marc(s.recurso)}</small></li>`).join("")}</ol></div></details>` : ""}`;
+const atalho = (f, ref) => `#area/${FMT[f][1]}/${ref}`;
+/* o Reel e os Stories que acompanham um carrossel */
+function pecasDoTema(c, carrId) {
+  const r = c.reels.find(x => x.carrossel === carrId), st = c.stories.find(x => x.carrossel === carrId);
+  return [r && `<a class="chip" href="${atalho("reel", r.id)}">Reel · ${esc(r.nome)}</a>`, st && `<a class="chip" href="${atalho("stories", st.id)}">Stories · ${esc(st.nome)}</a>`].filter(Boolean).join("");
 }
-function viewArea() {
+const copiar = (id, txt, rot = "Copiar", ok = "Texto copiado.") => `<div class="copiavel ${String(txt).length > 90 ? "longo" : ""}"><p id="${id}">${marc(txt).replace(/\n/g, "<br>")}</p><button type="button" class="btn ghost sm" data-copiar="${id}" data-ok="${esc(ok)}">${esc(rot)}</button></div>`;
+
+function viewReel(c, r) {
+  const carr = CATALOGO[c.id].carrosseis.find(x => x.id === r.carrossel);
+  return `<article class="reel" data-reel="${r.id}">
+    <header class="reel-cab"><p class="eyebrow">${esc(grupoDoNivel(r.nivel))} · ${esc(r.duracao)}</p><h2>${marc(r.nome)}</h2><p class="lede">${marc(r.ideia)}</p>
+      <p class="aviso-reel">Roteiro para você gravar no celular. Não é um vídeo pronto.</p></header>
+    <div class="reel-grade">
+      <section class="reel-sec gravar" aria-label="Para gravar"><h3>Para gravar</h3>
+        <p class="prep"><b>Separe antes:</b> ${marc(r.preparar)}</p>
+        <ol class="cenas">
+          <li><span class="n">Abertura</span>${marc(r.abertura.filmar)}</li>
+          ${r.cenas.map((x, i) => `<li><span class="n">Cena ${i + 1}</span>${marc(x.filmar)}</li>`).join("")}
+          <li><span class="n">Final</span>${marc(r.final.filmar)}</li>
+        </ol>
+        <div class="sem-aparecer"><b>Sem aparecer</b><p>${marc(r.semAparecer)}</p></div>
+      </section>
+      <section class="reel-sec copiar" aria-label="Para copiar"><h3>Para copiar</h3>
+        <p class="hint">Frase de abertura (fale ou escreva na tela):</p>${copiar(`${r.id}-ab`, r.abertura.fala)}
+        <p class="hint">Texto na tela, cena por cena:</p>
+        <ol class="textos">${r.cenas.map((x, i) => `<li>${copiar(`${r.id}-t${i}`, x.texto)}</li>`).join("")}</ol>
+        <p class="hint">Chamada final:</p>${copiar(`${r.id}-fim`, r.final.texto)}
+        <p class="hint">Legenda:</p>${copiar(`${r.id}-leg`, r.legenda, "Copiar legenda", "Legenda copiada.")}
+      </section>
+    </div>
+    ${carr ? `<p class="hint">Use as mesmas fotos e produtos do carrossel <a href="${atalho("carrossel", carr.id)}">${esc(carr.nome)}</a>.</p>` : ""}
+  </article>`;
+}
+function listaSelect(rot, attr, itens, atual) {
+  const grupos = [...new Set(itens.map(x => x.nivel))];
+  return `<label class="campo es-sel"><span>${esc(rot)}</span><select ${attr}>${grupos.map(n => `<optgroup label="${esc(grupoDoNivel(n))}">${itens.filter(x => x.nivel === n).map(x => `<option value="${x.id}" ${x.id === atual ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</optgroup>`).join("")}</select></label>`;
+}
+/* coluna ao lado das telas de Stories: onde entra a foto e o adesivo de cada tela */
+function notasStories(seq) {
+  return `<h3>Como publicar</h3><ol class="st-notas">${seq.telas.map((t, i) => {
+    const a = t.nota && t.nota.adesivo, id = `${seq.id}-n${i}`;
+    return `<li><span class="n">Tela ${i + 1}</span><p><b>Foto:</b> ${marc(t.nota ? t.nota.foto : "")}</p>${a ? `<div class="adesivo"><b>Adesivo: ${esc(a.tipo)}</b> <span class="hint">coloque no Instagram, no espaço com a seta</span>
+      ${a.pergunta ? copiar(`${id}-p`, a.pergunta, "Copiar pergunta") : ""}${a.respostas ? `<div class="resp">${a.respostas.map((x, k) => copiar(`${id}-r${k}`, x, `Copiar resposta ${k + 1}`)).join("")}</div>` : ""}${a.texto ? `<p class="hint">${marc(a.texto)}</p>` : ""}</div>` : ""}</li>`; }).join("")}</ol>
+    <p class="hint">Baixe as 3 telas, publique na ordem e acrescente os adesivos no próprio Instagram.</p>`;
+}
+function viewCalendario(c) {
+  const cals = calendariosDoConteudo(c);
+  if (!cals.some(([k]) => k === estado.cal)) estado.cal = cals[0][0];
+  return `<div class="chips" role="tablist" aria-label="Calendário">${cals.map(([k, nn]) => `<button type="button" role="tab" class="chip ${k === estado.cal ? "on" : ""}" data-cal="${k}" aria-selected="${k === estado.cal}">${nn}</button>`).join("")}</div>
+    ${cals.map(([k, , dias]) => `<ol class="cal" data-calv="${k}" ${k === estado.cal ? "" : "hidden"}>${dias.map(d => `<li><span class="dia">Dia ${d.dia}</span><ul>${d.itens.map(it => {
+      const p = pecaDoKit(c, it.f, it.ref) || { nome: it.ref };
+      return `<li class="cal-item"><span class="tipo t-${it.f}">${FMT[it.f][0]}</span><b class="cal-nome">${marc(p.nome)}</b><span class="prep">Preparar: ${marc(it.preparar)}</span><a class="btn sm ghost cal-abrir" href="${atalho(it.f, it.ref)}" data-atalho="${it.f}:${it.ref}">Abrir</a></li>`; }).join("")}</ul></li>`).join("")}</ol>`).join("")}
+    <p class="hint">${esc(c.calendario.dica)}</p>`;
+}
+function viewMensagens(c, alvo) {
+  return `<h2 class="sec-t">Mensagens de WhatsApp</h2><div class="msgs">${c.whatsapp.map(m => `<article class="msg ${m.id === alvo ? "alvo" : ""}" id="msg-${m.id}"><b>${esc(m.titulo)}</b><span class="hint">${esc(m.quando)}</span>${copiar(`wa-${m.id}`, m.texto, "Copiar mensagem", "Mensagem copiada.")}</article>`).join("")}</div>
+    <h2 class="sec-t">Tutorial</h2><ol class="passos">${c.tutorial.map(p => `<li><b>${esc(p.titulo)}</b><span>${marc(p.texto)}</span></li>`).join("")}</ol>`;
+}
+function viewArea(aba, item) {
   const a = estado.area;
   if (!guardado.get(TOKEN_K, "")) return `
     <section class="wrap topo-pag"><p class="eyebrow">Área da cliente</p><h1>Sua campanha fica aqui</h1>
@@ -372,29 +435,24 @@ function viewArea() {
   if (!a || a.carregando) return `<section class="wrap topo-pag"><p class="eyebrow">Área da cliente</p><h1>Abrindo sua campanha…</h1></section>`;
   if (a.erro) return `<section class="wrap topo-pag"><p class="eyebrow">Área da cliente</p><h1>Não foi possível abrir</h1><p class="lede">${esc(a.erro)}</p>
       <button type="button" class="btn ghost" data-sair>Remover acesso deste aparelho</button></section>`;
-  const c = a.campanha, plano = a.plano, n = carrosseisDoNivel(c.id, plano.nivel).length;
-  const cals = [["dez", "10 dias", c.calendario.dez], ["quinze", "15 dias", c.calendario.quinze], ["expressa", "Expressa: 3 dias", c.calendario.expressa], ["reveillon", "Réveillon: 5 dias", c.reveillon && c.reveillon.calendario]]
-    .filter(([k, , v]) => v && !(k === "dez" && c.calendario.quinze));
-  if (!cals.some(([k]) => k === estado.cal)) estado.cal = cals[0][0];
+  const c = a.campanha, plano = a.plano, carrs = carrosseisDoNivel(c.id, plano.nivel);
+  const k = ABAS_AREA.some(([x]) => x === aba) || aba === "mensagens" ? aba : "calendario";
+  let corpo = "";
+  if (k === "calendario") corpo = viewCalendario(c);
+  else if (k === "carrosseis") corpo = `<div id="estudio-kit"></div><div class="do-tema" id="do-tema"></div>`;
+  else if (k === "reels") { const r = c.reels.find(x => x.id === item) || c.reels[0]; corpo = `${listaSelect("Roteiro de Reel", "data-ir-reel", c.reels, r.id)}${viewReel(c, r)}`; }
+  else if (k === "stories") corpo = `<div id="estudio-stories"></div><div class="do-tema" id="do-tema"></div>`;
+  else corpo = viewMensagens(c, item);
+  const cals = calendariosDoConteudo(c).filter(([x]) => x !== "expressa").map(([, , d]) => d.length);
   return `
-  <section class="wrap topo-pag">
+  <section class="wrap topo-pag area-topo">
     <p class="eyebrow">Área da cliente · ${esc(plano.nome)} · acesso até ${new Date(a.acesso.expira).toLocaleDateString("pt-BR")}</p>
     <h1>${esc(c.nome)}</h1>
-    <p class="hint">${n} carrosséis, ${plano.roteiros} roteiros de Reels e ${plano.stories} sequências de Stories liberados. Tudo sai sem marca-d'água.</p>
+    <p class="hint" data-totais>${carrs.length} carrosséis · ${c.reels.length} roteiros de Reels · ${c.stories.length} sequências de Stories · calendário de ${cals.join(" + ")} dias (e a versão expressa de 3). Tudo sai sem marca-d'água.</p>
+    <nav class="area-abas" aria-label="Materiais do kit">${ABAS_AREA.map(([x, n]) => `<a href="#area/${x}" class="${x === k ? "on" : ""}" ${x === k ? 'aria-current="page"' : ""}>${n}</a>`).join("")}<a href="#area/mensagens" class="mais ${k === "mensagens" ? "on" : ""}">Mensagens e tutorial</a></nav>
   </section>
-  <section class="wrap bloco" aria-label="Carrosséis"><div id="estudio-kit"></div></section>
-  <section class="wrap bloco">
-    <div id="pagos-do-tema">${detalhesPagos(temaPagoDoCarrossel(c, c.id, estado.carrArea))}</div>
-    <details class="kit-det"><summary>3 mensagens de WhatsApp</summary><div class="kit-det-corpo">
-      <div class="msgs">${c.whatsapp.map((m, i) => `<article class="msg"><b>${esc(m.titulo)}</b><span class="hint">${esc(m.quando)}</span><p id="wa${i}">${marc(m.texto)}</p><button type="button" class="btn ghost sm" data-copiar="wa${i}">Copiar mensagem</button></article>`).join("")}</div></div></details>
-    <details class="kit-det"><summary>Calendário</summary><div class="kit-det-corpo">
-      <div class="chips" role="tablist" aria-label="Calendário">${cals.map(([k, nn]) => `<button type="button" role="tab" class="chip ${k === estado.cal ? "on" : ""}" data-cal="${k}" aria-selected="${k === estado.cal}">${nn}</button>`).join("")}</div>
-      ${cals.map(([k, , dias]) => `<ol class="cal" data-calv="${k}" ${k === estado.cal ? "" : "hidden"}>${dias.map(d => `<li><span class="dia">Dia ${d.dia}</span><ul>${d.pecas.map(p => { const [tipo, ...nome] = p.split(": "); return `<li><span class="tipo">${esc(tipo)}</span> ${marc(nome.join(": "))}</li>`; }).join("")}</ul></li>`).join("")}</ol>`).join("")}
-      <p class="hint">${esc(c.calendario.dica)}</p></div></details>
-    <details class="kit-det"><summary>Tutorial</summary><div class="kit-det-corpo">
-      <ol class="passos">${c.tutorial.map(p => `<li><b>${esc(p.titulo)}</b><span>${marc(p.texto)}</span></li>`).join("")}</ol></div></details>
-    <p><button type="button" class="link" data-sair>Remover acesso deste aparelho</button></p>
-  </section>`;
+  <section class="wrap bloco area-corpo" data-aba="${k}">${corpo}</section>
+  <section class="wrap bloco"><p><button type="button" class="link" data-sair>Remover acesso deste aparelho</button></p></section>`;
 }
 async function carregarArea() {
   const token = guardado.get(TOKEN_K, "");
@@ -407,11 +465,23 @@ async function carregarArea() {
   } catch { estado.area = { erro: "Sem conexão. Tente de novo em instantes." }; }
   if (rota().tela === "area") render(false);
 }
-function montarEstudioDaArea() {
+/* troca o item na URL sem remontar a tela (o editor já trocou sozinho) */
+function marcarItemArea(aba, id) { const h = `#area/${aba}/${id}`; if (location.hash !== h) { history.replaceState(null, "", h); telaAtual = "area" + aba + id; } }
+function montarArea(aba, item) {
   const c = estado.area.campanha, plano = estado.area.plano;
   if (!CATALOGO[c.id]) return;
-  montados.push(montarEstudio($("#estudio-kit"), { campanha: c.id, carrossel: estado.carrArea, modo: "kit", nivel: plano.nivel, toast,
-    aoTrocar: id => { estado.carrArea = id; const box = $("#pagos-do-tema"); if (box) box.innerHTML = detalhesPagos(temaPagoDoCarrossel(c, c.id, id)); } }));
+  const tema = $("#do-tema");
+  if (aba === "carrosseis") {
+    const ini = carrosseisDoNivel(c.id, plano.nivel).some(x => x.id === item) ? item : estado.carrArea;
+    montados.push(montarEstudio($("#estudio-kit"), { campanha: c.id, carrossel: ini, modo: "kit", nivel: plano.nivel, toast,
+      aoTrocar: id => { estado.carrArea = id; marcarItemArea("carrosseis", id); const h = pecasDoTema(c, id); tema.innerHTML = h ? `<p class="hint">Do mesmo tema:</p><div class="chips">${h}</div>` : ""; } }));
+  }
+  if (aba === "stories") {
+    montados.push(montarEstudio($("#estudio-stories"), { campanha: c.id, carrossel: item, modo: "kit", nivel: plano.nivel, toast, tipo: "stories", pecas: c.stories, lateral: notasStories,
+      aoTrocar: id => { marcarItemArea("stories", id); const st = c.stories.find(x => x.id === id), carr = st && CATALOGO[c.id].carrosseis.find(x => x.id === st.carrossel), r = st && c.reels.find(x => x.carrossel === st.carrossel);
+        tema.innerHTML = `<p class="hint">Do mesmo tema:</p><div class="chips">${carr ? `<a class="chip" href="${atalho("carrossel", carr.id)}">Carrossel · ${esc(carr.nome)}</a>` : ""}${r ? `<a class="chip" href="${atalho("reel", r.id)}">Reel · ${esc(r.nome)}</a>` : ""}</div>`; } }));
+  }
+  if (aba === "mensagens" && item) requestAnimationFrame(() => document.getElementById(`msg-${item}`)?.scrollIntoView({ block: "center" }));
 }
 
 /* ---------- rotas ---------- */
@@ -422,7 +492,7 @@ function rota() {
   if (h.startsWith("pedido/")) { const [id, plano] = h.slice(7).split("/"); return { tela: "pedido", id, plano: plano || planoPadrao(SITE).id }; }
   if (h.startsWith("editar/")) { const [, id, carr] = h.split("/"); return { tela: "editar", id, carr: carr || "" }; }
   if (h.startsWith("testar") || h === "experimentar") { const id = h.split("/")[1] || (campanhaDoPublico(estado.publico) || {}).id || "presentes-por-orcamento"; const c = CATALOGO[id]; return { tela: "editar", id: c ? id : "presentes-por-orcamento", carr: c ? c.previa : "" }; }
-  if (h === "area") return { tela: "area" };
+  if (h === "area" || h.startsWith("area/")) { const [, aba = "", item = ""] = h.split("/"); return { tela: "area", id: aba, carr: item }; }
   if (h === "galeria" || h.startsWith("galeria/")) return { tela: "galeria", id: h.split("/")[1] || "" };
   if (h === "demo") return { tela: "campanha", id: "presentes-por-orcamento" };
   if (["campanhas", "gestao", "dentro"].includes(h)) return { tela: "inicio", ancora: h };
@@ -437,7 +507,7 @@ function render(rolar = true) {
   const chave = r.tela + (r.id || "") + (r.plano || "") + (r.carr || ""), mesma = telaAtual === chave;
   if (!mesma || !rolar) {
     montados.forEach(m => m && m.destruir && m.destruir()); montados = [];
-    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "editar" ? viewEditar(r.id, r.carr) : r.tela === "area" ? viewArea() : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
+    app.innerHTML = r.tela === "campanha" ? viewCampanha(r.id) : r.tela === "pedido" ? viewPedido(r.id, r.plano) : r.tela === "editar" ? viewEditar(r.id, r.carr) : r.tela === "area" ? viewArea(r.id, r.carr) : r.tela === "galeria" ? viewGaleria(r.id) : viewInicio();
     if (r.tela === "galeria") montarGaleria(r.id);
     if (r.tela === "inicio") { montados.push(montarVitrinePop()); montarCapasCampanhas(); animou = true; } // a abertura acontece uma vez por visita
     vidaNosDetalhes();
@@ -449,13 +519,14 @@ function render(rolar = true) {
       estado.previa = { car, fmts, marcarPm };
       montados.push(car, fmts);
       preencherCapas(temaPorId(SITE, r.id));
+      desenharTrechoStory(r.id);
     }
     if (r.tela === "editar" && $("#estudio")) {
       const box = $("#estudio");
       montados.push(montarEstudio(box, { campanha: box.dataset.camp, carrossel: box.dataset.carr, modo: "teste", nivel: 3, toast,
         aoTrocar: id => { const h = `#editar/${box.dataset.camp}/${id}`; if (location.hash !== h) { history.replaceState(null, "", h); telaAtual = "editar" + box.dataset.camp + id; } } }));
     }
-    if (r.tela === "area" && estado.area && estado.area.campanha) montarEstudioDaArea();
+    if (r.tela === "area" && estado.area && estado.area.campanha) montarArea(r.id || "calendario", r.carr);
   }
   telaAtual = chave;
   document.querySelectorAll(".menu a").forEach(a => a.classList.toggle("on", (a.getAttribute("href") === "#campanhas" && (r.ancora === "campanhas" || r.tela === "campanha")) || (a.getAttribute("href") === "#gestao" && r.ancora === "gestao") || (a.getAttribute("href") === "#galeria" && (r.tela === "galeria" || r.tela === "editar"))));
@@ -501,7 +572,7 @@ document.addEventListener("click", e => {
     return;
   }
   const cp = e.target.closest("[data-copiar]");
-  if (cp) { navigator.clipboard.writeText(document.getElementById(cp.dataset.copiar).innerText).then(() => toast("Mensagem copiada."), () => toast("Selecione o texto e copie.")); return; }
+  if (cp) { navigator.clipboard.writeText(document.getElementById(cp.dataset.copiar).innerText).then(() => toast(cp.dataset.ok || "Texto copiado."), () => toast("Selecione o texto e copie.")); return; }
   if (e.target.closest("[data-sair]")) { guardado.set(TOKEN_K, null); estado.area = null; render(false); toast("Acesso removido deste aparelho."); return; }
   const a = e.target.closest('a[href^="#"]');
   if (a && a.getAttribute("href") === location.hash) { e.preventDefault(); render(); }
@@ -517,3 +588,8 @@ document.addEventListener("keydown", e => {
 addEventListener("hashchange", () => render());
 if (document.fonts) document.fonts.ready.then(() => document.documentElement.classList.add("fontes-ok"));
 render();
+/* área: escolher outro roteiro de Reel */
+document.addEventListener("change", e => {
+  const s = e.target.closest && e.target.closest("[data-ir-reel]");
+  if (s) location.hash = `#area/reels/${s.value}`;
+});

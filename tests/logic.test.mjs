@@ -92,69 +92,56 @@ test("contato da gestão: número, link, vazio", () => {
   assert.ok(L.linkContato(SITE.contatoGestao, SITE.mensagemGestao).startsWith("https://wa.me/"));
 });
 
-test("conteúdo: as duas campanhas completas, com extras e Réveillon próprios", () => {
-  const exigidos = { "presentes-por-orcamento": ["Achados para o amigo secreto", "Uma peça, três jeitos de usar", "Escolhas da equipe"],
-    "seu-toque-nas-festas": ["Uma dúvida que sempre me fazem", "Como escolho cada detalhe", "A história por trás de um trabalho"] };
+test("kit: 11 roteiros e 8 sequências por coleção, ligados aos carrosséis do catálogo", async () => {
+  const { CATALOGO } = await import("../public/catalogo/index.js");
+  const { LAYOUTS } = await import("../public/js/estudio.js");
   for (const c of [campanha, servico]) {
-    assert.equal(c.temas.length, 5, c.id);
-    for (const t of [...c.temas, ...c.extras, ...c.reveillon.temas]) {
-      assert.equal(t.carrossel.telas.length, 4, t.id);
-      assert.ok(t.carrossel.legenda.length > 80 && /WhatsApp|direct|ano novo/i.test(t.carrossel.legenda), `${t.id}: legenda`);
-      for (const k of ["abertura", "legenda", "chamadaFinal", "semAparecer"]) assert.ok(t.reel[k], `${t.id}: reel.${k}`);
-      assert.ok(t.reel.cenas.length >= 3 && t.reel.cenas.every(x => x.filmar && x.texto), `${t.id}: cenas`);
-      assert.ok(!/agendar/i.test(t.nome));
+    const cat = CATALOGO[c.id].carrosseis;
+    assert.equal(c.reels.length, 11, c.id); assert.equal(c.stories.length, 8, c.id);
+    assert.deepEqual(c.reels.map(r => r.carrossel), cat.map(x => x.id), `${c.id}: um roteiro por carrossel, na mesma ordem`);
+    assert.deepEqual(c.reels.map(r => r.nivel), cat.map(x => x.nivel), `${c.id}: roteiro no nível do carrossel`);
+    assert.deepEqual(c.stories.map(x => x.nivel), [1, 1, 1, 1, 1, 3, 3, 3], `${c.id}: 5 de Natal e 3 de Réveillon`);
+    const ids = new Set();
+    for (const r of c.reels) {
+      assert.ok(!ids.has(r.id)); ids.add(r.id);
+      for (const k of ["nome", "duracao", "ideia", "preparar", "semAparecer", "legenda"]) assert.ok(String(r[k] || "").length > 5, `${r.id}: ${k}`);
+      assert.ok(r.abertura.filmar && r.abertura.fala && r.final.filmar && r.final.texto, `${r.id}: abertura e final`);
+      assert.ok(r.cenas.length >= 3 && r.cenas.every(x => x.filmar && x.texto), `${r.id}: cenas com o que filmar e o texto na tela`);
+      assert.ok(/WhatsApp|direct|coment/i.test(r.legenda), `${r.id}: legenda com chamada`);
+      assert.ok((JSON.stringify(r).match(/\[[^\]]+\]/g) || []).length <= 8, `${r.id}: poucos campos para preencher`);
     }
-    for (const t of [...c.temas, ...c.reveillon.temas]) assert.equal(t.stories.telas.length, 3, `${t.id}: 3 telas de Stories`);
-    assert.deepEqual(c.extras.map(x => x.nome), exigidos[c.id]);
-    assert.equal(c.reveillon.temas.length, 3);
-    assert.equal(c.whatsapp.length, 3);
-    assert.equal(c.calendario.dez.length, 10); assert.equal(c.calendario.expressa.length, 3);
-    assert.equal(c.calendario.quinze.length, 15); assert.equal(c.reveillon.calendario.length, 5);
-    assert.ok(c.tutorial.length >= 4);
-  }
-  assert.notDeepEqual(campanha.reveillon.temas.map(t => t.nome), servico.reveillon.temas.map(t => t.nome), "Réveillon próprio de cada perfil");
-  const t1 = campanha.temas[0];
-  assert.match(t1.carrossel.telas[0].titulo, /3 presentes até R\$ \[valor\]/);
-  assert.match(t1.stories.telas[0].texto, /Qual você daria de presente\?/);
-});
-
-test("conteúdo por plano: o servidor libera 5, 8 ou 11 carrosséis e roteiros", () => {
-  for (const c of [campanha, servico]) {
-    for (const p of SITE.planos) {
-      const lib = L.conteudoDoPlano(c, p), lista = L.carrosseisLiberados(lib);
-      assert.equal(lista.length, p.carrosseis, `${c.id} ${p.id}: carrosséis`);
-      assert.equal(lista.filter(x => x.t.reel).length, p.roteiros, `${c.id} ${p.id}: roteiros`);
-      assert.equal(lista.filter(x => x.t.stories).length, p.stories, `${c.id} ${p.id}: Stories`);
-      assert.equal(!!lib.calendario.quinze, p.nivel >= 2, `${c.id} ${p.id}: calendário de 15 dias`);
-      assert.equal(!!lib.reveillon, p.nivel >= 3, `${c.id} ${p.id}: Réveillon`);
-      assert.equal(lib.whatsapp.length, 3);
+    for (const st of c.stories) {
+      assert.ok(cat.some(x => x.id === st.carrossel && x.nivel === st.nivel), `${st.id}: ligado a um carrossel do mesmo nível`);
+      assert.equal(st.telas.length, 3, `${st.id}: 3 telas`);
+      for (const t of st.telas) {
+        const lay = LAYOUTS[t.l]; assert.ok(lay && lay.story, `${st.id}: composição de Stories ${t.l}`);
+        assert.equal((t.f || []).length, lay.fotos, `${st.id}/${t.l}: fotos`);
+        for (const f of t.f || []) assert.ok(existsSync(new URL(`public/${f}`, raiz)), f);
+        assert.ok(t.nota && t.nota.foto, `${st.id}: diz onde entra a foto`);
+        const a = t.nota.adesivo; if (a && a.tipo === "Enquete") assert.ok(a.pergunta && a.respostas.length === 2, `${st.id}: enquete com pergunta e 2 respostas`);
+      }
+      assert.ok(st.telas.some(t => t.l === "st-acao" || t.l === "st-caixa" || t.l === "st-lista"), `${st.id}: termina com uma ação`);
     }
-  }
-  assert.equal(campanha.extras.length, 3, "o original não é alterado");
-});
-
-test("calendários citam cada peça pelo nome", () => {
-  for (const c of [campanha, servico]) {
-    const nomes = ts => ts.flatMap(t => [`Carrossel: ${t.carrossel.nome}`, `Reel: ${t.reel.nome}`, ...(t.stories ? [`Stories: ${t.stories.nome}`] : [])]);
-    const wa = c.whatsapp.map(m => `WhatsApp: ${m.titulo}`);
-    const cita = (cal, ts) => { const ps = cal.flatMap(d => d.pecas); for (const n of nomes(ts)) assert.ok(ps.includes(n), `${c.id}: calendário sem "${n}"`); for (const p of ps) assert.ok(nomes([...c.temas, ...c.extras, ...c.reveillon.temas]).includes(p) || wa.includes(p), `${c.id}: peça desconhecida ${p}`); };
-    cita(c.calendario.dez, c.temas);
-    cita(c.calendario.quinze, [...c.temas, ...c.extras]);
-    cita(c.reveillon.calendario, c.reveillon.temas);
+    assert.equal(c.whatsapp.length, 3); assert.ok(c.tutorial.length >= 5);
+    const k = c.calendario; assert.equal(k.dez.length, 10); assert.equal(k.expressa.length, 3); assert.equal(k.quinze.length, 15); assert.equal(k.reveillon.length, 5);
   }
 });
 
-test("editor: fotos do exemplo existem e legenda reflete marca, textos e preços", () => {
-  for (const c of [campanha, servico]) for (const t of c.editor.exemplo.telas) assert.ok(existsSync(new URL(`public/${t.foto}`, raiz)), t.foto);
-  const st = clone(campanha.editor.exemplo);
-  st.marca = "Loja da Bia";
-  st.telas[0].preco = "R$ 150";
-  st.telas[1].texto = "Bolsa Lua"; st.telas[1].preco = "R$ 129";
-  const leg = L.legendaEditor(campanha.editor.legenda, st);
-  assert.match(leg, /3 presentes até R\$ 150 aqui na Loja da Bia/);
-  assert.match(leg, /• Bolsa Lua \(R\$ 129\), para a mãe que ama sair/);
-  assert.ok(!/\[tela \d\]/.test(leg));
-  assert.match(L.legendaEditor(servico.editor.legenda, servico.editor.exemplo), /• Make leve \(R\$ 120\), para o almoço da firma/);
+test("planos: 5/8/11 roteiros, 5/5/8 Stories e calendários só com o que o plano libera", async () => {
+  const { carrosseisDoNivel } = await import("../public/catalogo/index.js");
+  for (const c of [campanha, servico]) for (const p of SITE.planos) {
+    const lib = L.conteudoDoPlano(c, p), carrs = carrosseisDoNivel(c.id, p.nivel);
+    assert.equal(carrs.length, p.carrosseis); assert.equal(lib.reels.length, p.roteiros, `${c.id} ${p.id}: roteiros`); assert.equal(lib.stories.length, p.stories, `${c.id} ${p.id}: Stories`);
+    const cals = Object.fromEntries(L.calendariosDoConteudo(lib).map(([k, , d]) => [k, d.length]));
+    assert.deepEqual(cals, p.nivel === 1 ? { dez: 10, expressa: 3 } : p.nivel === 2 ? { quinze: 15, expressa: 3 } : { quinze: 15, reveillon: 5, expressa: 3 }, `${c.id} ${p.id}: calendários`);
+    assert.deepEqual(L.conferirCalendario(lib, carrs), [], `${c.id} ${p.id}: calendário só cita material do plano`);
+    // todo material do plano aparece no calendário principal (Natal + Réveillon)
+    const usados = new Set(L.calendariosDoConteudo(lib).filter(([k]) => k !== "expressa").flatMap(([, , d]) => d.flatMap(x => x.itens.map(it => `${it.f}:${it.ref}`))));
+    for (const x of carrs) assert.ok(usados.has(`carrossel:${x.id}`), `${c.id} ${p.id}: calendário usa ${x.id}`);
+    for (const x of lib.reels) assert.ok(usados.has(`reel:${x.id}`), `${c.id} ${p.id}: calendário usa ${x.id}`);
+    for (const x of lib.stories) assert.ok(usados.has(`stories:${x.id}`), `${c.id} ${p.id}: calendário usa ${x.id}`);
+  }
+  assert.equal(campanha.reels.length, 11, "o original não é alterado");
 });
 
 test("enquadramento cover: cobre a caixa, sem distorcer, respeitando zoom e foco", () => {
@@ -178,12 +165,6 @@ test("quebra de texto respeita a largura e diminui a fonte", () => {
   assert.ok(r.linhas.length <= 2 && r.linhas.every(l => m(l, r.size) <= 160));
 });
 
-test("nomes dos arquivos em ordem", () => {
-  const ts = campanha.editor.exemplo.telas;
-  assert.deepEqual(ts.map((t, i) => L.nomeArquivo(i, t)), ["01-capa.png", "02-clutch-noite.png", "03-lenco-de-seda.png", "04-brincos-dourados.png"]);
-  assert.equal(L.nomeArquivo(1, campanha.editor.antes.telas[1]), "02-produto.png");
-});
-
 test("zip store: estrutura válida e CRC correto", () => {
   assert.equal(L.crc32(new TextEncoder().encode("123456789")), 0xCBF43926);
   const a = new Uint8Array([1, 2, 3]), b = new TextEncoder().encode("olá");
@@ -201,35 +182,45 @@ test("sem restos do modelo antigo no site público", () => {
     assert.ok(!proibido.test(todo), `sobrou: ${proibido}`);
 });
 
-test("área paga: nenhum texto pago aparece nos arquivos públicos", () => {
+test("área paga: nenhum texto pago aparece nos arquivos públicos (só os trechos da vitrine)", async () => {
+  const { CATALOGO } = await import("../public/catalogo/index.js");
+  const doCatalogo = new Set(Object.values(CATALOGO).flatMap(c => c.carrosseis.flatMap(x => x.telas.flatMap(t => Object.values(t.c)))));
   const publico = arquivosPublicos().filter(f => /\.(html|js|json|md|txt)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
-  for (const c of [campanha, servico]) {
-    const todos = [...c.temas, ...c.extras, ...c.reveillon.temas];
+  for (const [c, d] of [[campanha, demo], [servico, demoServico]]) {
     const pagos = [
-      ...todos.map(t => t.carrossel.legenda),
-      ...todos.flatMap(t => [t.reel.semAparecer, t.reel.chamadaFinal, ...(t.stories ? t.stories.telas.map(x => x.mostrar) : [])]),
+      ...c.reels.flatMap(r => [r.legenda, r.semAparecer, r.preparar, r.final.filmar, ...r.cenas.slice(1).map(x => x.filmar)]),
+      ...c.stories.flatMap(st => st.telas.map(t => t.nota.foto)),
+      ...c.stories.filter(st => st.id !== d.trechos.story.id).flatMap(st => st.telas.filter(t => t.c.texto && !doCatalogo.has(t.c.texto)).map(t => t.c.texto)), // texto que já está no carrossel público não é segredo
       ...c.whatsapp.map(m => m.texto),
-      ...c.tutorial.map(p => p.texto)
+      ...c.tutorial.map(p => p.texto),
+      ...L.calendariosDoConteudo(c).flatMap(([, , dias]) => dias.flatMap(x => x.itens.map(it => it.preparar)))
     ];
-    for (const t of pagos) assert.ok(!publico.includes(t), `${c.id}: texto pago no público: ${t.slice(0, 50)}…`);
+    for (const t of new Set(pagos)) assert.ok(!publico.includes(t), `${c.id}: texto pago no público: ${t.slice(0, 50)}…`);
   }
   assert.ok(!existsSync(new URL("public/content", raiz)) && !existsSync(new URL("content", raiz)), "conteúdo pago fora de public/");
 });
 
-test("demonstração pública dos dois perfis: 3 produtos com foto, cenas, enquete e temas dos planos", () => {
-  for (const d of [demo, demoServico]) {
+test("vitrine: trechos reais tirados do kit, sem o “3 presentes” antigo", async () => {
+  const { CATALOGO } = await import("../public/catalogo/index.js");
+  for (const [c, d] of [[campanha, demo], [servico, demoServico]]) {
     assert.equal(d.produtos.length, 3);
-    for (const p of d.produtos) { assert.ok(p.nome && p.preco && p.paraQuem); assert.ok(existsSync(new URL(`public/${p.foto}`, raiz)), p.foto); }
+    for (const p of d.produtos) { assert.ok(p.nome && p.preco && p.paraQuem && p.estilo); assert.ok(existsSync(new URL(`public/${p.foto}`, raiz)), p.foto); }
     assert.ok(existsSync(new URL(`public/${d.capaFoto}`, raiz)));
-    assert.ok(d.capa.texto && d.capa.preco);
-    assert.ok(d.reel.length >= 3 && d.reel.every(c => c.texto && c.gravar));
-    assert.ok(d.trechos.calendario.length <= 3, "só trecho do calendário");
-    assert.equal(d.extras.length, 3); assert.equal(d.reveillon.length, 3);
+    assert.ok(d.reel.length >= 3 && d.reel.every(x => x.texto && x.gravar));
+    assert.deepEqual(d.extras, CATALOGO[c.id].carrosseis.filter(x => x.nivel === 2).map(x => x.nome));
+    assert.deepEqual(d.reveillon, CATALOGO[c.id].carrosseis.filter(x => x.nivel === 3).map(x => x.nome));
+    const t = d.trechos, r = c.reels.find(x => x.id === t.reel.id);
+    assert.ok(r, t.reel.id); assert.equal(t.reel.nome, r.nome); assert.equal(t.reel.duracao, r.duracao);
+    assert.deepEqual(t.reel.abertura, r.abertura); assert.deepEqual(t.reel.cena, r.cenas[0]);
+    assert.ok(r.legenda.startsWith(t.legenda.replace(/…$/, "")), `${c.id}: legenda é o começo da legenda do kit`);
+    const st = c.stories.find(x => x.id === t.story.id), tela = st.telas[t.story.tela - 1];
+    assert.equal(t.story.nome, st.nome); assert.equal(t.story.l, tela.l); assert.deepEqual(t.story.c, tela.c); assert.deepEqual(t.story.f, tela.f);
+    const nome = it => it.f === "carrossel" ? CATALOGO[c.id].carrosseis.find(x => x.id === it.ref).nome : (it.f === "reel" ? c.reels : it.f === "stories" ? c.stories : c.whatsapp).find(x => x.id === it.ref)[it.f === "whatsapp" ? "titulo" : "nome"];
+    const rot = { carrossel: "Carrossel", reel: "Reel", stories: "Stories", whatsapp: "WhatsApp" };
+    assert.deepEqual(t.calendario, c.calendario.dez.slice(0, 3).map(x => ({ dia: x.dia, pecas: x.itens.map(it => `${rot[it.f]} · ${nome(it)}`) })), `${c.id}: calendário igual ao kit`);
   }
-  assert.deepEqual(demo.extras, campanha.extras.map(x => x.nome)); assert.deepEqual(demoServico.extras, servico.extras.map(x => x.nome));
-  assert.deepEqual(demo.reveillon, campanha.reveillon.temas.map(x => x.nome)); assert.deepEqual(demoServico.reveillon, servico.reveillon.temas.map(x => x.nome));
-  assert.match(demo.stories.pergunta, /Qual você daria de presente\?/);
-  assert.match(demoServico.stories.pergunta, /Qual combina com a sua festa\?/);
+  const tudo = arquivosPublicos().filter(f => /\.(html|js)$/.test(f)).map(f => readFileSync(f, "utf8")).join("\n");
+  assert.ok(!/3 presentes até/.test(tudo), "nada de “3 presentes até” no site");
 });
 
 test("acesso: token assinado, válido, adulterado, expirado e sem segredo", () => {
@@ -280,19 +271,11 @@ test("API: campanha só com token válido e filtrada pelo plano; liberar exige a
       const ok = await chamar(campanhaApi, { headers: { authorization: `Bearer ${lib.json.link.split("#acesso=")[1]}` } });
       assert.equal(ok.status, 200); assert.equal(ok.headers["cache-control"], "no-store");
       assert.equal(ok.json.plano.id, p.id); assert.equal(ok.json.campanha.id, camp);
-      assert.equal(L.carrosseisLiberados(ok.json.campanha).length, p.carrosseis, `${camp} ${p.id}`);
-      assert.equal(!!ok.json.campanha.reveillon, p.nivel >= 3);
+      assert.equal(ok.json.campanha.reels.length, p.roteiros, `${camp} ${p.id}`); assert.equal(ok.json.campanha.stories.length, p.stories);
+      assert.equal(!!ok.json.campanha.calendario.reveillon, p.nivel >= 3);
     }
     assert.equal((await chamar(pagamento, { method: "POST", body: { status: "approved" } })).status, 503, "webhook não libera nada sem plataforma");
   } finally { process.env = antes; }
-});
-
-test("editor completo: modelo de todos os carrosséis do maior plano", () => {
-  for (const c of [campanha, servico]) for (const x of L.carrosseisLiberados(c)) {
-    const m = L.modeloDoTema(x.t);
-    assert.equal(m.telas.length, 4, x.t.id); assert.equal(m.telas[0].tipo, "capa");
-  }
-  assert.deepEqual(L.modeloDoTema(campanha.temas[0]).telas[0], { tipo: "capa", texto: "3 presentes até", preco: "R$ [valor]", apoio: "Arrasta pro lado →" });
 });
 
 test("catálogo: 10 campanhas × 11 carrosséis (5 + 3 + 3), 4 telas e legenda própria em cada", async () => {

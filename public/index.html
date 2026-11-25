@@ -422,6 +422,44 @@ mark{background:var(--marca-bg);color:inherit;border-radius:4px;padding:0 3px}
 .kit-det{margin-top:14px;border:1.5px solid var(--linha);border-radius:var(--r);background:var(--superficie)}
 .kit-det summary{cursor:pointer;padding:14px 16px;font-weight:800}
 .kit-det-corpo{padding:0 16px 16px}
+/* área da cliente: abas e materiais */
+.area-abas{display:flex;gap:6px;overflow-x:auto;margin:14px -4px 0;padding:4px;scrollbar-width:none}
+.area-abas::-webkit-scrollbar{display:none}
+.area-abas a{flex:none;text-decoration:none;color:var(--tinta);font-weight:800;font-size:.92rem;padding:9px 12px;border-radius:99px;border:1.5px solid var(--linha);background:var(--superficie)}
+.area-abas a.on{background:var(--cereja);border-color:var(--cereja);color:#fff}
+.area-abas a.mais{font-weight:700;color:var(--suave)}
+.area-abas a.mais.on{color:#fff}
+.do-tema{margin-top:16px}.do-tema .chip{text-decoration:none;color:var(--tinta)}
+.sec-t{font-size:1.3rem;margin:8px 0 12px}
+.copiavel{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;background:var(--fundo);border:1px solid var(--linha);border-radius:12px;padding:10px 12px;margin:0 0 10px}
+.copiavel p{margin:0;min-width:0;overflow-wrap:anywhere}
+.copiavel .btn{flex:none}
+.copiavel.longo{flex-direction:column;align-items:stretch}.copiavel.longo .btn{align-self:flex-start}
+.reel-cab h2{margin:.1em 0 .2em}
+.reel-grade{display:grid;gap:16px;margin-top:14px}
+@media (min-width:860px){.reel-grade{grid-template-columns:1fr 1fr}}
+.reel-sec{border:1.5px solid var(--linha);border-radius:var(--r);padding:14px 16px;background:var(--superficie)}
+.reel-sec h3{margin:0 0 10px;font-size:1.05rem}
+.reel-sec .prep{margin:0 0 12px}
+.cenas{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px}
+.cenas li,.st-notas li{display:flex;flex-direction:column;gap:2px}
+.cenas .n,.st-notas .n{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--cereja)}
+.sem-aparecer{background:var(--fundo-2);border-radius:12px;padding:10px 12px}.sem-aparecer p{margin:.2em 0 0}
+.textos{margin:0 0 6px;padding-left:20px}
+.st-notas{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:14px}
+.st-notas p{margin:0}
+.adesivo{margin-top:6px}.adesivo .copiavel{margin:6px 0 0}
+.es-stories .es-telas{grid-auto-columns:62%}
+@media (min-width:640px){.es-stories .es-telas{grid-auto-columns:32%}}
+.es-stories .es-tela canvas{aspect-ratio:9/16}
+.cal-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:6px 0}
+.cal-item .tipo{grid-column:1}.cal-item .cal-nome{grid-column:1}.cal-item .prep{grid-column:1;color:var(--suave);font-size:.9rem}
+.cal-item .cal-abrir{grid-column:2;grid-row:1/4;text-decoration:none}
+.cal .tipo.t-reel{color:#7a3fb0}.cal .tipo.t-stories{color:#b0602a}.cal .tipo.t-whatsapp{color:#1f7a4a}
+.msg.alvo{outline:3px solid var(--cereja);outline-offset:2px}
+.trecho .tr-nome{display:block;font-family:var(--serif);font-size:1.15rem;margin:2px 0 8px}
+.trecho .tr-fala{color:var(--cereja);font-weight:700}
+.tr-story canvas{display:block;width:min(100%,220px);height:auto;aspect-ratio:9/16;border-radius:14px;margin:4px 0 8px;box-shadow:0 14px 30px -18px rgba(0,0,0,.6)}
 /* vitrine: miniaturas extras */
 .v-cal .mais{grid-column:span 5;aspect-ratio:auto;padding:3px;background:var(--tinta);color:#fff;border-color:var(--tinta)}
 .v-lista{display:grid;gap:5px;padding:10px;width:100%}

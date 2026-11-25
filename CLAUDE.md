@@ -230,14 +230,15 @@ Ao final, entregue:
 - [x] Redesenho aprovado e publicado (menos texto, animação da capa, carrossel em destaque, vitrine do kit) (21/11/2026)
 - [x] Catálogo completo: 110 carrosséis editáveis em 10 coleções, editor em camadas com estilo em lote e edições salvas (24/11/2026)
 - [x] Demonstração interativa (3 produtos × Carrossel/Reel/Stories), "Testar com a minha foto" com marca-d'água AMOSTRA, trechos públicos e área da cliente protegida (20/11/2026)
+- [x] Kit completo das duas coleções à venda: 22 roteiros de Reels, 16 sequências de Stories editáveis (1080 × 1920), calendários por plano com atalhos; área da cliente em Calendário / Carrosséis / Reels / Stories (24/11/2026)
 
 ### Pendências do Arthur para abrir as vendas
 - Criar os segredos `ACESSO_SECRET` e `ADMIN_TOKEN` na Vercel (ver "Área da cliente"). Sem eles a área fica fechada.
 - Pagamento: pelo WhatsApp. No lançamento, mudar `modoCompra` para `"checkout"` em `config.js`. Para cada venda confirmada, gerar e enviar o link de acesso ("Área da cliente", passo 2).
 - Trocar as fotos provisórias de `public/assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
 - Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
-- Revisar os textos da campanha em `private/campanhas/presentes-por-orcamento.js`.
-- Reels, Stories, mensagens e calendários dos outros 8 temas (os carrosséis já estão prontos; status `em-preparacao` até lá).
+- Revisar os textos do kit em `private/campanhas/presentes-por-orcamento.js` e `private/campanhas/seu-toque-nas-festas.js` (Reels, Stories, calendários).
+- Reels, Stories, mensagens e calendários das outras 8 coleções (os carrosséis já estão prontos; status `em-preparacao` até lá).
 - Trocar as ilustrações de `public/assets/exemplo/` por fotos reais (os nomes dos arquivos são usados pelo catálogo).
 
 ## Deploy
@@ -258,7 +259,7 @@ Ao final, entregue:
   - `js/logic.js`: regras puras (compra, contato, enquadramento, zip). `js/render.js`: fotos (EXIF), cache e miniaturas. `js/estudio.js` + `js/estudio-editor.js`: motor de camadas e editor (ver "Catálogo"). `js/demo.js`: demonstração Carrossel/Reel/Stories. `js/app.js`: rotas.
   - `catalogo/`: as 10 coleções e os 110 carrosséis.
 - `private/`: **conteúdo pago**, nunca servido como arquivo.
-  - `campanhas/presentes-por-orcamento.js`: 5 carrosséis, 5 Reels, 5 Stories, 3 mensagens, calendário, tutorial. `campanhas/index.js`: lista de campanhas.
+  - `campanhas/presentes-por-orcamento.js` e `campanhas/seu-toque-nas-festas.js`: o kit (ver "Kit pago"). `campanhas/index.js`: lista de campanhas.
   - `acesso.js`: link de acesso assinado (HMAC-SHA256, com validade).
 - `api/`: funções da Vercel.
   - `campanha.js`: `GET` com `Authorization: Bearer <token>` → conteúdo pago da campanha do token (401 sem acesso válido).
@@ -292,6 +293,17 @@ Ao final, entregue:
 - **Área da cliente:** o editor mostra os carrosséis do nível do plano; ao lado, o Reel e os Stories do tema na mesma posição em `private/campanhas/<id>.js` (temas → nível 1, extras → nível 2, reveillon → nível 3).
 - **À venda:** só Presentes por orçamento e Seu toque nas festas (têm Reels, Stories, mensagens e calendário). As outras 8 têm os 11 carrosséis prontos e testáveis na galeria, mas seguem `em-preparacao` até o resto do kit existir.
 - **Testes no navegador:** `tests/navegador/estudio.mjs` (cliente: R$ 100 → R$ 150, logo, JPEG com fundo, título longo, cor na coleção inteira, desfazer/restaurar, reabrir, zip igual à prévia, área paga) e `tests/navegador/vitrine.mjs`. Precisam de Playwright fora do projeto e do servidor local com `ACESSO_SECRET` de 32+ caracteres.
+
+## Kit pago: Reels, Stories e calendários (24/11/2026)
+- **Onde está:** `private/campanhas/<id>.js`, um arquivo por coleção à venda. Cada peça aponta para o carrossel do catálogo pelo campo `carrossel` e tem `nivel` (1 = Natal Pronto, 2 = entra no Completo, 3 = Réveillon).
+  - `reels` (11): `abertura {filmar, fala}`, `cenas [{filmar, texto}]`, `final {filmar, texto}`, `semAparecer`, `preparar` (o que GRAVAR) e `legenda` (o que COPIAR). Poucos marcadores entre colchetes.
+  - `stories` (8 = 5 de Natal + 3 de Réveillon): 3 telas editáveis com composições `st-*` do motor (1080 × 1920). Cada tela tem `nota.foto` (onde entra a foto) e, se houver, `nota.adesivo` (Enquete com pergunta e 2 respostas, Link ou Caixa de perguntas). O adesivo é colocado no Instagram, no espaço livre com a seta.
+  - `calendario`: `dez` (10 dias, Natal Pronto), `quinze` (15 dias, Completo e Virada), `reveillon` (5 dias, Virada), `expressa` (3 dias, todos). Cada item é `{ f: carrossel|reel|stories|whatsapp, ref, preparar }`; o título vem da própria peça, então nunca diverge.
+  - `whatsapp` (3, com `id`) e `tutorial`.
+- **Por plano:** `conteudoDoPlano` (`public/js/logic.js`) filtra por nível: 5/8/11 Reels, 5/5/8 Stories, calendários acima. `conferirCalendario` garante que cada calendário só cita material do plano (teste).
+- **Área da cliente:** abas `#area/calendario` (padrão), `#area/carrosseis/<id>`, `#area/reels/<id>`, `#area/stories/<id>` e `#area/mensagens/<id>` (mensagens e tutorial). Cada item do calendário tem "Abrir" com o atalho. O editor de Stories é o mesmo do carrossel (`montarEstudio` com `tipo: "stories"`, `pecas`, `lateral`): mesma marca, logo e estilo da coleção; exporta 3 PNGs `01-<id>-story-1.png`…
+- **Vitrine:** "Tirado do kit" em "Ver o que vem no kit" mostra o começo de um roteiro, uma tela de Stories desenhada pelo motor e os 3 primeiros dias do calendário. Os trechos ficam em `public/amostra/<id>.js` (`trechos`) e um teste confere que são iguais ao kit.
+- **Testes no navegador:** `tests/navegador/kit.mjs` (as duas coleções nos três planos: quantidades, todos os atalhos do calendário, Reel gravar × copiar, Stories 1080 × 1920 iguais à prévia, cópia de textos, 390 px).
 
 ## Planos de compra única (22/11/2026)
 A cliente escolhe o perfil (**Sou lojista** / **Sou prestadora de serviço**), vê a campanha do perfil e compara três planos. Os preços são FINAIS por plano (definidos em `public/config.js`, `SITE.planos`):

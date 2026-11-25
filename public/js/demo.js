@@ -5,7 +5,7 @@ import { desenharExemplo, W, H } from "./render.js";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const calmo = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-const preencher = (s, p) => s.replaceAll("{produto}", p.nome).replaceAll("{preco}", p.preco).replaceAll("{paraQuem}", p.paraQuem);
+const preencher = (s, p) => s.replaceAll("{produto}", p.nome).replaceAll("{preco}", p.preco).replaceAll("{paraQuem}", p.paraQuem).replaceAll("{estilo}", p.estilo || "");
 
 export const telasDaDemo = demo => [
   { tipo: "capa", texto: demo.capa.texto, preco: demo.capa.preco, apoio: demo.capa.apoio, foto: demo.capaFoto },

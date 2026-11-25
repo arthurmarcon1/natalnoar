@@ -1,7 +1,7 @@
 /* Desenha uma tela do carrossel em <canvas> 1080 × 1350 (4:5, Instagram).
    A prévia e o PNG exportado saem do mesmo desenho. */
 import { coverRect, ajustarTexto } from "./logic.js";
-import { desenharEstudio, carregarPar } from "./estudio.js";
+import { desenharEstudio, carregarPar, alturaDoLayout } from "./estudio.js";
 
 export const W = 1080, H = 1350;
 // iOS 15 e navegadores antigos não têm roundRect no canvas
@@ -196,7 +196,7 @@ export function fotoDeArquivo(caminho) {
 export async function desenharExemplo(canvas, tela, o) {
   if (tela.l && tela.estilo) { // tela do estúdio (catálogo): fotos por caminho + estilo da coleção
     const [imgs] = await Promise.all([Promise.all((tela.f || []).map(fotoDeArquivo)), carregarPar(tela.estilo.par), carregarFontes()]);
-    canvas.width = W; canvas.height = H;
+    canvas.width = W; canvas.height = alturaDoLayout(tela.l);
     desenharEstudio(canvas.getContext("2d"), tela, tela.estilo, { marca: o.marca, imgs, ajustes: tela.aj || [], amostra: false });
     return;
   }

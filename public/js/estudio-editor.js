@@ -13,7 +13,7 @@
    modo "teste": tela com foto própria leva AMOSTRA (prévia e PNG).
    modo "kit":   área da cliente, tudo limpo.
    ===================================================================== */
-import { desenharEstudio, carregarPar, LAYOUTS, PARES, ICONES, W, H } from "./estudio.js";
+import { desenharEstudio, carregarPar, LAYOUTS, PARES, ICONES, W, alturaDoLayout } from "./estudio.js";
 import { carregarFoto, fotoDeArquivo } from "./render.js";
 import { zipStore, slug } from "./logic.js";
 import { CATALOGO, GRUPOS, carrossel as achar, estiloOriginal, EDITAVEIS, COLECOES, legendaPreenchida, marcaExemplo } from "../catalogo/index.js";
@@ -56,28 +56,32 @@ const pick = (o, ks) => Object.fromEntries(ks.filter(k => o && o[k] != null).map
 
 /**
  * @param raiz    elemento
- * @param op      { campanha, carrossel, modo: "teste"|"kit", nivel (1..3), toast, aoTrocar?(id) }
+ * @param op      { campanha, carrossel, modo: "teste"|"kit", nivel (1..3), toast, aoTrocar?(id),
+ *                  pecas?: lista própria (ex.: sequências de Stories da área paga, cada uma { id, nivel, nome, ideia, telas }),
+ *                  tipo?: "carrossel" | "stories", lateral?(peça) → HTML da coluna ao lado (no lugar da legenda) }
  */
 export function montarEstudio(raiz, op) {
   const camp = CATALOGO[op.campanha]; if (!camp) { raiz.innerHTML = `<p class="aviso">Campanha não encontrada.</p>`; return null; }
   const modo = op.modo === "kit" ? "kit" : "teste", teste = modo === "teste", nivel = op.nivel || 3, toast = op.toast || (() => {});
-  const col = COLECOES[camp.id], lista = camp.carrosseis.filter(x => x.nivel <= nivel);
+  const stories = op.tipo === "stories";
+  const col = COLECOES[camp.id], lista = (op.pecas || camp.carrosseis).filter(x => x.nivel <= nivel);
+  const N = lista[0].telas.length, H = alturaDoLayout(lista[0].telas[0].l), qtd = N === 4 ? "4" : String(N);
   let carr = lista.find(x => x.id === op.carrossel) || lista[0];
   const proj = lerProjeto(modo, camp.id);
   let telas = [], ativa = 0, aba = "textos", rascunho = {}, historico = [], logo = null, versao = 0;
   const share = podeCompartilhar();
 
   raiz.innerHTML = `
-  <div class="es" data-modo="${modo}">
+  <div class="es ${stories ? "es-stories" : ""}" data-modo="${modo}" data-tipo="${stories ? "stories" : "carrossel"}">
     <div class="es-topo">
-      <label class="campo es-sel"><span>Carrossel</span>
-        <select data-es-carr>${GRUPOS.filter(([n]) => n <= nivel).map(([n, g, plano]) => `<optgroup label="${esc(g)} · ${esc(plano)}">${lista.filter(x => x.nivel === n).map(x => `<option value="${x.id}">${esc(x.nome)}</option>`).join("")}</optgroup>`).join("")}</select></label>
+      <label class="campo es-sel"><span>${stories ? "Sequência de Stories" : "Carrossel"}</span>
+        <select data-es-carr>${GRUPOS.filter(([n]) => n <= nivel && lista.some(x => x.nivel === n)).map(([n, g, plano]) => `<optgroup label="${esc(g)} · ${esc(plano)}">${lista.filter(x => x.nivel === n).map(x => `<option value="${x.id}">${esc(x.nome)}</option>`).join("")}</optgroup>`).join("")}</select></label>
       <p class="hint es-ideia" data-es-ideia></p>
     </div>
     <div class="es-grade">
       <div class="es-previa">
-        <div class="es-telas" role="list" aria-label="As 4 telas do carrossel">
-          ${[0, 1, 2, 3].map(i => `<button type="button" class="es-tela" role="listitem" data-es-tela="${i}" aria-label="Editar a tela ${i + 1}"><canvas width="${W}" height="${H}"></canvas><span>Tela ${i + 1}</span></button>`).join("")}
+        <div class="es-telas" role="list" aria-label="As ${qtd} telas ${stories ? "da sequência" : "do carrossel"}">
+          ${[...Array(N).keys()].map(i => `<button type="button" class="es-tela" role="listitem" data-es-tela="${i}" aria-label="Editar a tela ${i + 1}"><canvas width="${W}" height="${H}"></canvas><span>Tela ${i + 1}</span></button>`).join("")}
         </div>
         <p class="hint es-salvo" data-es-salvo aria-live="polite">As edições ficam salvas neste aparelho.</p>
       </div>
@@ -85,7 +89,7 @@ export function montarEstudio(raiz, op) {
         <div class="es-abas" role="tablist" aria-label="O que editar">
           ${[["textos", "Textos"], ["fotos", "Fotos"], ["estilo", "Estilo"], ["marca", "Marca"]].map(([k, n]) => `<button type="button" role="tab" data-es-aba="${k}" aria-selected="${k === aba}">${n}</button>`).join("")}
         </div>
-        <div class="es-qual" role="group" aria-label="Tela em edição" data-es-qual>${[0, 1, 2, 3].map(i => `<button type="button" class="chip" data-es-ir="${i}">Tela ${i + 1}</button>`).join("")}</div>
+        <div class="es-qual" role="group" aria-label="Tela em edição" data-es-qual>${[...Array(N).keys()].map(i => `<button type="button" class="chip" data-es-ir="${i}">Tela ${i + 1}</button>`).join("")}</div>
         <section class="es-sec" data-es-painel="textos"></section>
         <section class="es-sec" data-es-painel="fotos" hidden></section>
         <section class="es-sec" data-es-painel="estilo" hidden>
@@ -96,12 +100,12 @@ export function montarEstudio(raiz, op) {
           <div class="es-cor-linha"><span>Ícone decorativo</span><div class="es-icones">${Object.entries(ICONES).map(([k, n]) => `<button type="button" class="chip" data-es-icone="${k}">${esc(n)}</button>`).join("")}</div></div>
           <p class="es-rascunho" data-es-rascunho hidden>Prévia com mudanças ainda não aplicadas.</p>
           <div class="es-acoes">
-            <button type="button" class="btn sm" data-es-aplicar="carrossel">Aplicar a este carrossel</button>
+            <button type="button" class="btn sm" data-es-aplicar="carrossel">Aplicar ${stories ? "a esta sequência" : "a este carrossel"}</button>
             <button type="button" class="btn sm ghost" data-es-aplicar="colecao">Aplicar à coleção inteira</button>
             <button type="button" class="btn sm ghost" data-es-desfazer>Desfazer</button>
             <button type="button" class="link" data-es-restaurar>Restaurar estilo original</button>
           </div>
-          <p class="hint">Aplicar à coleção muda as cores, fontes e ícones dos ${lista.length} carrosséis e mantém fotos, textos, preços e composições.</p>
+          <p class="hint">Aplicar à coleção muda as cores, fontes e ícones de todos os carrosséis e Stories da coleção e mantém fotos, textos, preços e composições.</p>
         </section>
         <section class="es-sec" data-es-painel="marca" hidden>
           <label class="campo"><span>Nome da loja ou do negócio</span><input data-es-marca maxlength="40" autocomplete="organization" placeholder="${esc(camp.marca)}"></label>
@@ -113,14 +117,14 @@ export function montarEstudio(raiz, op) {
         </section>
         ${teste ? `<p class="hint es-aviso" data-es-aviso></p>` : ""}
       </div>
-      <aside class="ed-legenda"><h3>Legenda</h3><pre class="legenda-txt" data-es-legenda></pre><button type="button" class="btn ghost block" data-es-copiar>Copiar legenda</button></aside>
+      ${op.lateral ? `<aside class="ed-legenda es-lateral" data-es-lateral></aside>` : `<aside class="ed-legenda"><h3>Legenda</h3><pre class="legenda-txt" data-es-legenda></pre><button type="button" class="btn ghost block" data-es-copiar>Copiar legenda</button></aside>`}
     </div>
     <div class="ed-baixar">
       <h3>Baixar as imagens</h3>
-      <p class="hint">4 PNGs de 1080 × 1350, numerados na ordem de postagem${teste ? ". No teste grátis, as telas com a sua foto saem com a marca AMOSTRA" : ", sem marca-d'água"}.</p>
+      <p class="hint">${qtd} PNGs de 1080 × ${H}, numerados na ordem de postagem${teste ? ". No teste grátis, as telas com a sua foto saem com a marca AMOSTRA" : ", sem marca-d'água"}.</p>
       <div class="ed-botoes">
         ${share ? `<button type="button" class="btn" data-es-share>Compartilhar imagens</button>` : ""}
-        <button type="button" class="btn ${share ? "ghost" : ""}" data-es-png>Baixar as 4 imagens</button>
+        <button type="button" class="btn ${share ? "ghost" : ""}" data-es-png>Baixar as ${qtd} imagens</button>
         <button type="button" class="btn ghost" data-es-zip>Baixar tudo em .zip</button>
       </div>
       ${share ? `<p class="hint">No iPhone, use "Compartilhar imagens" e toque em "Salvar imagens".</p>` : ""}
@@ -180,9 +184,9 @@ export function montarEstudio(raiz, op) {
   /* caixas de texto de uma tela (verificação: nada sai da tela nem é cortado) */
   function medir(i) { const c = document.createElement("canvas"); c.width = W; c.height = H; const cx = []; pintar(i, c.getContext("2d"), cx); return cx; }
   const pend = new Set(); let raf = 0;
-  const agendar = (...is) => { (is.length ? is : [0, 1, 2, 3]).forEach(i => pend.add(i)); if (!raf) raf = requestAnimationFrame(() => { raf = 0; pend.forEach(i => pintar(i)); pend.clear(); marcas(); }); };
+  const agendar = (...is) => { (is.length ? is : [...Array(N).keys()]).forEach(i => pend.add(i)); if (!raf) raf = requestAnimationFrame(() => { raf = 0; pend.forEach(i => pintar(i)); pend.clear(); marcas(); }); };
   const marcas = () => { raiz.dataset.marcas = telas.map(t => teste && temPropria(t) ? "amostra" : "limpa").join(","); };
-  const legenda = () => { $("[data-es-legenda]").textContent = legendaPreenchida(carr, telas, proj.marca, marcaExemplo(camp.id, carr)); };
+  const legenda = () => { if (op.lateral) { $("[data-es-lateral]").innerHTML = op.lateral(carr); return; } $("[data-es-legenda]").textContent = legendaPreenchida(carr, telas, proj.marca, marcaExemplo(camp.id, carr)); };
 
   /* ---------- painéis ---------- */
   function painelTextos() {
@@ -257,7 +261,7 @@ export function montarEstudio(raiz, op) {
     montarTelas();
     await Promise.all([carregarPar(estiloAtual().par), carregarFotos()]);
     if (v !== versao) return;
-    agendar(); legenda(); selecionar(Math.min(ativa, 3), false); mostrarAba(aba);
+    agendar(); legenda(); selecionar(Math.min(ativa, N - 1), false); mostrarAba(aba);
     raiz.dataset.pronto = "1";
     if (op.aoTrocar) op.aoTrocar(carr.id);
   }
@@ -276,11 +280,11 @@ export function montarEstudio(raiz, op) {
       const pc = projCarr(), mods = { ...pick(pc.estilo, EDITAVEIS), ...rascunho };
       if (!Object.keys(mods).length) { toast("Escolha uma cor, fonte ou ícone primeiro."); return; }
       lembrar();
-      if (b.dataset.esAplicar === "carrossel") { pc.estilo = { ...pc.estilo, ...rascunho }; toast("Estilo aplicado a este carrossel."); }
+      if (b.dataset.esAplicar === "carrossel") { pc.estilo = { ...pc.estilo, ...rascunho }; toast(`Estilo aplicado ${stories ? "a esta sequência" : "a este carrossel"}.`); }
       else {
         proj.estilo = { ...proj.estilo, ...mods };
         Object.values(proj.carr).forEach(c => { c.estilo = Object.fromEntries(Object.entries(c.estilo || {}).filter(([k]) => !(k in mods))); });
-        toast(`Estilo aplicado aos ${lista.length} carrosséis da coleção.`);
+        toast("Estilo aplicado à coleção inteira.");
       }
       rascunho = {}; salvar(); painelEstilo(); agendar(); return;
     }
@@ -292,7 +296,7 @@ export function montarEstudio(raiz, op) {
     if (el("[data-es-restaurar]")) {
       lembrar(); rascunho = {};
       projCarr().estilo = pick(original(), Object.keys(pick(proj.estilo, EDITAVEIS)));
-      salvar(); painelEstilo(); await carregarPar(estiloAtual().par); agendar(); toast("Estilo original de volta neste carrossel."); return;
+      salvar(); painelEstilo(); await carregarPar(estiloAtual().par); agendar(); toast(`Estilo original de volta ${stories ? "nesta sequência" : "neste carrossel"}.`); return;
     }
     if ((b = el("[data-es-exemplo]"))) {
       const k = +b.dataset.esExemplo, t = telas[ativa];
@@ -308,7 +312,7 @@ export function montarEstudio(raiz, op) {
       catch { const r = document.createRange(); r.selectNodeContents($("[data-es-legenda]")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Legenda selecionada. Use copiar do seu aparelho."); }
       return;
     }
-    if (el("[data-es-png]")) { const fs = await arquivos(); for (const f of fs) { baixar(f.blob, f.name); await espera(350); } toast("4 imagens baixadas, de 01 a 04."); return; }
+    if (el("[data-es-png]")) { const fs = await arquivos(); for (const f of fs) { baixar(f.blob, f.name); await espera(350); } toast(`${qtd} imagens baixadas, de 01 a 0${N}.`); return; }
     if (el("[data-es-zip]")) {
       const fs = await arquivos();
       baixar(new Blob([zipStore(await Promise.all(fs.map(async f => ({ name: f.name, data: new Uint8Array(await f.blob.arrayBuffer()) }))))], { type: "application/zip" }), `${slug(camp.id)}-${slug(carr.id)}.zip`);
@@ -317,7 +321,7 @@ export function montarEstudio(raiz, op) {
     if (el("[data-es-share]")) {
       const fs = await arquivos();
       try { await navigator.share({ files: fs.map(f => new File([f.blob], f.name, { type: "image/png" })), title: carr.nome }); }
-      catch (err) { if (err && err.name !== "AbortError") toast("Não deu para compartilhar. Use \"Baixar as 4 imagens\"."); }
+      catch (err) { if (err && err.name !== "AbortError") toast(`Não deu para compartilhar. Use "Baixar as ${qtd} imagens".`); }
     }
   });
   raiz.addEventListener("input", e => {
@@ -355,8 +359,8 @@ export function montarEstudio(raiz, op) {
 
   /* ---------- exportação: o mesmo desenho da prévia ---------- */
   async function arquivos() {
-    await carregarPar(estiloAtual().par); [0, 1, 2, 3].forEach(i => pintar(i));
-    return Promise.all(canvases.map(async (c, i) => ({ name: `${String(i + 1).padStart(2, "0")}-${slug(carr.id)}-${i === 0 ? "capa" : `tela-${i + 1}`}.png`, blob: await toBlob(c) })));
+    await carregarPar(estiloAtual().par); canvases.forEach((_, i) => pintar(i));
+    return Promise.all(canvases.map(async (c, i) => ({ name: `${String(i + 1).padStart(2, "0")}-${slug(carr.id)}-${stories ? `story-${i + 1}` : i === 0 ? "capa" : `tela-${i + 1}`}.png`, blob: await toBlob(c) })));
   }
 
   /* ---------- início: logo salvo e carrossel pedido ---------- */

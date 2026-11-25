@@ -18,6 +18,9 @@
 import { coverRect } from "./logic.js";
 
 export const W = 1080, H = 1350;
+export const HS = 1920; // Stories (9:16)
+let A = H; // altura da tela em desenho: 1350 no feed, 1920 nos Stories
+
 const M = 72; // margem
 
 /* ---------------- pares de fontes testados ---------------- */
@@ -203,15 +206,15 @@ const corpo = (ctx, s, o, txt, opts) => texto(ctx, s, o, txt, { fam: "x", peso: 
 /* ---------------- fundo e textura ---------------- */
 function rnd(seed) { let x = seed || 7; return () => (x = (x * 16807) % 2147483647) / 2147483647; }
 function fundo(ctx, s, cor = s.fundo) {
-  ctx.fillStyle = cor; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = cor; ctx.fillRect(0, 0, W, A);
   const r = rnd(11), tx = s.textura;
   ctx.save();
-  if (tx === "grao") { ctx.fillStyle = escuro(cor) ? "rgba(255,255,255,.05)" : "rgba(60,30,20,.06)"; for (let i = 0; i < 2600; i++) ctx.fillRect(r() * W, r() * H, 2, 2); }
-  else if (tx === "pontos") { ctx.fillStyle = escuro(cor) ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.06)"; for (let y = 30; y < H; y += 44) for (let x = (y / 44 & 1) * 22 + 20; x < W; x += 44) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); } }
-  else if (tx === "listras") { ctx.strokeStyle = escuro(cor) ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.05)"; ctx.lineWidth = 18; for (let k = -H; k < W; k += 70) { ctx.beginPath(); ctx.moveTo(k, 0); ctx.lineTo(k + H, H); ctx.stroke(); } }
-  else if (tx === "linhas") { ctx.strokeStyle = escuro(cor) ? "rgba(255,255,255,.07)" : "rgba(30,40,30,.07)"; ctx.lineWidth = 2; for (let y = 60; y < H; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); } }
-  else if (tx === "brilho") { for (let i = 0; i < 26; i++) icone(ctx, "estrela", r() * W, r() * H, 4 + r() * 9, escuro(cor) ? "rgba(241,227,200,.22)" : "rgba(120,90,40,.16)"); }
-  else if (tx === "confete") { for (let i = 0; i < 70; i++) { ctx.save(); ctx.translate(r() * W, r() * H); ctx.rotate(r() * 3); ctx.fillStyle = [s.destaque, misturar(s.destaque, cor, 0.5), escuro(cor) ? "#FFFFFF" : "#1A1416"][i % 3]; ctx.globalAlpha = 0.16; ctx.fillRect(-7, -3, 14, 6); ctx.restore(); } }
+  if (tx === "grao") { ctx.fillStyle = escuro(cor) ? "rgba(255,255,255,.05)" : "rgba(60,30,20,.06)"; for (let i = 0; i < 2600; i++) ctx.fillRect(r() * W, r() * A, 2, 2); }
+  else if (tx === "pontos") { ctx.fillStyle = escuro(cor) ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.06)"; for (let y = 30; y < A; y += 44) for (let x = (y / 44 & 1) * 22 + 20; x < W; x += 44) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); } }
+  else if (tx === "listras") { ctx.strokeStyle = escuro(cor) ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.05)"; ctx.lineWidth = 18; for (let k = -A; k < W; k += 70) { ctx.beginPath(); ctx.moveTo(k, 0); ctx.lineTo(k + A, A); ctx.stroke(); } }
+  else if (tx === "linhas") { ctx.strokeStyle = escuro(cor) ? "rgba(255,255,255,.07)" : "rgba(30,40,30,.07)"; ctx.lineWidth = 2; for (let y = 60; y < A; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); } }
+  else if (tx === "brilho") { for (let i = 0; i < 26; i++) icone(ctx, "estrela", r() * W, r() * A, 4 + r() * 9, escuro(cor) ? "rgba(241,227,200,.22)" : "rgba(120,90,40,.16)"); }
+  else if (tx === "confete") { for (let i = 0; i < 70; i++) { ctx.save(); ctx.translate(r() * W, r() * A); ctx.rotate(r() * 3); ctx.fillStyle = [s.destaque, misturar(s.destaque, cor, 0.5), escuro(cor) ? "#FFFFFF" : "#1A1416"][i % 3]; ctx.globalAlpha = 0.16; ctx.fillRect(-7, -3, 14, 6); ctx.restore(); } }
   ctx.restore();
 }
 
@@ -255,7 +258,7 @@ function coresFoto(o, i, y0, y1) {
   const a = { zoom: 1, fx: 0.5, fy: 0.5, ...((o.ajustes && o.ajustes[i]) || {}) }, k = `${y0}:${y1}:${a.zoom}:${a.fx}:${a.fy}`;
   f._cores = f._cores || {}; if (f._cores[k]) return f._cores[k];
   const t = document.createElement("canvas"); t.width = 6; t.height = 4; const tc = t.getContext("2d", { willReadFrequently: true });
-  const c = coverRect(f.w, f.h, W, H, a.zoom, a.fx, a.fy), sy = c.sy + c.sh * y0, sh = c.sh * (y1 - y0);
+  const c = coverRect(f.w, f.h, W, A, a.zoom, a.fx, a.fy), sy = c.sy + c.sh * y0, sh = c.sh * (y1 - y0);
   tc.imageSmoothingQuality = "high"; tc.drawImage(f.img, c.sx, sy, c.sw, sh, 0, 0, 6, 4);
   const d = tc.getImageData(0, 0, 6, 4).data, out = [];
   for (let q = 0; q < d.length; q += 4) out.push("#" + [d[q], d[q + 1], d[q + 2]].map(v => v.toString(16).padStart(2, "0")).join(""));
@@ -263,7 +266,7 @@ function coresFoto(o, i, y0, y1) {
 }
 /* véu na cor do fundo atrás do texto sobre foto: quase nada se toda a faixa já é legível, forte se alguma parte não for */
 function veu(ctx, s, o, i, y0, y1, cor, deCima = true, minimo = 0.18) {
-  const m = coresFoto(o, i, Math.min(y0, y1) / H, Math.max(y0, y1) / H), forte = !m || m.some(x => contraste(cor, x) < 4.5), [r, g, b] = rgb(s.fundo);
+  const m = coresFoto(o, i, Math.min(y0, y1) / A, Math.max(y0, y1) / A), forte = !m || m.some(x => contraste(cor, x) < 4.5), [r, g, b] = rgb(s.fundo);
   const lo = Math.min(y0, y1), hi = Math.max(y0, y1), gr = ctx.createLinearGradient(0, deCima ? lo : hi, 0, deCima ? hi : lo); // opaco na borda da tela, some em direção ao meio
   gr.addColorStop(0, `rgba(${r},${g},${b},${forte ? 0.9 : minimo})`); gr.addColorStop(0.62, `rgba(${r},${g},${b},${forte ? 0.72 : minimo * 0.45})`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
   ctx.fillStyle = gr; ctx.fillRect(0, Math.min(y0, y1), W, Math.abs(y1 - y0));
@@ -352,7 +355,7 @@ function circuloTexto(ctx, s, o, txt, cx, cy, r) { // selo redondo
   texto(ctx, s, o, txt, { x: cx - r + 26, y: cy, maxW: (r - 26) * 2, linhas: 2, tam: [52, 44, 38, 32, 28], fam: "t", cor: s.sobreDestaque, alinhar: "center", base: "meio", campo: "selo" });
 }
 function marcaDagua(ctx, s) {
-  ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(-Math.PI / 7);
+  ctx.save(); ctx.translate(W / 2, A / 2); ctx.rotate(-Math.PI / 7);
   ctx.font = `800 62px ${s.P.x}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round"; ctx.lineWidth = 3;
   for (let i = -6; i <= 6; i++) for (let x = -W * 1.3; x <= W * 1.3; x += 430) {
     const px = x + (i & 1) * 215, py = i * 200;
@@ -374,25 +377,25 @@ export const LAYOUTS = {
       fundo(ctx, s);
       marca(ctx, s, o, { x: W / 2, y: 86, alinhar: "center", estilo: "assinatura", cor: s.tinta, maxW: 760 });
       linhaFina(ctx, W / 2 - 60, 178, W / 2 + 60, s.destaque, 3);
-      const fh = 560; foto(ctx, s, o, 0, 70, H - fh - 150, W - 140, fh, { fade: true });
+      const fh = 560; foto(ctx, s, o, 0, 70, A - fh - 150, W - 140, fh, { fade: true });
       const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 206, maxW: W - 2 * M, linhas: 2, tam: [104, 92, 80, 70, 62], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
       texto(ctx, s, o, t.c.valor, { x: M, y: 206 + ht + 6, maxW: W - 2 * M, linhas: 1, tam: [250, 220, 190, 160, 136, 116], cor: s.tinta, alinhar: "center", campo: "valor" });
-      icone(ctx, s.icone, 150, H - 96, 20, s.destaque); icone(ctx, s.icone, W - 150, H - 96, 20, s.destaque);
-      rotulo(ctx, s, o, t.c.rodape, { x: 200, y: H - 116, maxW: W - 400, tam: [34, 30, 26, 22], cor: s.tinta, alinhar: "center", espaco: 8, campo: "rodape" });
+      icone(ctx, s.icone, 150, A - 96, 20, s.destaque); icone(ctx, s.icone, W - 150, A - 96, 20, s.destaque);
+      rotulo(ctx, s, o, t.c.rodape, { x: 200, y: A - 116, maxW: W - 400, tam: [34, 30, 26, 22], cor: s.tinta, alinhar: "center", espaco: 8, campo: "rodape" });
     } },
   "capa-tipo": { nome: "Capa tipográfica", fotos: 0, campos: [C("titulo", "Título (use *asteriscos* no destaque)"), APO],
     desenhar(ctx, s, t, o) {
       fundo(ctx, s);
       marca(ctx, s, o, { x: M, y: M, cor: s.tinta });
       icone(ctx, s.icone, W - M - 30, M + 30, 34, s.destaque, 0.2);
-      texto(ctx, s, o, t.c.titulo, { x: M + 20, y: H * 0.47, maxW: W - 2 * M - 40, linhas: 4, tam: [210, 180, 156, 134, 116, 100, 86], cor: s.tinta, realce: s.realce, alinhar: "center", base: "meio", entre: 1.02, swash: true, campo: "titulo" });
-      linhaFina(ctx, W / 2 - 40, H - 250, W / 2 + 40, s.destaque, 3);
-      corpo(ctx, s, o, t.c.apoio, { x: M + 60, y: H - 210, maxW: W - 2 * M - 120, linhas: 2, tam: [38, 34, 30, 27], cor: s.tinta, alinhar: "center", campo: "apoio" });
+      texto(ctx, s, o, t.c.titulo, { x: M + 20, y: A * 0.47, maxW: W - 2 * M - 40, linhas: 4, tam: [210, 180, 156, 134, 116, 100, 86], cor: s.tinta, realce: s.realce, alinhar: "center", base: "meio", entre: 1.02, swash: true, campo: "titulo" });
+      linhaFina(ctx, W / 2 - 40, A - 250, W / 2 + 40, s.destaque, 3);
+      corpo(ctx, s, o, t.c.apoio, { x: M + 60, y: A - 210, maxW: W - 2 * M - 120, linhas: 2, tam: [38, 34, 30, 27], cor: s.tinta, alinhar: "center", campo: "apoio" });
     } },
   "capa-foto": { nome: "Capa com foto inteira", fotos: 1, campos: [TIT, APO],
     desenhar(ctx, s, t, o) {
-      foto(ctx, s, o, 0, 0, 0, W, H);
-      const ch = 380, cy = H - ch - 60;
+      foto(ctx, s, o, 0, 0, 0, W, A);
+      const ch = 380, cy = A - ch - 60;
       cartao(ctx, s, 48, cy, W - 96, ch, 30);
       icone(ctx, s.icone, W - 120, cy + 70, 26, s.destaque, 0.3);
       rotulo(ctx, s, o, o.marca ? "{marca}" : MARCA_VAZIA, { x: 100, y: cy + 50, maxW: W - 320, tam: [24, 22, 20], cor: s.realcePapel, campo: "marca" });
@@ -410,8 +413,8 @@ export const LAYOUTS = {
       quadro(ctx, s, o, 1, 520, 640, 470, 560, { rot: 0.04 });
       ctx.save(); sombra(ctx, true, 0.6); ctx.fillStyle = s.destaque; ctx.beginPath(); ctx.arc(565, 692, 64, 0, 7); ctx.fill(); sombra(ctx, false);
       ctx.strokeStyle = s.sobreDestaque; ctx.lineWidth = 12; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(565, 662); ctx.lineTo(565, 722); ctx.moveTo(535, 692); ctx.lineTo(595, 692); ctx.stroke(); ctx.restore();
-      corpo(ctx, s, o, t.c.apoio, { x: M, y: H - 120, maxW: 400, linhas: 2, tam: [32, 28, 25], cor: s.tinta, campo: "apoio" });
-      icone(ctx, s.icone, W - M - 30, H - 100, 30, s.destaque, 0.2);
+      corpo(ctx, s, o, t.c.apoio, { x: M, y: A - 120, maxW: 400, linhas: 2, tam: [32, 28, 25], cor: s.tinta, campo: "apoio" });
+      icone(ctx, s.icone, W - M - 30, A - 100, 30, s.destaque, 0.2);
     } },
   "capa-calendario": { nome: "Capa de calendário", fotos: 0, campos: [TIT, C("dia", "Dia"), C("mes", "Mês"), APO],
     desenhar(ctx, s, t, o) {
@@ -439,7 +442,7 @@ export const LAYOUTS = {
       quadro(ctx, s, o, 0, 250, 170, 580, 700, { moldura: "arco" });
       icone(ctx, s.icone, 190, 330, 30, s.destaque, -0.2); icone(ctx, s.icone, 900, 760, 22, s.destaque, 0.3);
       const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 920, maxW: W - 2 * M, linhas: 2, tam: [104, 92, 80, 70, 60], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
-      corpo(ctx, s, o, t.c.apoio, { x: M + 60, y: Math.max(920 + ht + 16, H - 130), maxW: W - 2 * M - 120, linhas: 1, tam: [34, 30, 27, 24], cor: s.suave, alinhar: "center", campo: "apoio" });
+      corpo(ctx, s, o, t.c.apoio, { x: M + 60, y: Math.max(920 + ht + 16, A - 130), maxW: W - 2 * M - 120, linhas: 1, tam: [34, 30, 27, 24], cor: s.suave, alinhar: "center", campo: "apoio" });
     } },
   "capa-polaroides": { nome: "Capa com três fotos", fotos: 3, campos: [TIT, APO],
     desenhar(ctx, s, t, o) {
@@ -476,8 +479,8 @@ export const LAYOUTS = {
         ctx.strokeStyle = s.realce; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, 72, 36); ctx.stroke();
         ctx.fillStyle = s.tinta; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `700 34px ${s.P.x}`; ctx.fillText(it, x + w / 2, y + 38, w - 40); x += w + 18; });
       if (o.caixas) o.caixas.push({ campo: "itens", txt: itens.join(" · "), x: M, y: 1030, w: W - 2 * M, h: y + 72 - 1030, maxW: W - 2 * M, linhas: 1, cortou: y > 1130 });
-      corpo(ctx, s, o, t.c.apoio, { x: M, y: H - 70, maxW: W - 2 * M - 80, linhas: 1, tam: [30, 27, 24], cor: s.suave, base: "baixo", campo: "apoio" });
-      seta(ctx, s, W - M, H - 88, s.realce);
+      corpo(ctx, s, o, t.c.apoio, { x: M, y: A - 70, maxW: W - 2 * M - 80, linhas: 1, tam: [30, 27, 24], cor: s.suave, base: "baixo", campo: "apoio" });
+      seta(ctx, s, W - M, A - 88, s.realce);
     } },
   "capa-ano": { nome: "Capa de retrospectiva", fotos: 3, campos: [TIT, C("ano", "Ano"), APO],
     desenhar(ctx, s, t, o) {
@@ -487,7 +490,7 @@ export const LAYOUTS = {
       const fw = 290, gap = 26, x0 = (W - 3 * fw - 2 * gap) / 2;
       [0, 1, 2].forEach(i => quadro(ctx, s, o, i, x0 + i * (fw + gap), 520, fw, 380, { rot: [-0.04, 0.02, 0.05][i], moldura: s.moldura === "filme" ? "papel" : s.moldura }));
       texto(ctx, s, o, t.c.titulo, { x: M, y: 990, maxW: W - 2 * M, linhas: 2, tam: [96, 84, 74, 64, 56], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
-      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: H - 70, maxW: W - 2 * M - 80, linhas: 1, tam: [30, 27, 24], cor: s.suave, alinhar: "center", base: "baixo", campo: "apoio" });
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: A - 70, maxW: W - 2 * M - 80, linhas: 1, tam: [30, 27, 24], cor: s.suave, alinhar: "center", base: "baixo", campo: "apoio" });
       icone(ctx, s.icone, W - 110, 150, 30, s.destaque, 0.2);
     } },
   "capa-etiqueta": { nome: "Capa com etiqueta de preço", fotos: 1, campos: [TIT, C("preco", "Preço"), APO],
@@ -536,13 +539,13 @@ export const LAYOUTS = {
   "capa-embrulho": { nome: "Capa com foto inteira e valor", fotos: 1, rotFotos: ["Foto da embalagem ou do produto (ocupa a capa inteira; deixe espaço livre em cima)"], campos: [TIT, C("valor", "Valor"), C("rodape", "Rodapé")],
     desenhar(ctx, s, t, o) {
       fundo(ctx, s);
-      foto(ctx, s, o, 0, 0, 0, W, H);
+      foto(ctx, s, o, 0, 0, 0, W, A);
       veu(ctx, s, o, 0, 0, 600, s.tinta, true);
-      veu(ctx, s, o, 0, H, H - 330, s.tinta, false, 0.78);
+      veu(ctx, s, o, 0, A, A - 330, s.tinta, false, 0.78);
       marca(ctx, s, o, { x: W / 2, y: 74, alinhar: "center", estilo: "assinatura", cor: s.tinta, maxW: 760, placa: false });
       const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 168, maxW: W - 2 * M, linhas: 2, tam: [124, 112, 100, 88, 76, 66], cor: s.tinta, realce: s.realce, alinhar: "center", entre: 1, campo: "titulo" });
       texto(ctx, s, o, t.c.valor, { x: M, y: 168 + ht - 4, maxW: W - 2 * M, linhas: 1, tam: [250, 224, 196, 170, 146, 124], cor: s.tinta, alinhar: "center", campo: "valor" });
-      rotulo(ctx, s, o, t.c.rodape, { x: 160, y: H - 104, maxW: W - 320, tam: [34, 30, 26, 22], peso: 600, cor: s.tinta, alinhar: "center", espaco: 10, campo: "rodape" });
+      rotulo(ctx, s, o, t.c.rodape, { x: 160, y: A - 104, maxW: W - 320, tam: [34, 30, 26, 22], peso: 600, cor: s.tinta, alinhar: "center", espaco: 10, campo: "rodape" });
     } },
   /* bilhete do sorteio: papel marfim inclinado sobre o fundo, chamada grande escrita nele */
   "capa-bilhete": { nome: "Capa com bilhete", fotos: 0, campos: [C("tema", "Tema (letra pequena)"), C("titulo", "Chamada do bilhete (use *destaque*)"), APO],
@@ -573,7 +576,7 @@ export const LAYOUTS = {
       icone(ctx, s.icone, bw / 2 - 80, bh / 2 - 80, 30, realceN, 0.2);
       ctx.restore();
       if (o.caixas) o.caixas.slice(antes).forEach(b => { b.x += cx; b.y += cy; }); // caixas em coordenadas da tela
-      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: H - 118, maxW: W - 2 * M - 80, linhas: 2, tam: [38, 34, 30, 27], peso: 600, cor: s.tinta, alinhar: "center", base: "meio", campo: "apoio" });
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: A - 118, maxW: W - 2 * M - 80, linhas: 2, tam: [38, 34, 30, 27], peso: 600, cor: s.tinta, alinhar: "center", base: "meio", campo: "apoio" });
     } },
   /* frase em destaque assinada pela loja: a loja é quem fez a seleção */
   "capa-assinatura": { nome: "Capa tipográfica assinada", fotos: 0, campos: [C("tema", "Tema (letra pequena)"), C("titulo", "Frase (use *destaque*)"), C("assina", "Antes da assinatura")],
@@ -584,7 +587,7 @@ export const LAYOUTS = {
       ctx.fillStyle = s.realce; ctx.font = `${s.P.tp} 440px ${s.P.t}`; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillText("“", M - 26, 560);
       texto(ctx, s, o, t.c.titulo, { x: M, y: 700, maxW: W - 2 * M, linhas: 4, tam: [196, 176, 158, 140, 124, 108, 94], cor: s.tinta, realce: s.realce, base: "meio", entre: 1.0, campo: "titulo" });
       // assinatura de quem escolheu
-      const ay = H - 250;
+      const ay = A - 250;
       linhaFina(ctx, W - M - 420, ay, W - M, s.destaque, 3);
       corpo(ctx, s, o, t.c.assina, { x: W - M - 520, y: ay + 26, maxW: 520, linhas: 1, tam: [32, 29, 26], cor: s.suave, alinhar: "right", campo: "assina" });
       marca(ctx, s, o, { x: W - M, y: ay + 82, alinhar: "right", estilo: "assinatura", cor: s.tinta, maxW: 720, h: 90 });
@@ -601,7 +604,104 @@ export const LAYOUTS = {
       const px = W / 2, py = fy + fh / 2;
       ctx.save(); sombra(ctx, true, 0.6); ctx.fillStyle = s.destaque; ctx.beginPath(); ctx.arc(px, py, 54, 0, 7); ctx.fill(); sombra(ctx, false);
       ctx.strokeStyle = s.sobreDestaque; ctx.lineWidth = 10; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(px, py - 24); ctx.lineTo(px, py + 24); ctx.moveTo(px - 24, py); ctx.lineTo(px + 24, py); ctx.stroke(); ctx.restore();
-      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: H - 108, maxW: W - 2 * M - 80, linhas: 2, tam: [34, 31, 28, 25], cor: s.tinta, alinhar: "center", base: "meio", campo: "apoio" });
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: A - 108, maxW: W - 2 * M - 80, linhas: 2, tam: [34, 31, 28, 25], cor: s.tinta, alinhar: "center", base: "meio", campo: "apoio" });
+    } },
+
+  /* ===== Stories (1080 × 1920) =====
+     Texto importante entre y = 240 e y = 1680: em cima e embaixo o Instagram põe a barra de progresso,
+     o nome e o campo de resposta. Onde entra adesivo (enquete, link, caixinha), a tela deixa espaço livre
+     e uma seta; o adesivo é colocado no próprio Instagram. */
+  "st-abre": { nome: "Stories · abertura com foto", story: true, fotos: 1, campos: [TIT, APO],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta });
+      quadro(ctx, s, o, 0, 150, 360, W - 300, 860, { rot: -0.02, moldura: ["filme", "polaroide"].includes(s.moldura) ? "papel" : s.moldura });
+      icone(ctx, s.icone, W - 150, 360, 34, s.destaque, 0.2);
+      const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 1300, maxW: W - 2 * M, linhas: 3, tam: [120, 106, 94, 82, 72], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: 1300 + ht + 24, maxW: W - 2 * M - 80, linhas: 2, tam: [44, 40, 36, 32], cor: s.suave, alinhar: "center", campo: "apoio" });
+    } },
+  "st-texto": { nome: "Stories · só texto", story: true, fotos: 0, campos: [C("titulo", "Texto grande (use *destaque*)"), APO],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta });
+      icone(ctx, s.icone, W / 2, 520, 40, s.destaque, 0.1);
+      texto(ctx, s, o, t.c.titulo, { x: M + 10, y: 930, maxW: W - 2 * M - 20, linhas: 5, tam: [150, 132, 116, 102, 90, 80], cor: s.tinta, realce: s.realce, alinhar: "center", base: "meio", entre: 1.04, campo: "titulo" });
+      linhaFina(ctx, W / 2 - 50, 1380, W / 2 + 50, s.destaque, 3);
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: 1430, maxW: W - 2 * M - 80, linhas: 3, tam: [46, 42, 38, 34], cor: s.tinta, alinhar: "center", campo: "apoio" });
+    } },
+  "st-enquete": { nome: "Stories · enquete com duas opções", story: true, fotos: 2, rotFotos: ["Opção 1 (esquerda)", "Opção 2 (direita)"], campos: [C("pergunta", "Pergunta"), C("op1", "Nome da opção 1"), C("op2", "Nome da opção 2"), C("dica", "Texto acima da enquete")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta });
+      texto(ctx, s, o, t.c.pergunta, { x: M, y: 330, maxW: W - 2 * M, linhas: 3, tam: [112, 100, 88, 78, 68], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "pergunta" });
+      const fw = (W - 2 * 80 - 50) / 2, fy = 700, fh = 600, mold = ["polaroide", "filme", "arco", "oval"].includes(s.moldura) ? "papel" : s.moldura;
+      quadro(ctx, s, o, 0, 80, fy, fw, fh, { rot: -0.025, moldura: mold }); quadro(ctx, s, o, 1, 80 + fw + 50, fy, fw, fh, { rot: 0.025, moldura: mold });
+      [[t.c.op1, 80, "op1"], [t.c.op2, 80 + fw + 50, "op2"]].forEach(([v, x, k]) => texto(ctx, s, o, v, { x, y: fy + fh + 44, maxW: fw, linhas: 2, tam: [48, 43, 38, 34], fam: "x", peso: 700, cor: s.tinta, alinhar: "center", campo: k }));
+      rotulo(ctx, s, o, t.c.dica, { x: M, y: 1490, maxW: W - 2 * M, tam: [34, 31, 28, 25], cor: s.realce, alinhar: "center", espaco: 5, campo: "dica" });
+    } },
+  "st-foto": { nome: "Stories · foto inteira com cartão", story: true, fotos: 1, campos: [TIT, C("texto", "Texto"), C("preco", "Preço (opcional)")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      foto(ctx, s, o, 0, 0, 0, W, A);
+      veu(ctx, s, o, 0, 0, 380, s.tinta, true, 0.35);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta, placa: true });
+      // o cartão acompanha o tamanho do texto e fica apoiado na base da área segura
+      const oT = { x: 120, maxW: W - 240, linhas: 2, tam: [92, 82, 72, 64, 56], cor: s.tintaPapel, realce: s.realcePapel, campo: "titulo" }, oC = { x: 120, maxW: W - 240, linhas: 3, tam: [42, 38, 34, 31], cor: s.tintaPapel, campo: "texto" };
+      const med = document.createElement("canvas").getContext("2d"), so = { ...o, caixas: null };
+      const h1 = texto(med, s, so, t.c.titulo, { ...oT, y: 0 }), h2 = corpo(med, s, so, t.c.texto, { ...oC, y: 0 });
+      const ch = 64 + h1 + (h2 ? 22 + h2 : 0) + 64, cy = 1660 - ch;
+      cartao(ctx, s, 60, cy, W - 120, ch, 34);
+      const ht = texto(ctx, s, o, t.c.titulo, { ...oT, y: cy + 64 });
+      corpo(ctx, s, o, t.c.texto, { ...oC, y: cy + 64 + ht + 22 });
+      if (String(t.c.preco || "").trim()) etiqueta(ctx, s, o, t.c.preco, W - 300, cy - 10, { rot: -0.07 });
+    } },
+  "st-acao": { nome: "Stories · chamada final", story: true, fotos: 1, campos: [TIT, C("texto", "Texto"), C("botao", "Texto do botão"), C("dica", "Texto acima do link")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta });
+      quadro(ctx, s, o, 0, W / 2 - 230, 380, 460, 460, { forma: "circulo" });
+      icone(ctx, s.icone, W / 2 + 250, 420, 34, s.destaque, 0.2);
+      const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 920, maxW: W - 2 * M, linhas: 3, tam: [112, 100, 88, 78, 68], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
+      corpo(ctx, s, o, t.c.texto, { x: M + 40, y: 920 + ht + 22, maxW: W - 2 * M - 80, linhas: 3, tam: [44, 40, 36, 32], cor: s.tinta, alinhar: "center", campo: "texto" });
+      const bt = String(t.c.botao || "").trim();
+      if (bt) { ctx.font = `800 44px ${s.P.x}`; const bw = Math.min(W - 2 * M, ctx.measureText(bt).width + 120), bx = (W - bw) / 2, by = 1400;
+        sombra(ctx, true, 0.5); ctx.fillStyle = s.destaque; ctx.beginPath(); ctx.roundRect(bx, by, bw, 104, 52); ctx.fill(); sombra(ctx, false);
+        texto(ctx, s, o, bt, { x: bx + 50, y: by + 54, maxW: bw - 100, linhas: 1, tam: [44, 40, 36, 32], fam: "x", peso: 800, cor: s.sobreDestaque, alinhar: "center", base: "meio", campo: "botao" }); }
+      rotulo(ctx, s, o, t.c.dica, { x: M, y: 1560, maxW: W - 2 * M, tam: [32, 29, 26], cor: s.realce, alinhar: "center", espaco: 5, campo: "dica" });
+    } },
+  "st-caixa": { nome: "Stories · caixinha de perguntas", story: true, fotos: 1, campos: [TIT, APO, C("dica", "Texto acima da caixinha")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta });
+      quadro(ctx, s, o, 0, 250, 360, 580, 640, { moldura: "arco" });
+      const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 1080, maxW: W - 2 * M, linhas: 3, tam: [104, 92, 82, 72, 64], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: 1080 + ht + 20, maxW: W - 2 * M - 80, linhas: 2, tam: [42, 38, 34, 31], cor: s.suave, alinhar: "center", campo: "apoio" });
+      rotulo(ctx, s, o, t.c.dica, { x: M, y: 1480, maxW: W - 2 * M, tam: [32, 29, 26], cor: s.realce, alinhar: "center", espaco: 5, campo: "dica" });
+    } },
+  "st-antes": { nome: "Stories · antes e depois", story: true, fotos: 2, rotFotos: ["Antes (em cima)", "Depois (embaixo)"], campos: [TIT, C("rot1", "Rótulo de cima"), C("rot2", "Rótulo de baixo")],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta });
+      texto(ctx, s, o, t.c.titulo, { x: M, y: 320, maxW: W - 2 * M, linhas: 2, tam: [104, 92, 82, 72, 64], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
+      const fh = 560, x = 110, w = W - 220;
+      [[0, 560, t.c.rot1, "rot1"], [1, 1150, t.c.rot2, "rot2"]].forEach(([i, y, r, k]) => { foto(ctx, s, o, i, x, y, w, fh, { r: 24 });
+        if (!String(r || "").trim()) return; ctx.font = `800 30px ${s.P.x}`; const rw = Math.min(ctx.measureText(String(r).toUpperCase()).width + 60, w - 60);
+        ctx.fillStyle = i ? s.destaque : s.papel; ctx.beginPath(); ctx.roundRect(x + 30, y + fh - 90, rw, 62, 31); ctx.fill();
+        rotulo(ctx, s, o, r, { x: x + 60, y: y + fh - 75, maxW: rw - 60, tam: [28, 25, 22], espaco: 2, cor: i ? s.sobreDestaque : s.tintaPapel, campo: k }); });
+    } },
+  "st-lista": { nome: "Stories · lista ou prazos", story: true, fotos: 0, campos: [TIT, C("item1", "Item 1"), C("item2", "Item 2"), C("item3", "Item 3"), APO],
+    desenhar(ctx, s, t, o) {
+      fundo(ctx, s);
+      marca(ctx, s, o, { x: W / 2, y: 236, alinhar: "center", cor: s.tinta });
+      const ht = texto(ctx, s, o, t.c.titulo, { x: M, y: 380, maxW: W - 2 * M, linhas: 3, tam: [116, 102, 90, 80, 70], cor: s.tinta, realce: s.realce, alinhar: "center", campo: "titulo" });
+      let y = Math.max(720, 380 + ht + 80);
+      ["item1", "item2", "item3"].filter(k => String(t.c[k] || "").trim()).forEach((k, i) => {
+        cartao(ctx, s, M, y, W - 2 * M, 190, 26);
+        ctx.fillStyle = s.destaque; ctx.beginPath(); ctx.arc(M + 90, y + 95, 44, 0, 7); ctx.fill();
+        ctx.fillStyle = s.sobreDestaque; ctx.font = `800 44px ${s.P.x}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(String(i + 1), M + 90, y + 97);
+        corpo(ctx, s, o, t.c[k], { x: M + 170, y: y + 95, maxW: W - 2 * M - 210, linhas: 2, tam: [44, 40, 36, 32], peso: 600, cor: s.tintaPapel, base: "meio", campo: k });
+        y += 220; });
+      corpo(ctx, s, o, t.c.apoio, { x: M + 40, y: Math.min(y + 30, 1560), maxW: W - 2 * M - 80, linhas: 2, tam: [40, 36, 32, 29], cor: s.suave, alinhar: "center", campo: "apoio" });
     } },
 
   /* ===== telas internas ===== */
@@ -734,9 +834,9 @@ export const LAYOUTS = {
     desenhar(ctx, s, t, o) {
       fundo(ctx, s);
       icone(ctx, s.icone, W / 2, 250, 40, s.destaque);
-      texto(ctx, s, o, t.c.frase, { x: M + 20, y: H / 2 + 20, maxW: W - 2 * M - 40, linhas: 5, tam: [110, 96, 84, 72, 62, 54], cor: s.tinta, realce: s.realce, alinhar: "center", base: "meio", entre: 1.08, campo: "frase" });
-      rotulo(ctx, s, o, t.c.autor, { x: M, y: H - 200, maxW: W - 2 * M, tam: [28, 25, 22], cor: s.suave, alinhar: "center", espaco: 6, campo: "autor" });
-      if (!/\{marca\}/.test(t.c.autor || "") || o.logo) marca(ctx, s, o, { x: W / 2, y: H - 130, alinhar: "center", cor: s.tinta, h: 56 });
+      texto(ctx, s, o, t.c.frase, { x: M + 20, y: A / 2 + 20, maxW: W - 2 * M - 40, linhas: 5, tam: [110, 96, 84, 72, 62, 54], cor: s.tinta, realce: s.realce, alinhar: "center", base: "meio", entre: 1.08, campo: "frase" });
+      rotulo(ctx, s, o, t.c.autor, { x: M, y: A - 200, maxW: W - 2 * M, tam: [28, 25, 22], cor: s.suave, alinhar: "center", espaco: 6, campo: "autor" });
+      if (!/\{marca\}/.test(t.c.autor || "") || o.logo) marca(ctx, s, o, { x: W / 2, y: A - 130, alinhar: "center", cor: s.tinta, h: 56 });
     } },
   "int-cta": { nome: "Chamada final", fotos: 1, campos: [C("titulo", "Título"), C("texto", "Texto"), C("contato", "Contato")],
     desenhar(ctx, s, t, o) {
@@ -765,7 +865,7 @@ export const LAYOUTS = {
       [0, 1, 2, 3].forEach(i => foto(ctx, s, o, i, M + (i % 2) * (w + g), 120 + Math.floor(i / 2) * (h + g), w, h, { r: 14 }));
       marca(ctx, s, o, { x: M, y: M - 30, cor: s.suave, h: 44 });
       texto(ctx, s, o, t.c.titulo, { x: M, y: 960, maxW: W - 2 * M - 80, linhas: 2, tam: [84, 74, 64, 56, 48], cor: s.tinta, realce: s.realce, campo: "titulo" });
-      corpo(ctx, s, o, t.c.texto, { x: M, y: H - 70, maxW: W - 2 * M, linhas: 2, tam: [36, 32, 28, 25], cor: s.suave, base: "baixo", campo: "texto" });
+      corpo(ctx, s, o, t.c.texto, { x: M, y: A - 70, maxW: W - 2 * M, linhas: 2, tam: [36, 32, 28, 25], cor: s.suave, base: "baixo", campo: "texto" });
       icone(ctx, s.icone, W - M - 30, 1000, 28, s.destaque);
     } },
   "int-lista": { nome: "Lista", fotos: 0, campos: [C("titulo", "Título"), C("item1", "Item 1"), C("item2", "Item 2"), C("item3", "Item 3"), C("item4", "Item 4")],
@@ -777,10 +877,11 @@ export const LAYOUTS = {
         ctx.strokeStyle = s.realce; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(M + 6, y + 40); ctx.lineTo(M + 26, y + 62); ctx.lineTo(M + 62, y + 18); ctx.stroke();
         corpo(ctx, s, o, t.c[`item${n}`], { x: M + 100, y: y + 40, maxW: W - 2 * M - 100, linhas: 2, tam: [46, 42, 38, 34, 30], peso: 600, cor: s.tinta, base: "meio", campo: `item${n}` });
         if (n < 4) linhaFina(ctx, M + 100, y + 140, W - M, misturar(s.tinta, s.fundo, 0.82), 2); });
-      icone(ctx, s.icone, W - M - 30, H - 110, 32, s.destaque, 0.2);
+      icone(ctx, s.icone, W - M - 30, A - 110, 32, s.destaque, 0.2);
     } }
 };
 export const temLayoutEstudio = l => !!LAYOUTS[l];
+export const alturaDoLayout = l => (LAYOUTS[l] && LAYOUTS[l].story ? HS : H);
 export const camposDoLayout = l => (LAYOUTS[l] || { campos: [] }).campos;
 export const fotosDoLayout = l => (LAYOUTS[l] || { fotos: 0 }).fotos;
 
@@ -793,9 +894,10 @@ export const fotosDoLayout = l => (LAYOUTS[l] || { fotos: 0 }).fotos;
 export function desenharEstudio(ctx, tela, estilo, o) {
   const lay = LAYOUTS[tela.l]; if (!lay) return;
   const s = estiloDaTela(estilo, tela);
-  ctx.save(); ctx.clearRect(0, 0, W, H);
+  A = lay.story ? HS : H;
+  ctx.save(); ctx.clearRect(0, 0, W, A);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.letterSpacing = "0px";
   lay.desenhar(ctx, s, { ...tela, c: tela.c || {} }, o);
   if (o.amostra) marcaDagua(ctx, s);
-  ctx.restore();
+  ctx.restore(); A = H;
 }
