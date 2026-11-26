@@ -233,11 +233,17 @@ Ao final, entregue:
 - [x] Kit completo das duas coleções à venda: 22 roteiros de Reels, 16 sequências de Stories editáveis (1080 × 1920), calendários por plano com atalhos; área da cliente em Calendário / Carrosséis / Reels / Stories (24/11/2026)
 
 ### Pendências do Arthur para abrir as vendas
-- Pagamento com InfinitePay já implementado (ver "Pagamento com InfinitePay" e `docs/pagamento-infinitepay.md`). Falta: ativar o Checkout Integrado na conta, cadastrar as variáveis em privado (`ACESSO_SECRET`, `ADMIN_TOKEN`, `INFINITEPAY_HANDLE`, `SITE_URL`, `RESEND_API_KEY`, `EMAIL_REMETENTE`; `INFINITEPAY_API_KEY` opcional), ter um domínio próprio verificado no Resend e fazer as duas compras reais de R$ 1,00 (Pix e cartão).
+- **Pagamento: IPG do Sicredi (decidido em 26/11/2026)**, já implementado (ver "Pagamento com o IPG do Sicredi" e `docs/pagamento-ipg-sicredi.md`). Falta: pedir ao Sicredi a loja de testes (Store Name e Shared Secret), cadastrar as variáveis em privado (`PAGAMENTO_PROVEDOR=ipg`, `IPG_STORENAME`, `IPG_SHARED_SECRET`, `ACESSO_SECRET`, `ADMIN_TOKEN`, `SITE_URL`, `RESEND_API_KEY`, `EMAIL_REMETENTE`), homologar e depois cadastrar os dados e o `IPG_URL` de produção. A InfinitePay continua no código como alternativa.
 - Trocar as fotos provisórias de `public/assets/exemplo/` (ilustrações) por fotos reais de produto, mantendo os nomes.
 - Confirmar o contato da gestão mensal (`contatoGestao`, hoje o WhatsApp (55) 9940-8766).
 - Revisar os textos do kit em `private/campanhas/presentes-por-orcamento.js` e `private/campanhas/seu-toque-nas-festas.js` (Reels, Stories, calendários).
 - Reels, Stories, mensagens e calendários das outras 8 coleções (os carrosséis já estão prontos; status `em-preparacao` até lá).
+
+## Pagamento com o IPG do Sicredi (26/11/2026)
+- **Provedor ativo:** `PAGAMENTO_PROVEDOR=ipg` + `IPG_STORENAME` + `IPG_SHARED_SECRET` (sem eles, compra pelo WhatsApp). Código em `private/ipg.js`; rotas `api/pedido.js` (devolve o formulário assinado), `api/ipg.js` (aviso servidor a servidor) e `api/ipg-retorno.js` (volta da cliente, redireciona para `#retorno`).
+- **Fiserv Connect (página hospedada):** `hashExtended` = HMAC-SHA256 (shared secret) dos valores não vazios em ordem do nome, separados por "|", Base64 (teste confere com o exemplo oficial). Volta: `response_hash` = HMAC(approval_code|chargetotal|currency|txndatetime|storename). Aviso: `notification_hash` = HMAC(chargetotal|currency|txndatetime|storename|approval_code).
+- **Sem banco de dados:** o pedido assinado vai nos endereços de volta e de aviso (`?p=`), que entram no `hashExtended`; `txndatetime` e `oid` são derivados do pedido. Aprovado na volta: o servidor dá um comprovante (HMAC) que a página de retorno usa para mostrar "Abrir minha campanha".
+- **Testes:** `tests/ipg.test.mjs` e `tests/navegador/compra-ipg.mjs` com o simulador `tests/ipg-falso.mjs`.
 
 ## Pagamento com InfinitePay (25/11/2026)
 - **Percurso:** revisão do pedido (`#pedido/<coleção>/<plano>`, com e-mail e confirmação) → `POST /api/pedido` (preço do servidor, link da InfinitePay) → paga na InfinitePay → aviso `POST /api/infinitepay?k=<token>` → conferência `payment_check` → e-mail com o acesso. Volta da cliente: `/retorno.html` → `#retorno` → `POST /api/retorno` (confere de novo; "Abrir minha campanha"; "reenvie o e-mail").

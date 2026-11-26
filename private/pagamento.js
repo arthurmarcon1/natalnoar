@@ -51,7 +51,7 @@ export function criarPedido({ campanha, plano: planoId, email, teste = false }, 
   // formato curto (o limite do order_nsu não é documentado): campanha~plano~valor~e-mail~data(base 36)~teste
   const dados = b64([campanha, plano.id, valor, email, Math.floor(agora / 1000).toString(36), valor !== centavos(plano) ? 1 : 0].join("~"));
   const nsu = `${dados}.${hmac("pedido", dados, segredo).slice(0, 22)}`;
-  return { nsu, campanha, tema, plano, valor, email, teste: valor !== centavos(plano) };
+  return { nsu, campanha, tema, plano, valor, email, criado: Math.floor(agora / 1000) * 1000, teste: valor !== centavos(plano) };
 }
 export function lerPedido(nsu, segredo) {
   if (!segredo || typeof nsu !== "string" || nsu.length > 600) return null;

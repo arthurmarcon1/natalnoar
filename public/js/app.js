@@ -427,7 +427,7 @@ function formPagamento(tema, plano) {
     <label class="campo"><span>Confirme o e-mail</span><input type="email" name="confirmacao" autocomplete="off" inputmode="email" required maxlength="120" placeholder="digite de novo"></label>
     <p class="pg-erro" role="alert" hidden></p>
     <button class="btn grande block" type="submit"><span>Continuar para o pagamento · <span class="nw">${fmtBRL(plano.preco)}</span></span></button>
-    <p class="pg-metodos"><b>Pix</b> na hora, ou cartão de crédito. Você paga na página segura da InfinitePay e volta para cá.</p>
+    <p class="pg-metodos" data-pg-metodos>Você paga na página segura do provedor de pagamento e volta para cá.</p>
     <p class="aviso-pedido" role="note">Compra única, sem mensalidade. Assim que o pagamento for confirmado, o botão <b>Abrir minha campanha</b> aparece na tela e o link de acesso chega no seu e-mail, mesmo se você fechar esta página.</p>
     ${ajuda ? `<p class="hint">Dúvidas? <a href="${esc(ajuda)}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a>.</p>` : ""}
   </form>`;
@@ -436,8 +436,13 @@ function formPagamento(tema, plano) {
 async function prepararPagamento() {
   const f = $(".pg-form"); if (!f) return;
   let ativo = false;
-  try { const r = await fetch("/api/pedido", { cache: "no-store" }); ativo = r.ok && (await r.json()).ativo === true; } catch {}
-  if (ativo) { f.hidden = false; return; }
+  let provedor = null;
+  try { const r = await fetch("/api/pedido", { cache: "no-store" }); const d = r.ok ? await r.json() : {}; ativo = d.ativo === true; provedor = d.provedor; } catch {}
+  if (ativo) {
+    const m = f.querySelector("[data-pg-metodos]");
+    if (m) m.innerHTML = provedor === "ipg" ? "Você paga na <b>página segura do Sicredi</b> e volta para cá. Os dados do cartão não passam pelo nosso site." : "<b>Pix</b> na hora, ou cartão de crédito. Você paga na página segura da InfinitePay e volta para cá.";
+    f.hidden = false; return;
+  }
   const tema = temaPorId(SITE, f.dataset.camp), plano = planoPorId(SITE, f.dataset.planoPedido);
   const w = ajudaWhatsApp(String(SITE.mensagemCompra || "").replaceAll("{campanha}", tema.nome).replaceAll("{plano}", plano.nome).replaceAll("{preco}", fmtBRL(plano.preco)));
   f.outerHTML = `<p class="aviso-pedido" role="note"><b>Nenhum pagamento foi feito.</b> O pedido é finalizado pelo WhatsApp: a gente confirma o pagamento e envia o seu link de acesso.</p>
@@ -453,11 +458,16 @@ async function enviarPedido(form) {
   try {
     const r = await fetch("/api/pedido", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ campanha: form.dataset.camp, plano: form.dataset.planoPedido, email, confirmacao }) });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok || !d.url) {
+    if (!r.ok || (!d.url && !d.formulario)) {
       const tema = temaPorId(SITE, form.dataset.camp), plano = planoPorId(SITE, form.dataset.planoPedido), w = ajudaWhatsApp(`Olá! Quero comprar ${tema.nome} no plano ${plano.nome}, por ${fmtBRL(plano.preco)}.`);
       return falha(`${esc(d.erro || "Não foi possível iniciar o pagamento.")}${r.status >= 500 && w ? ` <a href="${esc(w)}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a> para comprar agora.` : ""}`);
     }
     guardado.set("nna-pedido", JSON.stringify({ pedido: d.pedido, campanha: form.dataset.camp, plano: form.dataset.planoPedido }));
+    if (d.formulario) { // IPG do Sicredi: envia o formulário assinado pelo servidor para a página segura de pagamento
+      const ipg = document.createElement("form"); ipg.method = "post"; ipg.action = d.formulario.acao; ipg.hidden = true;
+      for (const [k, v] of Object.entries(d.formulario.campos)) { const i = document.createElement("input"); i.type = "hidden"; i.name = k; i.value = v; ipg.appendChild(i); }
+      document.body.appendChild(ipg); ipg.submit(); return;
+    }
     location.href = d.url;
   } catch { falha("Sem conexão. Tente de novo em instantes."); }
 }
@@ -470,12 +480,20 @@ function viewRetorno() {
 }
 function montarRetorno() {
   const q = new URLSearchParams((location.hash.split("?")[1]) || ""), guardadoP = (() => { try { return JSON.parse(guardado.get("nna-pedido", "null")); } catch { return null; } })();
-  const dados = { pedido: q.get("order_nsu") || (guardadoP && guardadoP.pedido) || "", transacao: q.get("transaction_nsu") || "", slug: q.get("slug") || "" };
+  const dados = { pedido: q.get("order_nsu") || q.get("pedido") || (guardadoP && guardadoP.pedido) || "", transacao: q.get("transaction_nsu") || "", slug: q.get("slug") || "", comprovante: q.get("comprovante") || "" };
+  const ipgEstado = q.get("recusado") ? "recusado" : q.get("espera") ? "espera" : q.get("erro") ? "erro" : "";
   const titulo = $("[data-rt-titulo]"), corpo = $("[data-rt-corpo]"); let tentativas = 0, timer = 0, vivo = true;
   const ajuda = ajudaWhatsApp("Olá! Paguei o Natal no Ar e preciso de ajuda com o acesso.");
   const ajudaHTML = ajuda ? `<p class="hint">Precisa de ajuda? <a href="${esc(ajuda)}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a>.</p>` : "";
   const resumoHTML = r => r ? `<div class="recibo"><div class="rc-linha"><span><small>Coleção</small><b>${esc(r.campanha)}</b></span></div><div class="rc-linha rc-plano"><span><small>Plano</small><b>${esc(r.plano)}</b></span><b class="num">${esc(r.valorTexto)}</b></div></div>` : "";
   async function verificar(reenviar = false) {
+    const voltarPedido = guardadoP ? `#pedido/${guardadoP.campanha}/${guardadoP.plano}` : "#campanhas";
+    if (ipgEstado === "recusado" && !reenviar) { document.body.dataset.retorno = "recusado"; titulo.textContent = "Pagamento não aprovado";
+      corpo.innerHTML = `<p class="lede">O pagamento foi recusado e nada foi cobrado. Confira os dados do cartão ou tente outro cartão.</p><a class="btn grande" href="${voltarPedido}">Tentar de novo</a>${ajudaHTML}`; return; }
+    if (ipgEstado === "espera" && !reenviar) { document.body.dataset.retorno = "pendente"; titulo.textContent = "Aguardando a confirmação do pagamento";
+      corpo.innerHTML = `<p class="lede">Assim que o banco confirmar, o link de acesso chega no seu e-mail. Pode fechar esta página.</p><div class="pg-dica"><b>O pagamento expirou ou não foi concluído?</b> Nada foi cobrado. <a href="${voltarPedido}">Gere um novo pagamento</a>.</div>${ajudaHTML}`; return; }
+    if (ipgEstado === "erro" && !reenviar) { document.body.dataset.retorno = "erro"; titulo.textContent = "Não conseguimos confirmar o pagamento";
+      corpo.innerHTML = `<p class="lede">Se o pagamento foi aprovado, o link de acesso chega no seu e-mail. Se não chegar em alguns minutos, fale com a gente.</p>${ajudaHTML}`; return; }
     if (!dados.pedido) { titulo.textContent = "Não encontramos o pedido"; corpo.innerHTML = `<p class="lede">Abra o link do e-mail de acesso ou faça o pedido de novo.</p><a class="btn" href="#campanhas">Ver campanhas</a>${ajudaHTML}`; return; }
     let d = {};
     try { const r = await fetch("/api/retorno", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...dados, reenviar }) }); d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.erro || ""); }
