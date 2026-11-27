@@ -283,6 +283,8 @@ Ao final, entregue:
 - **Segmento:** loja → "5 presentes até R$ 100" (Presentes por orçamento); serviços → "Pronta para a ceia" (Seu toque nas festas). A tela do celular vira como página (com movimento reduzido, troca direto) e mudam junto: laterais, @ e legenda do post, convite do nome, primeiro dia e destino do botão.
 - **Nome da marca:** campo opcional ("Quer ver com o nome da sua loja/marca?"). O nome entra na arte das 4 telas, no @ e na legenda enquanto a visitante digita. Vazio = "Nome da loja aqui" / "Nome da sua marca". Fica só na aba (sessionStorage `nna-nome-teste`); nada é enviado.
 - **Seu primeiro dia de campanha:** a capa, o título e a instrução do dia 1 do calendário do kit. A configuração fica em `public/amostra/<id>.js` (`abertura`); o teste confere que a instrução é igual ao "Preparar" do kit. Botão "Quero essa campanha · a partir de R$ 89,90" → `#campanha/<id>` rolando até os planos (funciona com o campo vazio).
+- **Vídeo "Veja como editar":** toca sozinho, sem som e em loop, quando aparece na tela (pausa ao sair). Tocar no vídeo pausa e mostra o play.
+- **Galeria (`#galeria`):** cada capa tem o botão "Editar grátis"; cada coleção à venda tem "Comprar · a partir de R$ 89,90" (vai aos planos) e "Ver a campanha"; as em preparação dizem que ainda não estão à venda. Na faixa da página inicial, "Ver 11 modelos →".
 - **Depois:** "Campanhas à venda" (2 cartões com capa, público, preço), "Explorar a galeria" (faixa com as outras 8 coleções) e a gestão mensal como opção secundária.
 - Código: `viewInicio`, `dia1HTML` e `montarAbertura` em `public/js/app.js`; CSS em "abertura: segmento + celular". Teste: `tests/navegador/vitrine.mjs` (celular e computador). Capturas: `docs/capturas/inicio-*.png`.
 

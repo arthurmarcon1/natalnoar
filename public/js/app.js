@@ -211,7 +211,7 @@ function viewInicio() {
 
   <section class="bloco galeria-home" aria-labelledby="gal-t">
     <div class="wrap"><h2 id="gal-t" class="h2-sec">Explorar a galeria</h2><p class="hint">${Object.keys(CATALOGO).length * 11} carrosséis em ${Object.keys(CATALOGO).length} coleções. Toque para abrir e testar.</p></div>
-    <div class="gal-faixa">${outras.map(id => `<a href="#galeria/${id}" class="gh-capa"><img data-capa-camp="${id}" alt="${esc(COLECOES[id].nome)}" loading="lazy"><span>${esc(COLECOES[id].nome)}</span></a>`).join("")}</div>
+    <div class="gal-faixa">${outras.map(id => `<a href="#galeria/${id}" class="gh-capa"><img data-capa-camp="${id}" alt="${esc(COLECOES[id].nome)}" loading="lazy"><span>${esc(COLECOES[id].nome)}</span><span class="gh-ir">Ver ${CATALOGO[id].carrosseis.length} modelos →</span></a>`).join("")}</div>
     <div class="wrap"><a class="btn ghost" href="#galeria">Explorar a galeria</a></div>
   </section>
 
@@ -226,7 +226,7 @@ function viewInicio() {
 function videoHTML(seg) {
   const t = segCampanha(seg), carr = ab(seg).carrossel, v = SITE.videoTutorial || {};
   const tela = v.src
-    ? `<div class="abv-tela tem-video"><video data-video ${v.poster ? `poster="${esc(v.poster)}"` : ""} preload="metadata" playsinline aria-label="Vídeo: como editar sua campanha"><source src="${esc(v.src)}" type="video/mp4">${v.webm ? `<source src="${esc(v.webm)}" type="video/webm">` : ""}</video><button type="button" class="abv-play" data-play aria-label="Assistir ao vídeo">▶</button></div>`
+    ? `<div class="abv-tela tem-video"><video data-video ${v.poster ? `poster="${esc(v.poster)}"` : ""} preload="auto" autoplay muted loop playsinline disablepictureinpicture aria-label="Vídeo: como editar sua campanha"><source src="${esc(v.src)}" type="video/mp4">${v.webm ? `<source src="${esc(v.webm)}" type="video/webm">` : ""}</video><button type="button" class="abv-play" data-play aria-label="Tocar o vídeo" hidden>▶</button></div>`
     : `<div class="abv-tela"><div class="abv-mock" aria-hidden="true">
         <div class="abv-abas"><span class="on">Textos</span><span>Fotos</span><span>Estilo</span><span>Marca</span></div>
         <canvas width="1080" height="1350" data-abv-arte></canvas>
@@ -323,9 +323,19 @@ function montarAbertura() {
   // a volta à mão ao redor de "vem pronto." (uma vez; com movimento reduzido, já aparece pronta)
   const volta = montarVolta(raiz.querySelector(".ab-vp"), ac.signal);
   (async () => { const v = ++versao; const d = await carregar(seg); if (v !== versao) return; dados = d; aplicar(); pintar(); entrar(1); })();
-  // play do vídeo, quando houver
-  document.addEventListener("click", e => { const b = e.target.closest("[data-play]"); if (!b) return; const vd = b.parentElement.querySelector("video"); vd.controls = true; b.hidden = true;
-    Promise.resolve(vd.play()).catch(() => { b.hidden = false; vd.controls = false; toast("Não foi possível tocar o vídeo neste navegador."); }); }, { signal: ac.signal });
+  // vídeo: toca sozinho (sem som, em loop) quando aparece na tela; tocar no vídeo pausa e continua
+  const vio = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
+    const vd = e.target; if (vd.dataset.pausado) return;
+    if (e.isIntersecting) Promise.resolve(vd.play()).catch(() => { const b = vd.parentElement.querySelector("[data-play]"); if (b) b.hidden = false; }); else vd.pause();
+  }), { threshold: .35 }) : null;
+  const ligarVideo = () => { const vd = raiz.querySelector("#como-editar video"); if (!vd || vd.dataset.ligado) return; vd.dataset.ligado = "1"; vd.muted = true;
+    if (vio) vio.observe(vd); else Promise.resolve(vd.play()).catch(() => {}); };
+  ligarVideo(); new MutationObserver(ligarVideo).observe(raiz.querySelector("#como-editar") || raiz, { childList: true });
+  ac.signal.addEventListener("abort", () => vio && vio.disconnect());
+  document.addEventListener("click", e => { const vd = e.target.closest("#como-editar .tem-video") && e.target.closest(".tem-video").querySelector("video"); if (!vd) return;
+    const b = vd.parentElement.querySelector("[data-play]");
+    if (vd.paused) { delete vd.dataset.pausado; b.hidden = true; Promise.resolve(vd.play()).catch(() => { b.hidden = false; toast("Não foi possível tocar o vídeo neste navegador."); }); }
+    else { vd.pause(); vd.dataset.pausado = "1"; b.hidden = false; } }, { signal: ac.signal });
   return { destruir: () => { vivo = false; ac.abort(); volta.parar(); } };
 }
 /* desenha um laço à mão por fora da palavra, com um ponto cereja na ponta do traço */
@@ -552,7 +562,7 @@ function viewGaleria(id) {
   <section class="wrap topo-pag galeria-top">
     <p class="eyebrow">Galeria de modelos</p>
     <h1>${total} carrosséis, <em>10 coleções</em></h1>
-    <p class="lede">Cada carrossel tem 4 telas editáveis e legenda própria. Toque numa capa para abrir aquela composição no editor.</p>
+    <p class="lede">Cada carrossel tem 4 telas editáveis e legenda própria. Toque em <b>Editar grátis</b> para testar com a sua foto, e em <b>Comprar</b> para levar a campanha.</p>
     <nav class="gal-nav" aria-label="Campanhas">${pubs.map(({ p, camps }) => `<p class="grupo-t">${p.id === "loja" ? "Lojistas" : "Prestadoras de serviço"}</p><div class="chips">${camps.map(({ t }) => `<a class="chip ${t.id === id ? "on" : ""}" href="#galeria/${t.id}">${esc(t.nome)}</a>`).join("")}</div>`).join("")}</nav>
   </section>
   ${pubs.map(({ camps }) => camps.map(({ t, c }) => {
@@ -562,8 +572,11 @@ function viewGaleria(id) {
         <p class="hint">${t.publico === "loja" ? "Para lojistas" : `Para: ${esc(t.paraQuem || "prestadoras de serviço")}`} · ${t.status === "disponivel" ? `<span class="selo ok">À venda</span>` : `<span class="selo prep">Em preparação</span>`}</p></div>
         <span class="ident-cores" aria-hidden="true">${cores.map(h => `<span style="background:${h}"></span>`).join("")}</span></div>
       <p class="gal-ident">${esc(col.identidade)}</p>
+      <div class="gal-acoes">${t.status === "disponivel"
+        ? `<a class="btn" href="#campanha/${c.id}" data-voltar-planos><span>Comprar · ${semQuebra(aPartirMin)}</span></a><a class="btn ghost" href="#campanha/${c.id}">Ver a campanha</a>`
+        : `<p class="hint">Ainda não está à venda: o kit completo (Reels, Stories e calendário) está em preparação. Os carrosséis já dá para editar grátis.</p>`}</div>
       ${GRUPOS.map(([n, g, plano]) => `<p class="grupo-t">${esc(g)} <span class="hint">· ${n === 1 ? plano : `entra no ${plano}`}</span></p>
-        <div class="gal-capas">${c.carrosseis.filter(x => x.nivel === n).map(x => `<a class="gal-capa" href="#editar/${c.id}/${x.id}" title="${esc(x.ideia)}"><img data-gal="${c.id}/${x.id}" alt="Capa: ${esc(x.nome)}" width="270" height="338"><span>${esc(x.nome)}</span></a>`).join("")}</div>`).join("")}
+        <div class="gal-capas">${c.carrosseis.filter(x => x.nivel === n).map(x => `<a class="gal-capa" href="#editar/${c.id}/${x.id}" title="${esc(x.ideia)}"><span class="gal-img"><img data-gal="${c.id}/${x.id}" alt="Capa: ${esc(x.nome)}" width="270" height="338"></span><span class="gal-nome">${esc(x.nome)}</span><span class="gal-btn">Editar grátis</span></a>`).join("")}</div>`).join("")}
     </section>`;
   }).join("")).join("")}`;
 }

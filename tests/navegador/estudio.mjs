@@ -56,6 +56,7 @@ await page.locator('[data-gal="favoritos-da-loja/preco-amigo"]').scrollIntoViewI
 ok(await page.locator('[data-gal="favoritos-da-loja/preco-amigo"]').evaluate(i => i.naturalWidth > 0), "capa desenhada ao entrar na tela");
 ok(await semRolagem(), "galeria sem rolagem lateral");
 await page.screenshot({ path: `${out}/galeria-favoritos.png` });
+ok(await page.locator(".gal-btn").count() === 110 && await page.locator('#gal-presentes-por-orcamento .gal-acoes a[href="#campanha/presentes-por-orcamento"]').first().isVisible() && /Comprar/.test(await page.locator("#gal-presentes-por-orcamento .gal-acoes").innerText()) && await page.locator("#gal-favoritos-da-loja .gal-acoes a.btn").count() === 0, "galeria: \"Editar grátis\" em cada capa, \"Comprar\" nas coleções à venda");
 await page.locator('[data-gal="favoritos-da-loja/preco-amigo"]').click(); await pronto();
 ok(await page.evaluate(() => location.hash) === "#editar/favoritos-da-loja/preco-amigo" && await api(e => e.carrossel()) === "preco-amigo", "tocar na capa abre exatamente aquela composição no editor");
 
