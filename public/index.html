@@ -446,6 +446,20 @@ body[data-tela="inicio"] .topo{background:rgba(255,251,246,.94)}
 .plano{position:relative;background:var(--superficie);border:2px solid var(--linha);border-radius:18px;padding:16px;cursor:pointer;display:grid;gap:8px;align-content:start;transition:border-color var(--t),box-shadow var(--t),transform var(--t)}
 .plano:hover{border-color:#C9BFAF}
 .plano.on{border-color:var(--cereja);box-shadow:0 16px 34px -22px rgba(179,18,46,.8);transform:translateY(-2px)}
+.pl-tag{position:absolute;top:-11px;left:16px;background:var(--cereja);color:#fff;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.plano.recomendado{margin-top:6px}
+.cv-folha{width:min(100%,760px);max-width:100%;max-height:92vh;max-height:92dvh;margin:auto auto 0;padding:18px 16px 12px;border:0;border-radius:24px 24px 0 0;background:var(--fundo,#FBF8F3);color:var(--tinta);overflow:auto;overscroll-behavior:contain;box-shadow:0 -20px 50px -20px rgba(40,10,20,.5)}
+@media (min-width:760px){.cv-folha{margin:auto;border-radius:24px;padding:24px}}
+.cv-folha::backdrop{background:rgba(30,12,18,.5)}
+.cv-folha[open]{animation:cv-sobe .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes cv-sobe{from{transform:translateY(40px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cv-folha[open]{animation:none}}
+.cv-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.cv-cab .sub-t{margin:2px 0 0}
+.cv-x{flex:none;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--linha);background:#fff;font-size:1.5rem;line-height:1;cursor:pointer;color:var(--tinta)}
+.cv-txt{margin:8px 0 4px;color:var(--suave)}
+.cv-folha .pl-acao{bottom:0}
+.cv-folha .pl-escolhido{display:none}
 .pl-topo{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .pl-nome{font-family:var(--serif);font-weight:600;font-size:1.35rem;line-height:1.1}
 .pl-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--linha);flex:none;display:grid;place-items:center;transition:background var(--t),border-color var(--t)}

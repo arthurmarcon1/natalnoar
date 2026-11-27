@@ -26,9 +26,12 @@ const cabe = async (rotulo, n = 4, sel = "#estudio") => {
   const r = await api((e, n) => Array.from({ length: n }, (_, i) => e.medir(i)).flat().filter(b => b.cortou || b.x < -1 || b.y < -1 || b.x + b.w > 1081 || b.y + b.h > 1351).map(b => `${b.campo}:${b.cortou ? "cortou" : "fora"}`), n, sel);
   ok(r.length === 0, `${rotulo}: textos cabem nas 4 telas ${r.join(" ")}`);
 };
+/* convite para comprar (teste grátis): espera aparecer e fecha em "Continuar editando" */
+const fecharConvite = async () => { await w(1700); if (await page.locator(".cv-folha[open]").count()) { await page.locator(".cv-folha .btn[data-cv-fechar]").click(); await w(200); } };
 /* exporta o zip e confere: 4 PNGs 1080 × 1350, em ordem, pixel a pixel iguais à prévia */
 async function exportar(rotulo, sel = "#estudio") {
   const [dl] = await Promise.all([page.waitForEvent("download"), page.locator(`${sel} [data-es-zip]`).click()]);
+  await fecharConvite();
   const zip = readFileSync(await dl.path()); writeFileSync(`${out}/${dl.suggestedFilename()}`, zip);
   const arqs = []; let p = 0;
   while (zip.readUInt32LE(p) === 0x04034b50) { const n = zip.readUInt32LE(p + 18), ln = zip.readUInt16LE(p + 26); arqs.push({ nome: zip.slice(p + 30, p + 30 + ln).toString(), dados: zip.slice(p + 30 + ln, p + 30 + ln + n) }); p += 30 + ln + n; }
@@ -73,7 +76,17 @@ await page.locator("[data-es-logo]").setInputFiles({ name: "logo.png", mimeType:
 ok(await api(e => e.estado().logo), "logo inserido");
 ok((await api(e => [0, 1, 2, 3].map(i => e.medir(i).some(b => b.logo)))).every(Boolean), "logo aparece nas 4 telas no lugar do nome");
 await aba("fotos"); await tela(1);
-await page.locator('[data-es-arquivo="0"]').first().setInputFiles(jpeg("10-camisa.jpg")); await w(800);
+await page.locator('[data-es-arquivo="0"]').first().setInputFiles(jpeg("10-camisa.jpg")); await w(1700);
+{ const cv = page.locator(".cv-folha[open]");
+  ok(await cv.count() === 1 && /Ficou bom com a sua foto/.test(await cv.locator("h2").innerText()) && await cv.locator(".plano").count() === 3, "1ª foto própria: sobe o convite com os 3 planos");
+  ok(await cv.locator('.plano.on[data-plano="natal-completo"] .pl-tag').count() === 1 && /Natal Completo/.test(await cv.locator("#pl-botao").innerText()), "convite: Natal Completo recomendado e já marcado");
+  await w(1500); await page.screenshot({ path: `${out}/convite-foto.png` });
+  await cv.locator('[data-plano="natal-virada"]').click(); await w(200);
+  ok(/Natal \+ Virada/.test(await cv.locator("#pl-botao").innerText()) && (await cv.locator("#pl-botao a").getAttribute("href")) === "#pedido/presentes-por-orcamento/natal-virada", "convite: trocar de plano muda o botão de compra");
+  await cv.locator(".btn[data-cv-fechar]").click(); await w(300);
+  ok(await page.locator(".cv-folha").count() === 0, "\"Continuar editando\" fecha o convite"); }
+await page.locator('[data-es-arquivo="0"]').first().setInputFiles(jpeg("10-camisa.jpg")); await w(1700);
+ok(await page.locator(".cv-folha").count() === 0, "o convite da foto aparece uma vez só");
 await page.locator('[data-es-aj="zoom"][data-k="0"]').fill("1.6"); await page.locator('[data-es-aj="fx"][data-k="0"]').fill("0.3"); await w(300);
 ok((await page.evaluate(() => document.getElementById("estudio").dataset.marcas)) === "limpa,amostra,limpa,limpa", "teste grátis: só a tela com foto própria leva AMOSTRA");
 await aba("textos"); await tela(3);
@@ -126,7 +139,7 @@ await aba("marca"); await page.locator("[data-es-marca]").fill("Studio Lu Make")
 await aba("textos"); await tela(0);
 await campo("titulo", "3 estilos de maquiagem para as festas de fim de ano da sua *agenda*");
 await aba("fotos"); await tela(2);
-await page.locator('[data-es-arquivo="0"]').first().setInputFiles(jpeg("21-esmaltes.jpg")); await w(800);
+await page.locator('[data-es-arquivo="0"]').first().setInputFiles(jpeg("21-esmaltes.jpg")); await fecharConvite();
 await aba("estilo");
 await page.locator('[data-es-cor="fundo"][data-hex="#3B1E2B"]').click(); await page.locator('[data-es-cor="texto"][data-hex="#F4DCD6"]').click();
 await page.locator('[data-es-aplicar="colecao"]').click(); await w(500);
@@ -140,7 +153,8 @@ await page.goto(URL + "#editar/um-tempo-para-cuidar/ano-cuidado"); await pronto(
 ok((await api(e => e.estilo().fundo)) === "#2F3B2E", "Réveillon usa a variação de virada da coleção");
 await aba("textos"); await campo("ano", "2027"); await campo("titulo", "Um ano inteiro de cuidado, carinho e muitas pausas *merecidas*");
 await aba("fotos");
-await page.locator('[data-es-arquivo="1"]').first().setInputFiles(jpeg("20-spa.jpg")); await w(800);
+await page.locator('[data-es-arquivo="1"]').first().setInputFiles(jpeg("20-spa.jpg")); await w(1700);
+ok(await page.locator(".cv-folha").count() === 0, "coleção em preparação: sem convite de compra");
 await aba("marca"); await page.locator("[data-es-logo]").setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: Buffer.from(logo, "base64") }); await w(500);
 await aba("estilo"); await page.locator('[data-es-icone="floco"]').click(); await page.locator('[data-es-cor="destaque"][data-hex="#B88A7A"]').click(); await page.locator('[data-es-aplicar="colecao"]').click(); await w(500);
 await cabe("Réveillon");

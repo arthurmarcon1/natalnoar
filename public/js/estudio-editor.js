@@ -57,6 +57,7 @@ const pick = (o, ks) => Object.fromEntries(ks.filter(k => o && o[k] != null).map
 /**
  * @param raiz    elemento
  * @param op      { campanha, carrossel, modo: "teste"|"kit", nivel (1..3), toast, aoTrocar?(id),
+ *                  aoMarco?("foto"|"baixar") (teste grátis: trocou a 1ª foto própria / baixou as telas),
  *                  pecas?: lista própria (ex.: sequências de Stories da área paga, cada uma { id, nivel, nome, ideia, telas }),
  *                  tipo?: "carrossel" | "stories", lateral?(peça) → HTML da coluna ao lado (no lugar da legenda) }
  */
@@ -64,6 +65,7 @@ export function montarEstudio(raiz, op) {
   const camp = CATALOGO[op.campanha]; if (!camp) { raiz.innerHTML = `<p class="aviso">Campanha não encontrada.</p>`; return null; }
   const modo = op.modo === "kit" ? "kit" : "teste", teste = modo === "teste", nivel = op.nivel || 3, toast = op.toast || (() => {});
   const stories = op.tipo === "stories";
+  const marco = tipo => { if (teste && op.aoMarco) op.aoMarco(tipo); };
   const col = COLECOES[camp.id], lista = (op.pecas || camp.carrosseis).filter(x => x.nivel <= nivel);
   const N = lista[0].telas.length, H = alturaDoLayout(lista[0].telas[0].l), qtd = N === 4 ? "4" : String(N);
   let carr = lista.find(x => x.id === op.carrossel) || lista[0];
@@ -313,15 +315,15 @@ export function montarEstudio(raiz, op) {
       catch { const r = document.createRange(); r.selectNodeContents($("[data-es-legenda]")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Legenda selecionada. Use copiar do seu aparelho."); }
       return;
     }
-    if (el("[data-es-png]")) { const fs = await arquivos(); for (const f of fs) { baixar(f.blob, f.name); await espera(350); } toast(`${qtd} imagens baixadas, de 01 a 0${N}.`); return; }
+    if (el("[data-es-png]")) { const fs = await arquivos(); for (const f of fs) { baixar(f.blob, f.name); await espera(350); } toast(`${qtd} imagens baixadas, de 01 a 0${N}.`); marco("baixar"); return; }
     if (el("[data-es-zip]")) {
       const fs = await arquivos();
       baixar(new Blob([zipStore(await Promise.all(fs.map(async f => ({ name: f.name, data: new Uint8Array(await f.blob.arrayBuffer()) }))))], { type: "application/zip" }), `${slug(camp.id)}-${slug(carr.id)}.zip`);
-      toast("Arquivo .zip baixado."); return;
+      toast("Arquivo .zip baixado."); marco("baixar"); return;
     }
     if (el("[data-es-share]")) {
       const fs = await arquivos();
-      try { await navigator.share({ files: fs.map(f => new File([f.blob], f.name, { type: "image/png" })), title: carr.nome }); }
+      try { await navigator.share({ files: fs.map(f => new File([f.blob], f.name, { type: "image/png" })), title: carr.nome }); marco("baixar"); }
       catch (err) { if (err && err.name !== "AbortError") toast(`Não deu para compartilhar. Use "Baixar as ${qtd} imagens".`); }
     }
   });
@@ -357,6 +359,7 @@ export function montarEstudio(raiz, op) {
       idb("put", fotoChave(ativa, k), f);
       guardarTelas(); painelFotos(); aviso(); agendar(ativa);
       toast(teste ? "Foto trocada. No teste grátis, esta tela leva a marca AMOSTRA." : "Foto trocada.");
+      marco("foto");
     } catch { toast("Não consegui abrir essa foto. Tente outra (JPG ou PNG)."); }
   });
 

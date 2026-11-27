@@ -50,9 +50,10 @@ function capaCat(campId, carrId, largura) {
   const c = CATALOGO[campId], x = c && (c.carrosseis.find(y => y.id === carrId) || c.carrosseis[0]);
   return x ? miniatura(telaCat(campId, x), { marca: marcaExemplo(campId, x) }, largura).catch(() => "") : Promise.resolve("");
 }
-function planoCard(p) {
+function planoCard(p, { recomendado = "" } = {}) {
   const on = p.id === estado.plano;
-  return `<div class="plano ${on ? "on" : ""}" role="radio" tabindex="${on ? 0 : -1}" aria-checked="${on}" data-plano="${p.id}">
+  return `<div class="plano ${on ? "on" : ""} ${p.id === recomendado ? "recomendado" : ""}" role="radio" tabindex="${on ? 0 : -1}" aria-checked="${on}" data-plano="${p.id}">
+    ${p.id === recomendado ? `<span class="pl-tag">Recomendado</span>` : ""}
     <div class="pl-topo"><b class="pl-nome">${esc(p.nome)}</b><span class="pl-preco num">${fmtBRL(p.preco)}</span><span class="pl-check" aria-hidden="true"></span></div>
     <div class="pl-capas" data-capas="${p.nivel}" aria-hidden="true"></div>
     <p class="pl-qtd">${esc(p.qtd)}</p>
@@ -142,7 +143,7 @@ function desenharTrechoStory(campId) {
   const st = demo.trechos.story;
   desenharExemplo(cv, { ...st, estilo: estiloOriginal(campId, { nivel: 1 }) }, { marca: marcaExemplo(campId, null) });
 }
-const conviteGestao = () => `<p class="convite">Quer alguém cuidando do seu Instagram o ano todo? <a href="#gestao">Gestão mensal</a></p>`;
+const conviteGestao = () => `<p class="cv-folha">Quer alguém cuidando do seu Instagram o ano todo? <a href="#gestao">Gestão mensal</a></p>`;
 
 /* ---------- início ---------- */
 /* estrela desenhada (gira ao toque) e traço de fita entre seções */
@@ -402,6 +403,34 @@ function aplicarPlano(id, foco) {
   const kit = $("#kit"), aberto = kit && kit.open;
   if (kit) { kit.outerHTML = verTudo(demo, p, { trechos: true, tema }); if (aberto) $("#kit").open = true; }
   desenharTrechoStory(tema && tema.id);
+}
+
+/* ---------- convite para comprar, no teste grátis ----------
+   Aparece uma vez por sessão em cada momento: logo depois da 1ª foto própria e depois de baixar as telas.
+   Os três planos, com o Natal Completo (o degrau de R$ 50) recomendado e marcado, se nenhum plano foi escolhido antes. */
+const PLANO_RECOMENDADO = "natal-completo";
+function abrirConvite(tema, tipo) {
+  if (!tema || tema.status !== "disponivel" || !CATALOGO[tema.id]) return;
+  const k = `nna-convite-${tipo}:${tema.id}`;
+  if (guardado.get(k, "", ses) || document.querySelector(".cv-folha[open]")) return;
+  guardado.set(k, "1", ses);
+  if (!guardado.get("nna-plano", "", ses)) estado.plano = PLANO_RECOMENDADO;
+  const p = planoAtual(), titulo = tipo === "baixar" ? "Suas telas de teste saíram com a marca AMOSTRA" : "Ficou bom com a sua foto?";
+  document.querySelector(".cv-folha")?.remove();
+  document.body.insertAdjacentHTML("beforeend", `<dialog class="cv-folha" aria-labelledby="cv-t">
+    <div class="cv-cab"><div><p class="eyebrow">${esc(tema.nome)}</p><h2 id="cv-t" class="sub-t">${esc(titulo)}</h2></div>
+      <button type="button" class="cv-x" data-cv-fechar aria-label="Fechar">×</button></div>
+    <p class="cv-txt">No kit, todas as telas saem <b>sem marca-d'água</b>, e você recebe também os roteiros de Reels, os Stories, as mensagens e o calendário.</p>
+    <div class="planos" role="radiogroup" aria-label="Planos">${SITE.planos.map(x => planoCard(x, { recomendado: PLANO_RECOMENDADO })).join("")}</div>
+    <p class="pl-todos">${esc(SITE.incluemTodos)}</p>
+    <div class="pl-acao">${resumoPlano(tema, p)}<div id="pl-botao">${botaoComprar(tema, p, "block")}</div>
+      <button type="button" class="btn ghost block" data-cv-fechar>Continuar editando</button></div>
+  </dialog>`);
+  const d = document.querySelector(".cv-folha");
+  d.addEventListener("click", e => { if (e.target === d || e.target.closest("[data-cv-fechar]")) d.close(); });
+  d.addEventListener("close", () => d.remove());
+  preencherCapas(tema);
+  d.showModal(); d.querySelector(".cv-x").focus();
 }
 
 /* ---------- revisão do pedido (modo de testes) ---------- */
@@ -762,7 +791,9 @@ function render(rolar = true) {
     }
     if (r.tela === "editar" && $("#estudio")) {
       const box = $("#estudio");
+      montados.push({ destruir: () => document.querySelector(".cv-folha")?.remove() });
       montados.push(montarEstudio(box, { campanha: box.dataset.camp, carrossel: box.dataset.carr, modo: "teste", nivel: 3, toast,
+        aoMarco: tipo => setTimeout(() => { if (rota().tela === "editar") abrirConvite(temaPorId(SITE, box.dataset.camp), tipo); }, tipo === "foto" ? 1400 : 900),
         aoTrocar: id => { const h = `#editar/${box.dataset.camp}/${id}`; if (location.hash !== h) { history.replaceState(null, "", h); telaAtual = "editar" + box.dataset.camp + id; } } }));
     }
     if (r.tela === "area" && estado.area && estado.area.campanha) montarArea(r.id || "calendario", r.carr);
